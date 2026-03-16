@@ -5256,7 +5256,7 @@ function NotifichePanel({ notifiche, userId, userRole, employees, onMarkRead, on
 
   const unread = visibili.filter(n => !n.lette.includes(userId)).length;
 
-  const ICONE = { timbratura:'🕰️', malattia:'🩺', reminder:'🔔', reset:'🔐', permesso:'📋', ferie:'✈️', reperibilita:'🙋', gestione_tel:'☎️', straordinario:'📈' };
+  const ICONE = { timbratura:'🕰️', malattia:'🩺', reminder:'🔔', reset:'🔐', permesso:'📋', ferie:'✈️', reperibilita:'🙋', gestione_tel:'☎️', straordinario:'📈', 'nota-spese':'💳' };
   const empName = id => { const e = employees.find(x=>x.id===id); return e ? `${e.nome} ${e.cognome}` : ''; };
   const fmtTime = ts => {
     const d = new Date(ts), now = new Date();
@@ -5309,8 +5309,8 @@ function NotifichePanel({ notifiche, userId, userRole, employees, onMarkRead, on
 
 // Pagina notifiche (master, direttore, responsabile)
 function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onMarkAllRead }) {
-  const ICONE = { timbratura:'🕰️', malattia:'🩺', reminder:'🔔', reset:'🔐', permesso:'📋', ferie:'✈️', reperibilita:'🙋', gestione_tel:'☎️', straordinario:'📈' };
-  const TIPI  = { timbratura:'Timbratura', malattia:'Malattia', reminder:'Reminder', reset:'Reset password', permesso:'Permesso orario', ferie:'Ferie', reperibilita:'Reperibilità', gestione_tel:'Gestione telefonica', straordinario:'Straordinario' };
+  const ICONE = { timbratura:'🕰️', malattia:'🩺', reminder:'🔔', reset:'🔐', permesso:'📋', ferie:'✈️', reperibilita:'🙋', gestione_tel:'☎️', straordinario:'📈', 'nota-spese':'💳' };
+  const TIPI  = { timbratura:'Timbratura', malattia:'Malattia', reminder:'Reminder', reset:'Reset password', permesso:'Permesso orario', ferie:'Ferie', reperibilita:'Reperibilità', gestione_tel:'Gestione telefonica', straordinario:'Straordinario', 'nota-spese':'Note Spese' };
   const [filtro, setFiltro] = useState('tutte');
   const [ricerca, setRicerca] = useState('');
   const [filtroDip, setFiltroDip] = useState('');
@@ -5378,7 +5378,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
 
       {/* Filtri tipo */}
       <div className="flex gap-2 mb-4 flex-wrap">
-        {['tutte','timbratura','reminder','malattia','reset','permesso','ferie','reperibilita','gestione_tel','straordinario'].map(f=>(
+        {['tutte','timbratura','reminder','malattia','reset','permesso','ferie','reperibilita','gestione_tel','straordinario','nota-spese'].map(f=>(
           <button key={f} onClick={()=>setFiltro(f)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${filtro===f?'bg-slate-800 text-white':'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
             {f==='tutte'?'Tutte':`${ICONE[f]||''} ${TIPI[f]||f}`}
@@ -5450,7 +5450,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
             reminder:'bg-amber-100 text-amber-700', reset:'bg-slate-100 text-slate-600',
             permesso:'bg-violet-100 text-violet-700', ferie:'bg-sky-100 text-sky-700',
             reperibilita:'bg-purple-100 text-purple-700', gestione_tel:'bg-indigo-100 text-indigo-700',
-            straordinario:'bg-orange-100 text-orange-700',
+            straordinario:'bg-orange-100 text-orange-700', 'nota-spese':'bg-emerald-100 text-emerald-700',
           };
           return (
             <div key={n.id} onClick={()=>onMarkRead(n.id)}
@@ -5760,14 +5760,14 @@ function NotaSpese({ user, noteSpese, noteSpeseVoci, setNoteSpese, setNoteSpeseV
     }
     const fN2 = v => v.toFixed(2);
     const html = `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Nota Spese — ${user.nome} ${user.cognome} — ${MONTHS_IT[mese-1]} ${anno}</title>
-<style>body{font-family:Arial,sans-serif;font-size:9pt;margin:10mm}h1{text-align:center;font-size:14pt;margin:8px 0}
-.hdr{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px}.hc{border:1px solid #ccc;padding:3px 6px;font-size:8pt}.hl{color:#666;font-size:7pt}
-table{width:100%;border-collapse:collapse;font-size:7.5pt}th,td{border:1px solid #bbb;padding:2px 4px}th{background:#e8f0fe;font-weight:bold;text-align:center}
-td.day{text-align:center;font-weight:bold;width:24px}td.num{text-align:right}td.tot{background:#f5f5f5;font-weight:bold;text-align:right}
-.tr-tot td{font-weight:bold;background:#e8f0fe}.tr-grand td{font-weight:bold;font-size:10pt}
+<style>body{font-family:Arial,sans-serif;font-size:7.5pt;margin:6mm}h1{text-align:center;font-size:11pt;margin:4px 0}
+.hdr{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px}.hc{border:1px solid #ccc;padding:2px 5px;font-size:7pt}.hl{color:#666;font-size:6pt}
+table{width:100%;border-collapse:collapse;font-size:6.5pt}th,td{border:1px solid #bbb;padding:1.5px 3px}th{background:#e8f0fe;font-weight:bold;text-align:center}
+td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.tot{background:#dbeafe;color:#1d4ed8;font-weight:bold;text-align:right}
+.tr-tot td{font-weight:bold;background:#e8f0fe}.tr-grand td{font-weight:bold;font-size:8pt}
 .we{background:#f8f8f8;color:#aaa}
-.fsec{margin-top:12px;font-size:8pt}.srow{display:flex;gap:20px;margin-top:16px}.sbox{flex:1}.sline{border-top:1px solid #666;margin-top:24px}
-@media print{@page{margin:10mm;size:A4 landscape}}</style></head><body>
+.fsec{margin-top:8px;font-size:7pt}.srow{display:flex;gap:16px;margin-top:12px}.sbox{flex:1}.sline{border-top:1px solid #666;margin-top:18px}
+@media print{@page{margin:6mm;size:A4 landscape}}</style></head><body>
 <h1>NOTA SPESE</h1>
 <div class="hdr"><div class="hc"><div class="hl">Dipendente</div><strong>${user.nome} ${user.cognome}</strong></div><div class="hc"><div class="hl">Centro di costo</div><strong>${cdcLabel}</strong></div><div class="hc"><div class="hl">Mese / Anno</div><strong>${MONTHS_IT[mese-1]} ${anno}</strong></div><div class="hc"><div class="hl">Auto (Modello / Targa)</div><strong>${autoLabel}</strong></div></div>
 <table><thead><tr><th rowspan="2">G</th><th rowspan="2">Luogo</th><th rowspan="2">Natura</th><th colspan="4">Vitto e alloggio</th><th colspan="5">Spese viaggio</th></tr>
@@ -5839,23 +5839,23 @@ td.day{text-align:center;font-weight:bold;width:24px}td.num{text-align:right}td.
         <table className="w-full text-xs" style={{minWidth:700}}>
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="px-2 py-2 text-center text-slate-600 font-semibold" rowSpan={2}>G.</th>
-              <th className="px-2 py-2 text-left text-slate-600 font-semibold" rowSpan={2}>Luogo</th>
-              <th className="px-2 py-2 text-left text-slate-600 font-semibold" rowSpan={2}>Natura</th>
-              <th className="px-2 py-1.5 text-center text-blue-700 font-semibold border-l border-blue-100" colSpan={4}>Vitto e alloggio</th>
-              <th className="px-2 py-1.5 text-center text-emerald-700 font-semibold border-l border-emerald-100" colSpan={5}>Spese viaggio</th>
+              <th className="px-2 py-1 text-center text-slate-600 font-semibold" rowSpan={2}>G.</th>
+              <th className="px-2 py-1 text-left text-slate-600 font-semibold" rowSpan={2}>Luogo</th>
+              <th className="px-2 py-1 text-left text-slate-600 font-semibold" rowSpan={2}>Natura</th>
+              <th className="px-2 py-1 text-center text-blue-700 font-semibold border-l border-blue-100" colSpan={4}>Vitto e alloggio</th>
+              <th className="px-2 py-1 text-center text-emerald-700 font-semibold border-l border-emerald-100" colSpan={5}>Spese viaggio</th>
               {!isConfermata && <th rowSpan={2}></th>}
             </tr>
             <tr className="bg-slate-50 border-b border-slate-200 text-right">
-              <th className="px-2 py-1.5 text-slate-500 font-medium border-l border-blue-100">Alloggio</th>
-              <th className="px-2 py-1.5 text-slate-500 font-medium">Vitto</th>
-              <th className="px-2 py-1.5 text-slate-500 font-medium">Rapp.</th>
-              <th className="px-2 py-1.5 text-blue-700 font-bold bg-blue-50">TOT</th>
-              <th className="px-2 py-1.5 text-slate-500 font-medium border-l border-emerald-100">Carb.</th>
-              <th className="px-2 py-1.5 text-slate-500 font-medium">Ped.</th>
-              <th className="px-2 py-1.5 text-slate-500 font-medium">Park.</th>
-              <th className="px-2 py-1.5 text-slate-500 font-medium">Altri</th>
-              <th className="px-2 py-1.5 text-emerald-700 font-bold bg-emerald-50">TOT</th>
+              <th className="px-2 py-1 text-slate-500 font-medium border-l border-blue-100">Alloggio</th>
+              <th className="px-2 py-1 text-slate-500 font-medium">Vitto</th>
+              <th className="px-2 py-1 text-slate-500 font-medium">Rapp.</th>
+              <th className="px-2 py-1 text-blue-700 font-bold bg-blue-50">TOT</th>
+              <th className="px-2 py-1 text-slate-500 font-medium border-l border-emerald-100">Carb.</th>
+              <th className="px-2 py-1 text-slate-500 font-medium">Ped.</th>
+              <th className="px-2 py-1 text-slate-500 font-medium">Park.</th>
+              <th className="px-2 py-1 text-slate-500 font-medium">Altri</th>
+              <th className="px-2 py-1 text-blue-700 font-bold bg-blue-50">TOT</th>
             </tr>
           </thead>
           <tbody>
@@ -5867,8 +5867,8 @@ td.day{text-align:center;font-weight:bold;width:24px}td.num{text-align:right}td.
               if (voci.length === 0) {
                 return (
                   <tr key={g} className={`border-b border-slate-100 ${isWE?'bg-slate-50/60':''}`}>
-                    <td className="px-2 py-1.5 text-center font-bold text-slate-400">{g}</td>
-                    <td className="px-2 py-1.5" colSpan={isConfermata?11:12}></td>
+                    <td className="px-2 py-0.5 text-center font-bold text-slate-400">{g}</td>
+                    <td className="px-2 py-0.5" colSpan={isConfermata?11:12}></td>
                   </tr>
                 );
               }
@@ -5881,19 +5881,19 @@ td.day{text-align:center;font-weight:bold;width:24px}td.num{text-align:right}td.
                 <React.Fragment key={g}>
                   <tr className={`border-b border-slate-100 hover:bg-slate-50 cursor-pointer ${isExp?'bg-blue-50/50':''}`}
                     onClick={() => setExpandedDay(isExp ? null : g)}>
-                    <td className="px-2 py-2 text-center font-bold text-slate-700">{g}</td>
-                    <td className="px-2 py-2 text-slate-600">{luoghiU}</td>
-                    <td className="px-2 py-2 text-slate-600">{natU}</td>
-                    <td className="px-2 py-2 text-right border-l border-blue-50 text-slate-700">{fn(byN['alloggio']||0)}</td>
-                    <td className="px-2 py-2 text-right text-slate-700">{fn(byN['vitto']||0)}</td>
-                    <td className="px-2 py-2 text-right text-slate-700">{fn(byN['rappresentanza']||0)}</td>
-                    <td className="px-2 py-2 text-right font-semibold text-blue-700 bg-blue-50/40">{fn(tVA2)}</td>
-                    <td className="px-2 py-2 text-right border-l border-emerald-50 text-slate-700">{fn(byN['carburante']||0)}</td>
-                    <td className="px-2 py-2 text-right text-slate-700">{fn(byN['pedaggio']||0)}</td>
-                    <td className="px-2 py-2 text-right text-slate-700">{fn(byN['parcheggio']||0)}</td>
-                    <td className="px-2 py-2 text-right text-slate-700">{fn(byN['altri acquisti']||0)}</td>
-                    <td className="px-2 py-2 text-right font-semibold text-emerald-700 bg-emerald-50/40">{fn(tVg2)}</td>
-                    {!isConfermata && <td className="px-2 py-2 text-center text-slate-400 text-xs">{isExp?'▲':'▼'}</td>}
+                    <td className="px-2 py-1 text-center font-bold text-slate-700">{g}</td>
+                    <td className="px-2 py-1 text-slate-600">{luoghiU}</td>
+                    <td className="px-2 py-1 text-slate-600">{natU}</td>
+                    <td className="px-2 py-1 text-right border-l border-blue-50 text-slate-700">{fn(byN['alloggio']||0)}</td>
+                    <td className="px-2 py-1 text-right text-slate-700">{fn(byN['vitto']||0)}</td>
+                    <td className="px-2 py-1 text-right text-slate-700">{fn(byN['rappresentanza']||0)}</td>
+                    <td className="px-2 py-1 text-right font-semibold text-blue-700 bg-blue-50/40">{fn(tVA2)}</td>
+                    <td className="px-2 py-1 text-right border-l border-blue-50 text-slate-700">{fn(byN['carburante']||0)}</td>
+                    <td className="px-2 py-1 text-right text-slate-700">{fn(byN['pedaggio']||0)}</td>
+                    <td className="px-2 py-1 text-right text-slate-700">{fn(byN['parcheggio']||0)}</td>
+                    <td className="px-2 py-1 text-right text-slate-700">{fn(byN['altri acquisti']||0)}</td>
+                    <td className="px-2 py-1 text-right font-semibold text-blue-700 bg-blue-50/40">{fn(tVg2)}</td>
+                    {!isConfermata && <td className="px-2 py-1 text-center text-slate-400 text-xs">{isExp?'▲':'▼'}</td>}
                   </tr>
                   {isExp && (
                     <tr className="border-b border-blue-100">
@@ -5921,21 +5921,21 @@ td.day{text-align:center;font-weight:bold;width:24px}td.num{text-align:right}td.
           </tbody>
           <tfoot>
             <tr className="bg-slate-100 border-t-2 border-slate-300 font-semibold">
-              <td className="px-2 py-2 text-right" colSpan={3}>Totali</td>
-              <td className="px-2 py-2 text-right border-l border-blue-100">{fnT(totCol('alloggio'))}</td>
-              <td className="px-2 py-2 text-right">{fnT(totCol('vitto'))}</td>
-              <td className="px-2 py-2 text-right">{fnT(totCol('rappresentanza'))}</td>
-              <td className="px-2 py-2 text-right text-blue-700 bg-blue-50">{fnT(totVA)}</td>
-              <td className="px-2 py-2 text-right border-l border-emerald-100">{fnT(totCol('carburante'))}</td>
-              <td className="px-2 py-2 text-right">{fnT(totCol('pedaggio'))}</td>
-              <td className="px-2 py-2 text-right">{fnT(totCol('parcheggio'))}</td>
-              <td className="px-2 py-2 text-right">{fnT(totCol('altri acquisti'))}</td>
-              <td className="px-2 py-2 text-right text-emerald-700 bg-emerald-50">{fnT(totVg)}</td>
+              <td className="px-2 py-1.5 text-right" colSpan={3}>Totali</td>
+              <td className="px-2 py-1.5 text-right border-l border-blue-100">{fnT(totCol('alloggio'))}</td>
+              <td className="px-2 py-1.5 text-right">{fnT(totCol('vitto'))}</td>
+              <td className="px-2 py-1.5 text-right">{fnT(totCol('rappresentanza'))}</td>
+              <td className="px-2 py-1.5 text-right text-blue-700 bg-blue-50">{fnT(totVA)}</td>
+              <td className="px-2 py-1.5 text-right border-l border-blue-100">{fnT(totCol('carburante'))}</td>
+              <td className="px-2 py-1.5 text-right">{fnT(totCol('pedaggio'))}</td>
+              <td className="px-2 py-1.5 text-right">{fnT(totCol('parcheggio'))}</td>
+              <td className="px-2 py-1.5 text-right">{fnT(totCol('altri acquisti'))}</td>
+              <td className="px-2 py-1.5 text-right text-blue-700 bg-blue-50">{fnT(totVg)}</td>
               {!isConfermata && <td></td>}
             </tr>
             <tr className="bg-blue-600 text-white font-bold">
-              <td className="px-3 py-3 text-right" colSpan={isConfermata?12:13} style={{fontSize:'10pt'}}>Totale nota spese</td>
-              <td className="px-3 py-3 text-right" style={{fontSize:'10pt'}}>€ {totGen.toFixed(2)}</td>
+              <td className="px-3 py-2 text-right" colSpan={isConfermata?12:13} style={{fontSize:'10pt'}}>Totale nota spese</td>
+              <td className="px-3 py-2 text-right" style={{fontSize:'10pt'}}>€ {totGen.toFixed(2)}</td>
             </tr>
           </tfoot>
         </table>
@@ -6042,18 +6042,18 @@ function NotaSpeseListaMaster({ user, employees, noteSpese, noteSpeseVoci, setti
     }
 
     const html=`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Nota Spese Master — ${emp.nome} ${emp.cognome} — ${MONTHS_IT[mese-1]} ${anno}</title>
-<style>body{font-family:Arial,sans-serif;font-size:8.5pt;margin:8mm}h1{text-align:center;font-size:13pt;margin:6px 0}
-.hdr{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:6px}.hc{border:1px solid #ccc;padding:3px 5px;font-size:7.5pt}.hl{color:#666;font-size:6.5pt}
-table{width:100%;border-collapse:collapse;font-size:7pt}th,td{border:1px solid #bbb;padding:2px 3px}th{background:#e8f0fe;font-weight:bold;text-align:center}
-td.day{text-align:center;font-weight:bold;width:20px}td.num{text-align:right}td.tot{background:#f5f5f5;font-weight:bold;text-align:right}
-.tr-tot td{font-weight:bold;background:#e8f0fe}.tr-grand td{font-weight:bold;font-size:9pt}.we{background:#f8f8f8;color:#aaa}
-.conta{margin-top:10px;background:#969696;color:#fff;padding:8px 10px;font-size:7.5pt;border-radius:4px}
-.conta-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
-.conta-row{display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.2)}
-.conta-label{font-size:6.5pt}.conta-val{font-weight:bold;font-size:7.5pt}
-.conta-note{font-size:6pt;color:#eee;margin-top:4px}
-.fsec{margin-top:10px;font-size:7.5pt}.srow{display:flex;gap:16px;margin-top:12px}.sbox{flex:1}.sline{border-top:1px solid #666;margin-top:20px}
-@media print{@page{margin:8mm;size:A4 landscape}}</style></head><body>
+<style>body{font-family:Arial,sans-serif;font-size:7pt;margin:5mm}h1{text-align:center;font-size:10pt;margin:3px 0}
+.hdr{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:4px}.hc{border:1px solid #ccc;padding:2px 4px;font-size:6.5pt}.hl{color:#666;font-size:5.5pt}
+table{width:100%;border-collapse:collapse;font-size:6pt}th,td{border:1px solid #bbb;padding:1px 2.5px}th{background:#e8f0fe;font-weight:bold;text-align:center}
+td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.tot{background:#dbeafe;color:#1d4ed8;font-weight:bold;text-align:right}
+.tr-tot td{font-weight:bold;background:#e8f0fe}.tr-grand td{font-weight:bold;font-size:7.5pt}.we{background:#f8f8f8;color:#aaa}
+.conta{margin-top:7px;background:#969696;color:#fff;padding:5px 8px;font-size:6.5pt;border-radius:3px}
+.conta-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px}
+.conta-row{display:flex;justify-content:space-between;align-items:center;padding:1.5px 0;border-bottom:1px solid rgba(255,255,255,0.2)}
+.conta-label{font-size:5.5pt}.conta-val{font-weight:bold;font-size:6.5pt}
+.conta-note{font-size:5.5pt;color:#eee;margin-top:3px}
+.fsec{margin-top:7px;font-size:6.5pt}.srow{display:flex;gap:12px;margin-top:10px}.sbox{flex:1}.sline{border-top:1px solid #666;margin-top:16px}
+@media print{@page{margin:5mm;size:A4 landscape}}</style></head><body>
 <h1>NOTA SPESE</h1>
 <div class="hdr"><div class="hc"><div class="hl">Dipendente</div><strong>${emp.nome} ${emp.cognome}</strong></div><div class="hc"><div class="hl">Centro di costo</div><strong>${cdcLabel}</strong></div><div class="hc"><div class="hl">Mese / Anno</div><strong>${MONTHS_IT[mese-1]} ${anno}</strong></div><div class="hc"><div class="hl">Auto (Modello / Targa)</div><strong>${autoLabel}</strong></div></div>
 <table><thead><tr><th rowspan="2">G.</th><th rowspan="2">Luogo</th><th rowspan="2">Natura</th><th rowspan="2">Note</th><th colspan="4">Vitto e alloggio</th><th colspan="5">Spese viaggio</th></tr>
@@ -8137,6 +8137,8 @@ function App() {
   const handleSbloccaNotaSpese = (ns) => {
     const upd = noteSpese.map(x => x.id === ns.id ? {...x, status:'aperta', confirmedAt: null} : x);
     setNoteSpese(upd); saveData('note_spese', upd); DB.sync('note_spese', upd);
+    const nomeMese = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'][ns.mese-1];
+    creaNotifica('nota-spese', `La tua nota spese di ${nomeMese} ${ns.anno} è stata sbloccata. Puoi modificarla e riconfermarla.`, [ns.employeeId], ns.employeeId);
   };
 
   // Not logged in
