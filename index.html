@@ -213,6 +213,13 @@ const _NSV = {
     note:v.note||'', timestamp:v.timestamp||Date.now() }),
 };
 
+const _NW = {
+  from: r => r ? ({ id:r.id, titolo:r.titolo||'', testo:r.testo||'', authorId:r.author_id||null,
+    lette:r.lette||[], timestamp:r.timestamp||Date.now() }) : null,
+  to: n => ({ id:n.id, titolo:n.titolo||'', testo:n.testo||'', author_id:n.authorId||null,
+    lette:n.lette||[], timestamp:n.timestamp||Date.now() }),
+};
+
 async function _syncTable(table, records, toFn) {
   if (!_supa || !records?.length) return;
   const rows = records.map(toFn).filter(Boolean);
@@ -230,7 +237,7 @@ const DB = {
   ready: false,
   async loadAll() {
     if (!_supa) throw new Error('Supabase non disponibile');
-    const [eR,tR,mR,pR,fR,rR,gR,nR,sR,stR,nsR,nsvR] = await Promise.all([
+    const [eR,tR,mR,pR,fR,rR,gR,nR,sR,stR,nsR,nsvR,nwR] = await Promise.all([
       _supa.from('employees').select('*'),
       _supa.from('timbrature').select('*'),
       _supa.from('malattie').select('*'),
@@ -243,6 +250,7 @@ const DB = {
       _supa.from('straordinari').select('*'),
       _supa.from('note_spese').select('*'),
       _supa.from('note_spese_voci').select('*'),
+      _supa.from('news').select('*').order('timestamp', { ascending: false }),
     ]);
     if (eR.error) throw new Error('Connessione Supabase fallita: ' + eR.error.message);
     return {
@@ -258,6 +266,7 @@ const DB = {
       straordinari:         (stR.data||[]).map(_ST.from).filter(Boolean),
       note_spese:           (nsR.data||[]).map(_NS.from).filter(Boolean),
       note_spese_voci:      (nsvR.data||[]).map(_NSV.from).filter(Boolean),
+      news:                 (nwR.data||[]).map(_NW.from).filter(Boolean),
     };
   },
   async sync(key, data) {
@@ -274,6 +283,7 @@ const DB = {
       case 'straordinari':         return _syncTable('straordinari',         data, _ST.to);
       case 'note_spese':           return _syncTable('note_spese',           data, _NS.to);
       case 'note_spese_voci':      return _syncTable('note_spese_voci',      data, _NSV.to);
+      case 'news':                 return _syncTable('news',                 data, _NW.to);
       case 'hr_settings': {
         if (!data) return;
         const { error } = await _supa.from('settings').update(_S.to(data)).eq('id', 1);
@@ -883,7 +893,9 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     { id:'ferie',           label:'Ferie',             icon:'✈️' },
     ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'📈' }] : []),
     ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gestione tel.', icon:'☎️' }] : []),
-    { id:'note-spese', label:'Note Spese', icon:'💳' },
+    { id:'note-spese',    label:'Note Spese',          icon:'💳' },
+    { id:'news',          label:'News',                icon:'📢' },
+    { id:'chiusure-view', label:'Chiusure aziendali',  icon:'🏢' },
     ...(!hasAreaSpecifica ? [{ id:'notifiche', label:'Notifiche', icon:'🔔', badge: true }] : []),
   ];
 
@@ -891,15 +903,18 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     { id:'dipendenti',           label:'Dipendenti',          icon:'👥' },
     { id:'report',               label:'Report presenze',     icon:'📊' },
     { id:'note-spese-master',    label:'Note Spese',          icon:'💳' },
+    { id:'news-editor',          label:'Invia News',          icon:'📢' },
     { id:'notifiche',            label:'Notifiche',           icon:'🔔', badge: true },
     { id:'manutenzione',         label:'Manutenzione',        icon:'⚙️' },
   ] : r=== RUOLI.DIRETTORE ? [
     { id:'dipendenti',           label:'Dipendenti',          icon:'👥' },
     { id:'report',               label:'Report presenze',     icon:'📊' },
     { id:'calendario-team',      label:'Calendario',          icon:'📅' },
+    { id:'calendario-chiusure',  label:'Chiusure aziendali',  icon:'🏢' },
     { id:'approva-permessi',     label:'Approva permessi',    icon:'📋' },
     { id:'approva-ferie',        label:'Approva ferie',       icon:'✈️' },
     { id:'approva-straordinari', label:'Approva straordinari',icon:'📈' },
+    { id:'news-editor',          label:'Invia News',          icon:'📢' },
     { id:'notifiche',            label:'Notifiche',           icon:'🔔', badge: true },
   ] : isResponsabile ? [
     { id:'dipendenti',           label:'Il mio team',         icon:'👥' },
@@ -921,7 +936,9 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     { id:'ferie',           label:'Ferie',             icon:'✈️' },
     ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'📈' }] : []),
     ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gestione tel.', icon:'☎️' }] : []),
-    { id:'note-spese', label:'Note Spese', icon:'💳' },
+    { id:'note-spese',    label:'Note Spese',         icon:'💳' },
+    { id:'news',          label:'News',               icon:'📢' },
+    { id:'chiusure-view', label:'Chiusure aziendali', icon:'🏢' },
     { id:'notifiche', label:'Notifiche', icon:'🔔', badge: true },
   ];
 
@@ -1109,7 +1126,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
 // ============================================================
 // DASHBOARD
 // ============================================================
-function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari, setView, setSelectedEmployee }) {
+function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari, setView, setSelectedEmployee, news, settings }) {
   const r = user.ruolo;
   const td = todayStr();
   const myToday  = timbrature.find(t => t.employeeId===user.id && t.data===td);
@@ -1180,12 +1197,17 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     { id:'permessi',          label:'Permessi orari',      icon:'📋', color:'bg-violet-600' },
     { id:'ferie',             label:'Ferie',               icon:'✈️', color:'bg-teal-600' },
     ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'📈', color:'bg-orange-500' }] : []),
+    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. Tel.', icon:'☎️', color:'bg-indigo-500' }] : []),
+    { id:'note-spese',        label:'Note Spese',          icon:'💳', color:'bg-emerald-700' },
+    { id:'news',              label:'News',                icon:'📢', color:'bg-pink-600' },
     { id:'mia-anagrafica',    label:'La mia anagrafica',   icon:'👤', color:'bg-slate-600' },
   ];
   const navTilesMaster = [
     { id:'dipendenti',           label:'Dipendenti',          icon:'👥', color:'bg-emerald-600' },
     { id:'report',               label:'Report presenze',     icon:'📊', color:'bg-violet-600' },
     { id:'dipendente-form',      label:'Nuovo dipendente',    icon:'➕', color:'bg-sky-500' },
+    { id:'note-spese-master',    label:'Note Spese',          icon:'💳', color:'bg-emerald-600' },
+    { id:'news-editor',          label:'Invia News',          icon:'📢', color:'bg-pink-600' },
     { id:'notifiche',            label:'Notifiche',           icon:'🔔', color:'bg-blue-700' },
     { id:'manutenzione',         label:'Manutenzione',        icon:'⚙️', color:'bg-slate-700' },
   ];
@@ -1196,6 +1218,8 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     { id:'approva-permessi',     label:'Approva permessi',    icon:'📋', color:'bg-violet-600' },
     { id:'approva-ferie',        label:'Approva ferie',       icon:'✈️', color:'bg-cyan-600' },
     { id:'approva-straordinari', label:'Approva straord.',    icon:'📈', color:'bg-orange-600' },
+    { id:'calendario-chiusure',  label:'Chiusure aziendali',  icon:'🏢', color:'bg-slate-500' },
+    { id:'news-editor',          label:'Invia News',          icon:'📢', color:'bg-pink-600' },
     { id:'notifiche',            label:'Notifiche',           icon:'🔔', color:'bg-blue-700' },
   ];
   const navTilesResponsabile = [
@@ -1213,6 +1237,10 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     { id:'malattia',       label:'Malattia',          icon:<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:'1em',height:'1em',display:'inline-block',verticalAlign:'middle'}}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15a6 6 0 0 0 6 6h0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>, color:'bg-rose-600' },
     { id:'permessi',       label:'Permessi orari',    icon:'📋', color:'bg-violet-600' },
     { id:'ferie',          label:'Ferie',             icon:'✈️', color:'bg-teal-600' },
+    ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'📈', color:'bg-orange-500' }] : []),
+    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. Tel.', icon:'☎️', color:'bg-indigo-500' }] : []),
+    { id:'note-spese',     label:'Note Spese',        icon:'💳', color:'bg-emerald-700' },
+    { id:'news',           label:'News',              icon:'📢', color:'bg-pink-600' },
     { id:'mia-anagrafica', label:'La mia anagrafica', icon:'👤', color:'bg-slate-600' },
   ];
 
@@ -1345,6 +1373,19 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
           </div>
         </button>
       )}
+
+      {/* Banner News non lette */}
+      {(news||[]).filter(n=>!n.lette.includes(user.id)).slice(0,3).map(n=>(
+        <div key={n.id} onClick={()=>setView('news')}
+          className="mb-3 bg-pink-50 border border-pink-200 rounded-2xl p-4 cursor-pointer hover:bg-pink-100 transition-colors flex items-start gap-3">
+          <span className="text-2xl shrink-0">📢</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-pink-800 text-sm">{n.titolo}</p>
+            <p className="text-pink-600 text-xs mt-0.5 line-clamp-1">{n.testo}</p>
+          </div>
+          <span className="text-xs text-pink-500 font-semibold shrink-0">Nuovo</span>
+        </div>
+      ))}
 
       {/* Reset requests notification for master */}
       {resetList.length > 0 && (
@@ -5256,7 +5297,7 @@ function NotifichePanel({ notifiche, userId, userRole, employees, onMarkRead, on
 
   const unread = visibili.filter(n => !n.lette.includes(userId)).length;
 
-  const ICONE = { timbratura:'🕰️', malattia:'🩺', reminder:'🔔', reset:'🔐', permesso:'📋', ferie:'✈️', reperibilita:'🙋', gestione_tel:'☎️', straordinario:'📈', 'nota-spese':'💳' };
+  const ICONE = { timbratura:'🕰️', malattia:'🩺', reminder:'🔔', reset:'🔐', permesso:'📋', ferie:'✈️', reperibilita:'🙋', gestione_tel:'☎️', straordinario:'📈', 'nota-spese':'💳', news:'📢' };
   const empName = id => { const e = employees.find(x=>x.id===id); return e ? `${e.nome} ${e.cognome}` : ''; };
   const fmtTime = ts => {
     const d = new Date(ts), now = new Date();
@@ -5309,8 +5350,8 @@ function NotifichePanel({ notifiche, userId, userRole, employees, onMarkRead, on
 
 // Pagina notifiche (master, direttore, responsabile)
 function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onMarkAllRead }) {
-  const ICONE = { timbratura:'🕰️', malattia:'🩺', reminder:'🔔', reset:'🔐', permesso:'📋', ferie:'✈️', reperibilita:'🙋', gestione_tel:'☎️', straordinario:'📈', 'nota-spese':'💳' };
-  const TIPI  = { timbratura:'Timbratura', malattia:'Malattia', reminder:'Reminder', reset:'Reset password', permesso:'Permesso orario', ferie:'Ferie', reperibilita:'Reperibilità', gestione_tel:'Gestione telefonica', straordinario:'Straordinario', 'nota-spese':'Note Spese' };
+  const ICONE = { timbratura:'🕰️', malattia:'🩺', reminder:'🔔', reset:'🔐', permesso:'📋', ferie:'✈️', reperibilita:'🙋', gestione_tel:'☎️', straordinario:'📈', 'nota-spese':'💳', news:'📢' };
+  const TIPI  = { timbratura:'Timbratura', malattia:'Malattia', reminder:'Reminder', reset:'Reset password', permesso:'Permesso orario', ferie:'Ferie', reperibilita:'Reperibilità', gestione_tel:'Gestione telefonica', straordinario:'Straordinario', 'nota-spese':'Note Spese', news:'News' };
   const [filtro, setFiltro] = useState('tutte');
   const [ricerca, setRicerca] = useState('');
   const [filtroDip, setFiltroDip] = useState('');
@@ -5378,7 +5419,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
 
       {/* Filtri tipo */}
       <div className="flex gap-2 mb-4 flex-wrap">
-        {['tutte','timbratura','reminder','malattia','reset','permesso','ferie','reperibilita','gestione_tel','straordinario','nota-spese'].map(f=>(
+        {['tutte','timbratura','reminder','malattia','reset','permesso','ferie','reperibilita','gestione_tel','straordinario','nota-spese','news'].map(f=>(
           <button key={f} onClick={()=>setFiltro(f)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${filtro===f?'bg-slate-800 text-white':'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
             {f==='tutte'?'Tutte':`${ICONE[f]||''} ${TIPI[f]||f}`}
@@ -5450,7 +5491,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
             reminder:'bg-amber-100 text-amber-700', reset:'bg-slate-100 text-slate-600',
             permesso:'bg-violet-100 text-violet-700', ferie:'bg-sky-100 text-sky-700',
             reperibilita:'bg-purple-100 text-purple-700', gestione_tel:'bg-indigo-100 text-indigo-700',
-            straordinario:'bg-orange-100 text-orange-700', 'nota-spese':'bg-emerald-100 text-emerald-700',
+            straordinario:'bg-orange-100 text-orange-700', 'nota-spese':'bg-emerald-100 text-emerald-700', news:'bg-pink-100 text-pink-700',
           };
           return (
             <div key={n.id} onClick={()=>onMarkRead(n.id)}
@@ -5982,12 +6023,14 @@ function NotaSpeseListaMaster({ user, employees, noteSpese, noteSpeseVoci, setti
   const now = new Date();
   const [anno, setAnno] = useState(now.getFullYear());
   const [mese, setMese] = useState(now.getMonth() + 1);
-  const [selectedNS, setSelectedNS] = useState(null);
+  const [expandedNS, setExpandedNS] = useState(null);
 
   const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
   const mStr = `${anno}-${String(mese).padStart(2,'0')}`;
 
   const noteConfermate = noteSpese.filter(ns => ns.anno === anno && ns.mese === mese && ns.status === 'confermata');
+  const noteAperte = noteSpese.filter(ns => ns.anno === anno && ns.mese === mese && ns.status === 'aperta' &&
+    noteSpeseVoci.some(v => v.notaSpeseId === ns.id));
 
   const totaleNS = (ns) => {
     const voci = noteSpeseVoci.filter(v => v.notaSpeseId === ns.id);
@@ -6092,10 +6135,29 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>💳 Note Spese — Vista Master</h2>
       </div>
 
+      {/* Navigazione mese */}
       <div className="flex items-center gap-4 mb-5">
         <button onClick={prevMese} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-lg">‹</button>
         <span className="font-bold text-slate-700 text-base min-w-[160px] text-center">{MONTHS_IT[mese-1]} {anno}</span>
         <button onClick={nextMese} disabled={isCurrentMonth} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-lg disabled:opacity-30">›</button>
+      </div>
+
+      {/* Riepilogo aperte / chiuse */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-4">
+          <span className="text-3xl">📝</span>
+          <div>
+            <p className="text-2xl font-bold text-amber-700">{noteAperte.length}</p>
+            <p className="text-xs text-amber-600 font-medium">Compilate ma non chiuse</p>
+          </div>
+        </div>
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-4">
+          <span className="text-3xl">✅</span>
+          <div>
+            <p className="text-2xl font-bold text-emerald-700">{noteConfermate.length}</p>
+            <p className="text-xs text-emerald-600 font-medium">Confermate e chiuse</p>
+          </div>
+        </div>
       </div>
 
       {noteConfermate.length === 0 ? (
@@ -6104,53 +6166,365 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
           <p className="text-slate-500 font-medium">Nessuna nota spese confermata per {MONTHS_IT[mese-1]} {anno}</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-5 py-3 text-left text-slate-600 font-semibold">Dipendente</th>
-                <th className="px-5 py-3 text-left text-slate-600 font-semibold">Ruolo</th>
-                <th className="px-5 py-3 text-right text-slate-600 font-semibold">Totale</th>
-                <th className="px-5 py-3 text-center text-slate-600 font-semibold">Azioni</th>
-              </tr>
-            </thead>
-            <tbody>
-              {noteConfermate.map(ns => {
-                const emp = employees.find(e => e.id === ns.employeeId);
-                if (!emp) return null;
-                const tot = totaleNS(ns);
-                return (
-                  <tr key={ns.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center shrink-0">
-                          {emp.nome[0]}{emp.cognome[0]}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-800">{emp.nome} {emp.cognome}</p>
-                          <p className="text-xs text-slate-400">{emp.registro}</p>
-                        </div>
+        <div className="space-y-4">
+          {noteConfermate.map(ns => {
+            const emp = employees.find(e => e.id === ns.employeeId);
+            if (!emp) return null;
+            const voci = noteSpeseVoci.filter(v => v.notaSpeseId === ns.id);
+            const tot = voci.reduce((s,v) => s+v.importo, 0);
+            const cdc = (settings?.centriDiCosto||[]).find(c => c.id === emp.centroDiCostoId);
+            const cdcLabel = cdc ? `${cdc.numero} - ${cdc.testo}` : '—';
+            const totCol = n => voci.filter(v=>v.natura===n).reduce((s,v)=>s+v.importo,0);
+            const vAS = voci.filter(v=>(v.natura==='vitto'||v.natura==='alloggio')&&v.luogo==='In sede').reduce((s,v)=>s+v.importo,0);
+            const vAF = (totCol('vitto')+totCol('alloggio')) - vAS;
+            const fN = v => `€ ${v.toFixed(2)}`;
+            const isOpen = expandedNS === ns.id;
+            return (
+              <div key={ns.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                {/* Riga principale */}
+                <div className="flex items-center gap-4 px-5 py-4 flex-wrap">
+                  <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center shrink-0">
+                    {emp.nome[0]}{emp.cognome[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-800">{emp.nome} {emp.cognome}</p>
+                    <p className="text-xs text-slate-400">{ROLE_LABELS[emp.ruolo]} · {cdcLabel}</p>
+                  </div>
+                  <span className="font-bold text-slate-700 text-base">€ {tot.toFixed(2)}</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setExpandedNS(isOpen ? null : ns.id)}
+                      className="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors">
+                      {isOpen ? '▲ Chiudi' : '▼ Contabilità'}
+                    </button>
+                    <button onClick={() => onSblocca(ns, emp)}
+                      className="bg-amber-100 text-amber-700 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-200 transition-colors">🔓 Sblocca</button>
+                  </div>
+                </div>
+
+                {/* Riquadro contabilità espandibile */}
+                {isOpen && (
+                  <div className="border-t border-slate-100 bg-slate-700 text-white px-5 py-4 text-sm">
+                    {/* Header contabilità */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 pb-3 border-b border-slate-500">
+                      <div>
+                        <p className="text-slate-400 text-xs mb-0.5">Contabilità</p>
+                        <p className="font-semibold text-xs">—</p>
                       </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[emp.ruolo]}`}>{ROLE_LABELS[emp.ruolo]}</span>
-                    </td>
-                    <td className="px-5 py-4 text-right">
-                      <span className="font-bold text-slate-700 text-base">€ {tot.toFixed(2)}</span>
-                    </td>
-                    <td className="px-5 py-4 text-center">
-                      <div className="flex gap-2 justify-center">
-                        <button onClick={() => handleStampaMaster(ns)}
-                          className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors">🖨️ Stampa</button>
-                        <button onClick={() => onSblocca(ns, emp)}
-                          className="bg-amber-100 text-amber-700 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-200 transition-colors">🔓 Sblocca</button>
+                      <div>
+                        <p className="text-slate-400 text-xs mb-0.5">Centro di costo</p>
+                        <p className="font-semibold text-xs">{cdcLabel}</p>
                       </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <div>
+                        <p className="text-slate-400 text-xs mb-0.5">Registrazione · PN N.</p>
+                        <p className="font-semibold text-xs">—</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-400 text-xs mb-0.5">DEL:</p>
+                        <p className="font-semibold text-xs">—</p>
+                      </div>
+                    </div>
+                    {/* Codici contabili — 2 colonne */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 text-xs mb-3">
+                      <div className="flex justify-between py-1 border-b border-slate-600"><span className="text-slate-300">41244 — Vitto e alloggio fuori dal comune</span><span className="font-bold text-white">{fN(vAF)}</span></div>
+                      <div className="flex justify-between py-1 border-b border-slate-600"><span className="text-slate-300">41211 / 41210 / 41219 — Carburante F/D/A</span><span className="font-bold text-white">{fN(totCol('carburante'))}</span></div>
+                      <div className="flex justify-between py-1 border-b border-slate-600"><span className="text-slate-300">41245 — Vitto e alloggio nel comune</span><span className="font-bold text-white">{fN(vAS)}</span></div>
+                      <div className="flex justify-between py-1 border-b border-slate-600"><span className="text-slate-300">41233 / 41236 / 4046 — Pedaggi F/D/A</span><span className="font-bold text-white">{fN(totCol('pedaggio'))}</span></div>
+                      <div className="flex justify-between py-1 border-b border-slate-600"><span className="text-slate-300">43013 — Rappresentanza vitto e alloggio</span><span className="font-bold text-white">{fN(totCol('rappresentanza'))}</span></div>
+                      <div className="flex justify-between py-1 border-b border-slate-600"><span className="text-slate-300">41246 / 41247 / 41220 — Parcheggi F/D/A</span><span className="font-bold text-white">{fN(totCol('parcheggio'))}</span></div>
+                      <div className="flex justify-between py-1 border-b border-slate-600 md:col-start-2"><span className="text-slate-300">41425 — Acquisto materiali di consumo</span><span className="font-bold text-white">{fN(totCol('altri acquisti'))}</span></div>
+                    </div>
+                    <p className="text-slate-400 text-xs italic">F = FURGONI · D = DIPENDENTI · A = AMMINISTRATORI</p>
+                    <p className="text-slate-400 text-xs mt-2">💡 Stampa questa pagina dal browser per ottenere il report completo</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// NEWS — Storico comunicazioni (tutti i dipendenti)
+// ============================================================
+function News({ user, news, setNews, employees }) {
+  const userId = user.id;
+  const fmtTs = ts => { const d=new Date(ts); return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); };
+  const empName = id => { const e=employees.find(x=>x.id===id); return e?`${e.nome} ${e.cognome}`:'—'; };
+  const sorted = [...news].sort((a,b)=>b.timestamp-a.timestamp);
+  const unread = sorted.filter(n=>!n.lette.includes(userId)).length;
+
+  const markRead = (id) => {
+    setNews(prev => {
+      const upd = prev.map(n => n.id===id && !n.lette.includes(userId) ? {...n, lette:[...n.lette,userId]} : n);
+      saveData('news', upd); DB.sync('news', upd);
+      return upd;
+    });
+  };
+
+  return (
+    <div className="p-4 lg:p-8">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>📢 News</h2>
+          <p className="text-slate-400 text-sm mt-1">Comunicazioni interne aziendali</p>
+        </div>
+        {unread > 0 && <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">{unread} non lette</span>}
+      </div>
+      {sorted.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 text-center">
+          <p className="text-4xl mb-3">📭</p>
+          <p className="text-slate-400">Nessuna comunicazione al momento</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {sorted.map(n => {
+            const letta = n.lette.includes(userId);
+            return (
+              <div key={n.id} onClick={()=>markRead(n.id)}
+                className={`bg-white rounded-2xl shadow-sm border cursor-pointer transition-all hover:shadow-md ${letta?'border-slate-100 opacity-70':'border-blue-200 shadow-blue-50'}`}>
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      {!letta && <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 mt-1"></span>}
+                      <h3 className={`font-bold text-slate-800 text-base leading-snug ${!letta?'':'text-slate-600'}`}>{n.titolo}</h3>
+                    </div>
+                    <span className="text-xs text-slate-400 shrink-0 whitespace-nowrap">{fmtTs(n.timestamp)}</span>
+                  </div>
+                  <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{n.testo}</p>
+                  <p className="text-xs text-slate-400 mt-3">Da: {empName(n.authorId)}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// NEWS EDITOR — Crea e invia comunicazioni (master/dir/amm)
+// ============================================================
+function NewsEditor({ user, news, setNews, employees, onCreaNotifica }) {
+  const [titolo, setTitolo] = useState('');
+  const [testo, setTesto] = useState('');
+  const [sent, setSent] = useState(false);
+  const sorted = [...news].sort((a,b)=>b.timestamp-a.timestamp);
+  const fmtTs = ts => { const d=new Date(ts); return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); };
+  const empName = id => { const e=employees.find(x=>x.id===id); return e?`${e.nome} ${e.cognome}`:'—'; };
+
+  const handleInvia = () => {
+    if (!titolo.trim() || !testo.trim()) return;
+    const newItem = { id: String(Date.now()), titolo: titolo.trim(), testo: testo.trim(), authorId: user.id, lette: [], timestamp: Date.now() };
+    const upd = [newItem, ...news];
+    setNews(upd); saveData('news', upd); DB.sync('news', upd);
+    // Notifica a tutti i dipendenti
+    const tutti = employees.map(e=>e.id);
+    onCreaNotifica('news', `📢 ${titolo.trim()}`, tutti, user.id);
+    setTitolo(''); setTesto('');
+    setSent(true); setTimeout(()=>setSent(false), 2500);
+  };
+
+  const handleElimina = (id) => {
+    if (!confirm('Eliminare questa comunicazione?')) return;
+    const upd = news.filter(n=>n.id!==id);
+    setNews(upd); saveData('news', upd); DB.sync('news', upd);
+  };
+
+  return (
+    <div className="p-4 lg:p-8">
+      <h2 className="text-2xl font-bold text-slate-800 mb-6" style={{fontFamily:'Syne,sans-serif'}}>📢 Invia comunicazione</h2>
+      {/* Form invio */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+        <div className="mb-4">
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Titolo *</label>
+          <input type="text" value={titolo} onChange={e=>setTitolo(e.target.value)} placeholder="es. Aggiornamento orari estivi"
+            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+        <div className="mb-4">
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Testo *</label>
+          <textarea value={testo} onChange={e=>setTesto(e.target.value)} rows={5} placeholder="Scrivi qui il testo della comunicazione..."
+            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"/>
+        </div>
+        <div className="flex justify-end">
+          <button onClick={handleInvia} disabled={!titolo.trim()||!testo.trim()}
+            className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${sent?'bg-emerald-500 text-white':'bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-300'}`}>
+            {sent ? '✅ Inviata!' : '📤 Invia a tutti'}
+          </button>
+        </div>
+      </div>
+      {/* Storico */}
+      <h3 className="text-base font-bold text-slate-700 mb-3">Comunicazioni inviate</h3>
+      {sorted.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400">Nessuna comunicazione inviata</div>
+      ) : (
+        <div className="space-y-3">
+          {sorted.map(n => (
+            <div key={n.id} className="bg-white rounded-2xl border border-slate-100 p-4 flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-slate-800 text-sm">{n.titolo}</p>
+                <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.testo}</p>
+                <p className="text-xs text-slate-400 mt-1">{fmtTs(n.timestamp)} · Da: {empName(n.authorId)} · {n.lette.length} lette</p>
+              </div>
+              <button onClick={()=>handleElimina(n.id)} className="text-red-400 hover:text-red-600 text-xs px-2 py-1 rounded-lg hover:bg-red-50 shrink-0">✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// CALENDARIO CHIUSURE AZIENDALI (Direttore — crea/modifica)
+// ============================================================
+function CalendarioChiusure({ settings, onSave }) {
+  const now = new Date();
+  const [anno, setAnno] = useState(now.getFullYear());
+  const [saved, setSaved] = useState(false);
+  const chiusure = settings?.chiusureAziendali || [];
+
+  const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  const DAYS_IT   = ['D','L','M','M','G','V','S'];
+
+  const isChiusura = (d) => chiusure.includes(d);
+  const toggleGiorno = (d) => {
+    const upd = isChiusura(d) ? chiusure.filter(x=>x!==d) : [...chiusure, d];
+    onSave({...settings, chiusureAziendali: upd});
+    setSaved(true); setTimeout(()=>setSaved(false), 1500);
+  };
+
+  const calMese = (m) => {
+    const firstDay = new Date(anno, m, 1).getDay();
+    const days = new Date(anno, m+1, 0).getDate();
+    return { firstDay, days };
+  };
+
+  return (
+    <div className="p-4 lg:p-8">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🏢 Chiusure aziendali</h2>
+          <p className="text-slate-400 text-sm mt-1">Clicca sui giorni per aggiungere/rimuovere chiusure. Si salvano automaticamente.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {saved && <span className="text-emerald-600 text-sm font-semibold">✅ Salvato!</span>}
+          <div className="flex items-center gap-2">
+            <button onClick={()=>setAnno(a=>a-1)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">‹</button>
+            <span className="font-bold text-slate-700 text-lg w-16 text-center">{anno}</span>
+            <button onClick={()=>setAnno(a=>a+1)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">›</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {Array.from({length:12},(_,m)=>{
+          const {firstDay, days} = calMese(m);
+          const blanks = (firstDay+6)%7; // lunedì = 0
+          return (
+            <div key={m} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+              <p className="font-bold text-slate-700 text-sm mb-3 text-center">{MONTHS_IT[m]}</p>
+              <div className="grid grid-cols-7 gap-0.5 text-center">
+                {DAYS_IT.map((d,i)=><div key={i} className="text-xs font-semibold text-slate-400 py-1">{d}</div>)}
+                {Array.from({length:blanks},(_,i)=><div key={'b'+i}/>)}
+                {Array.from({length:days},(_,i)=>{
+                  const day = i+1;
+                  const str = `${anno}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                  const dow = new Date(anno,m,day).getDay();
+                  const isWE = dow===0||dow===6;
+                  const isCh = isChiusura(str);
+                  return (
+                    <button key={day} onClick={()=>!isWE&&toggleGiorno(str)}
+                      className={`text-xs rounded-lg py-1.5 font-medium transition-colors
+                        ${isWE ? 'text-slate-300 cursor-default' :
+                          isCh ? 'bg-red-500 text-white hover:bg-red-600' :
+                          'text-slate-600 hover:bg-slate-100'}`}>
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {chiusure.filter(d=>d.startsWith(String(anno))).length > 0 && (
+        <div className="mt-6 bg-white rounded-2xl border border-slate-100 p-4">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Chiusure {anno}</p>
+          <div className="flex flex-wrap gap-2">
+            {chiusure.filter(d=>d.startsWith(String(anno))).sort().map(d=>(
+              <span key={d} className="bg-red-100 text-red-700 text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1">
+                {new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short'})}
+                <button onClick={()=>toggleGiorno(d)} className="ml-1 hover:text-red-900">×</button>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// CALENDARIO CHIUSURE — Vista dipendente (sola lettura)
+// ============================================================
+function ChiusureView({ settings }) {
+  const now = new Date();
+  const [anno, setAnno] = useState(now.getFullYear());
+  const chiusure = settings?.chiusureAziendali || [];
+  const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  const DAYS_IT   = ['D','L','M','M','G','V','S'];
+  const calMese = (m) => ({ firstDay: new Date(anno,m,1).getDay(), days: new Date(anno,m+1,0).getDate() });
+
+  return (
+    <div className="p-4 lg:p-8">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🏢 Chiusure aziendali</h2>
+          <p className="text-slate-400 text-sm mt-1">Giorni di chiusura aziendale programmati</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={()=>setAnno(a=>a-1)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">‹</button>
+          <span className="font-bold text-slate-700 text-lg w-16 text-center">{anno}</span>
+          <button onClick={()=>setAnno(a=>a+1)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">›</button>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {Array.from({length:12},(_,m)=>{
+          const {firstDay, days} = calMese(m);
+          const blanks = (firstDay+6)%7;
+          return (
+            <div key={m} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+              <p className="font-bold text-slate-700 text-sm mb-3 text-center">{MONTHS_IT[m]}</p>
+              <div className="grid grid-cols-7 gap-0.5 text-center">
+                {DAYS_IT.map((d,i)=><div key={i} className="text-xs font-semibold text-slate-400 py-1">{d}</div>)}
+                {Array.from({length:blanks},(_,i)=><div key={'b'+i}/>)}
+                {Array.from({length:days},(_,i)=>{
+                  const day=i+1;
+                  const str=`${anno}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                  const dow=new Date(anno,m,day).getDay();
+                  const isWE=dow===0||dow===6;
+                  const isCh=chiusure.includes(str);
+                  return (
+                    <div key={day} className={`text-xs rounded-lg py-1.5 font-medium
+                      ${isWE?'text-slate-300':isCh?'bg-red-500 text-white':'text-slate-600'}`}>
+                      {day}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {chiusure.length === 0 && (
+        <div className="mt-6 bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400">
+          <p className="text-3xl mb-2">📅</p>
+          <p>Nessuna chiusura aziendale programmata</p>
         </div>
       )}
     </div>
@@ -6181,7 +6555,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole }) {
   const [newCdc, setNewCdc] = useState({numero:'', testo:''});
   const [editCdcId, setEditCdcId] = useState(null);
   // ── Auto state ──
-  const [newAuto, setNewAuto] = useState({modello:'', targa:''});
+  const [newAuto, setNewAuto] = useState({modello:'', targa:'', tipologia:'', provenienza:''});
   const [editAutoId, setEditAutoId] = useState(null);
 
   const handleAddCdc = () => {
@@ -6193,9 +6567,9 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole }) {
   const handleDeleteCdc = (id) => setForm(f => ({...f, centriDiCosto: f.centriDiCosto.filter(c => c.id !== id)}));
   const handleAddAuto = () => {
     if (!newAuto.modello.trim() || !newAuto.targa.trim()) return;
-    const updated = [...form.autoList, {id: String(Date.now()), modello: newAuto.modello.trim(), targa: newAuto.targa.trim()}];
+    const updated = [...form.autoList, {id: String(Date.now()), modello: newAuto.modello.trim(), targa: newAuto.targa.trim(), tipologia: newAuto.tipologia||'', provenienza: newAuto.provenienza||''}];
     setForm(f => ({...f, autoList: updated}));
-    setNewAuto({modello:'', targa:''});
+    setNewAuto({modello:'', targa:'', tipologia:'', provenienza:''});
   };
   const handleDeleteAuto = (id) => setForm(f => ({...f, autoList: f.autoList.filter(a => a.id !== id)}));
   const [saved,           setSaved]          = useState(false);
@@ -6540,18 +6914,32 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole }) {
           <div className="space-y-2">
             {form.autoList.map(a => (
               <div key={a.id} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
-                <span className="flex-1 text-slate-700 text-sm font-medium">{a.modello}</span>
-                <span className="font-mono text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded-lg">{a.targa}</span>
-                <button onClick={() => handleDeleteAuto(a.id)} className="text-red-400 hover:text-red-600 text-xs px-2 py-1 rounded-lg hover:bg-red-50">✕</button>
+                <div className="flex-1 min-w-0">
+                  <p className="text-slate-700 text-sm font-medium">{a.modello} <span className="font-mono text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-lg ml-1">{a.targa}</span></p>
+                  {(a.tipologia||a.provenienza) && <p className="text-xs text-slate-400 mt-0.5">{[a.tipologia, a.provenienza].filter(Boolean).join(' · ')}</p>}
+                </div>
+                <button onClick={() => handleDeleteAuto(a.id)} className="text-red-400 hover:text-red-600 text-xs px-2 py-1 rounded-lg hover:bg-red-50 shrink-0">✕</button>
               </div>
             ))}
             {form.autoList.length === 0 && <p className="text-slate-400 text-sm italic">Nessun veicolo inserito.</p>}
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="grid grid-cols-2 gap-2 mb-2">
             <input type="text" placeholder="Modello (es. Fiat Doblò)" value={newAuto.modello} onChange={e => setNewAuto(n => ({...n, modello: e.target.value}))}
-              className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-36"/>
+              className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
             <input type="text" placeholder="Targa (es. AA123BB)" value={newAuto.targa} onChange={e => setNewAuto(n => ({...n, targa: e.target.value.toUpperCase()}))}
-              className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-32 font-mono uppercase"/>
+              className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase"/>
+            <select value={newAuto.tipologia} onChange={e => setNewAuto(n => ({...n, tipologia: e.target.value}))}
+              className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">— Tipologia —</option>
+              {TIPOLOGIE_AUTO.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select value={newAuto.provenienza} onChange={e => setNewAuto(n => ({...n, provenienza: e.target.value}))}
+              className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">— Provenienza —</option>
+              {PROVENIENZA_AUTO.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div className="flex justify-end">
             <button onClick={handleAddAuto} disabled={!newAuto.modello.trim()||!newAuto.targa.trim()}
               className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:bg-slate-300">+ Aggiungi</button>
           </div>
@@ -7552,8 +7940,9 @@ function App() {
   const [reperibilita, setReperibilita] = useState(() => loadData('reperibilita', []));
   const [gestioniTelefoniche, setGestioniTelefoniche] = useState(() => loadData('gestioni_telefoniche', []));
   const [straordinari, setStraordinari] = useState(() => loadData('straordinari', []));
-  const [noteSpese, setNoteSpese]       = useState(() => loadData('note_spese', []));
+  const [noteSpese, setNoteSpese]         = useState(() => loadData('note_spese', []));
   const [noteSpeseVoci, setNoteSpeseVoci] = useState(() => loadData('note_spese_voci', []));
+  const [news, setNews]                   = useState(() => loadData('news', []));
   const [dbLoading, setDbLoading] = useState(true);
   const [dbError,   setDbError]   = useState(null);
 
@@ -7572,6 +7961,7 @@ function App() {
         if (d.straordinari?.length)         setStraordinari(d.straordinari);
         if (d.note_spese?.length)           setNoteSpese(d.note_spese);
         if (d.note_spese_voci?.length)      setNoteSpeseVoci(d.note_spese_voci);
+        if (d.news?.length)                 setNews(d.news);
         DB.ready = true;
         setDbLoading(false);
       })
@@ -7599,6 +7989,7 @@ function App() {
           if (d.straordinari)         setStraordinari(d.straordinari);
           if (d.note_spese)           setNoteSpese(d.note_spese);
           if (d.note_spese_voci)      setNoteSpeseVoci(d.note_spese_voci);
+          if (d.news)                 setNews(d.news);
           if (d.settings && Object.keys(d.settings).length) setSettings(d.settings);
         })
         .catch(() => {});
@@ -8144,7 +8535,9 @@ function App() {
     setNoteSpese(upd); saveData('note_spese', upd); DB.sync('note_spese', upd);
     const emp = employees.find(e => e.id === ns.employeeId);
     const nomeMese = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'][ns.mese-1];
-    creaNotifica('nota-spese', `${emp?.nome} ${emp?.cognome} ha confermato la nota spese di ${nomeMese} ${ns.anno}`, masterIds, ns.employeeId);
+    const respId = emp?.responsabileId;
+    const dest = [...masterIds, ...(respId && !masterIds.includes(respId) ? [respId] : [])];
+    creaNotifica('nota-spese', `${emp?.nome} ${emp?.cognome} ha confermato la nota spese di ${nomeMese} ${ns.anno}`, dest, ns.employeeId);
   };
 
   const handleSbloccaNotaSpese = (ns) => {
@@ -8179,7 +8572,7 @@ function App() {
   const renderView = () => {
     switch (view) {
       case 'dashboard':
-        return <Dashboard user={user} employees={employees} timbrature={timbrature} permessi={permessi} ferie={ferie} straordinari={straordinari} setView={goTo} setSelectedEmployee={setSelectedEmp}/>;
+        return <Dashboard user={user} employees={employees} timbrature={timbrature} permessi={permessi} ferie={ferie} straordinari={straordinari} setView={goTo} setSelectedEmployee={setSelectedEmp} news={news} settings={settings}/>;
       case 'dipendenti':
         if (!canSeeAll(r) && !canSeeTeam(r)) return null;
         return <EmployeeList user={user} employees={employees} setView={goTo} setSelectedEmployee={setSelectedEmp}/>;
@@ -8250,11 +8643,21 @@ function App() {
         if (!canManage(r)) { goTo('dashboard'); return null; }
         return <NotaSpeseListaMaster user={user} employees={employees} noteSpese={noteSpese}
           noteSpeseVoci={noteSpeseVoci} settings={settings} onSblocca={handleSbloccaNotaSpese} />;
+      case 'news':
+        return <News user={user} news={news} setNews={setNews} employees={employees} />;
+      case 'news-editor':
+        if (!canManage(r) && r !== RUOLI.DIRETTORE && r !== RUOLI.AMMINISTRATORE) { goTo('dashboard'); return null; }
+        return <NewsEditor user={user} news={news} setNews={setNews} employees={employees} onCreaNotifica={creaNotifica} />;
+      case 'calendario-chiusure':
+        if (r !== RUOLI.DIRETTORE && !canManage(r)) { goTo('dashboard'); return null; }
+        return <CalendarioChiusure settings={settings} onSave={handleSaveSettings} />;
+      case 'chiusure-view':
+        return <ChiusureView settings={settings} />;
       case 'reset-approva':
         if (!canManage(r) || !selectedEmp) { goTo('dashboard'); return null; }
         return <ResetApprova emp={selectedEmp} onApprova={handleResetApprova} onBack={()=>goTo('dashboard')} />;
       default:
-        return <Dashboard user={user} employees={employees} timbrature={timbrature} permessi={permessi} ferie={ferie} straordinari={straordinari} setView={goTo} setSelectedEmployee={setSelectedEmp}/>;
+        return <Dashboard user={user} employees={employees} timbrature={timbrature} permessi={permessi} ferie={ferie} straordinari={straordinari} setView={goTo} setSelectedEmployee={setSelectedEmp} news={news} settings={settings}/>;
     }
   };
 
