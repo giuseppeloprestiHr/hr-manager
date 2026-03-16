@@ -6210,6 +6210,14 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole }) {
   const [privCopied,      setPrivCopied]     = useState(false);
   const [privShowCode,    setPrivShowCode]   = useState(false);
 
+  // Sincronizza centriDiCosto e autoList quando settings arriva da Supabase
+  React.useEffect(() => {
+    setForm(f => ({...f,
+      centriDiCosto: settings.centriDiCosto || [{id:'1',numero:'100',testo:'Sanitario'}],
+      autoList:      settings.autoList || [],
+    }));
+  }, [settings]);
+
   const handleSave = () => {
     onSave(form);
     setSaved(true);
