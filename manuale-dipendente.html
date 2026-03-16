@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guida Dipendente – HR Manager</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 15px; color: #1e293b; background: #f8fafc; }
+  .cover { background: #1e3a6e; color: #fff; padding: 48px 32px; text-align: center; }
+  .cover h1 { font-size: 30px; font-weight: bold; }
+  .cover .ruolo { margin-top: 10px; background: #2563eb; display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 14px; }
+  .cover p { margin-top: 10px; color: #94a3b8; font-size: 14px; }
+  .container { max-width: 780px; margin: 0 auto; padding: 32px 20px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+  .card h2 { font-size: 18px; font-weight: bold; color: #1e3a6e; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .card h2 .ico { font-size: 22px; }
+  p { line-height: 1.75; margin-bottom: 10px; color: #374151; }
+  ul { padding-left: 20px; margin-bottom: 10px; line-height: 2; color: #374151; }
+  .step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num { background: #1e3a6e; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
+  .info { background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #1e40af; }
+  .warn { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #92400e; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 12px; }
+  @media print { body{background:#fff} .card{break-inside:avoid} @page{margin:1.5cm} }
+</style>
+</head>
+<body>
+<div class="cover">
+  <h1>HR Manager</h1>
+  <div class="ruolo">👤 Guida per il Dipendente</div>
+  <p>Tutto quello che ti serve sapere per usare l'applicativo</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2><span class="ico">🔑</span> Come accedere</h2>
+    <div class="step"><div class="step-num">1</div><div>Apri il browser e vai all'indirizzo dell'app fornito dal tuo amministratore.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Inserisci il tuo <strong>username</strong> e la tua <strong>password</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Al primo accesso ti verrà chiesto di scegliere una nuova password personale.</div></div>
+    <div class="info">Hai dimenticato la password? Clicca <strong>"Password dimenticata?"</strong> nella schermata di login e inserisci il tuo username. L'amministratore riceverà la richiesta e ti fornirà una nuova password temporanea.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">⏱️</span> Timbratura</h2>
+    <p>Ogni giorno devi registrare l'entrata e l'uscita dal lavoro.</p>
+    <div class="step"><div class="step-num">1</div><div>Al mattino, clicca <strong>"Timbra entrata"</strong> dalla dashboard o dal menu Timbratura.</div></div>
+    <div class="step"><div class="step-num">2</div><div>A fine giornata, clicca <strong>"Timbra uscita"</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Se il GPS è obbligatorio per il tuo profilo, il browser ti chiederà il permesso di accedere alla posizione — clicca <strong>"Consenti"</strong>.</div></div>
+    <div class="warn">Non è possibile timbrare due volte nello stesso giorno né modificare una timbratura già registrata. In caso di errore, contatta l'amministratore.</div>
+    <p><strong>Straordinari:</strong> se entri prima o esci dopo l'orario di lavoro standard (oltre la tolleranza consentita), il sistema rileva automaticamente lo straordinario e ti chiede di inserire una breve nota obbligatoria che spieghi il motivo.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🩺</span> Comunicare una malattia</h2>
+    <div class="step"><div class="step-num">1</div><div>Dal menu, clicca su <strong>Malattia</strong>.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Inserisci la data di inizio e la data di fine (anche un solo giorno).</div></div>
+    <div class="step"><div class="step-num">3</div><div>Clicca <strong>Salva</strong>. Il tuo responsabile e l'amministratore riceveranno una notifica.</div></div>
+    <div class="info">I giorni di malattia appaiono in <strong>giallo</strong> nel tuo calendario.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">📋</span> Richiedere un permesso orario</h2>
+    <p>Usa questa funzione per richiedere un'assenza parziale durante la giornata lavorativa (es. visita medica, uscita anticipata).</p>
+    <div class="step"><div class="step-num">1</div><div>Dal menu, clicca su <strong>Permessi orari</strong>.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Clicca <strong>"Nuova richiesta"</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Inserisci la data, l'ora di inizio e l'ora di fine del permesso e il motivo.</div></div>
+    <div class="step"><div class="step-num">4</div><div>Clicca <strong>Invia</strong>. Riceverai una notifica quando la richiesta viene approvata o rifiutata.</div></div>
+    <div class="warn">Il permesso è valido solo dopo l'approvazione del responsabile. Finché è "In attesa" non è confermato.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">✈️</span> Richiedere le ferie</h2>
+    <div class="step"><div class="step-num">1</div><div>Dal menu, clicca su <strong>Ferie</strong>.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Clicca <strong>"Nuova richiesta"</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Inserisci la data di inizio e la data di fine del periodo di ferie.</div></div>
+    <div class="step"><div class="step-num">4</div><div>Clicca <strong>Invia</strong> e attendi l'approvazione.</div></div>
+    <div class="info">Le ferie approvate appaiono in <strong>azzurro</strong> nel calendario. Quelle in attesa appaiono in azzurro tratteggiato.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">📅</span> Il mio calendario</h2>
+    <p>Mostra una vista mensile con tutti i tuoi eventi: presenze (verde), ferie (azzurro), malattie (giallo) e assenze (rosso).</p>
+    <p>Usa le frecce <strong>‹ ›</strong> accanto al nome del mese per navigare tra i mesi passati e futuri.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🔔</span> Notifiche</h2>
+    <p>Il campanellino 🔔 in alto mostra le notifiche ricevute. Il numero rosso indica quelle non ancora lette.</p>
+    <p>Riceverai notifiche per: approvazione o rifiuto di permessi e ferie, esito degli straordinari.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">👤</span> La mia anagrafica</h2>
+    <p>Visualizza i tuoi dati personali registrati nel sistema. Da questa sezione puoi anche <strong>cambiare la tua password</strong>.</p>
+  </div>
+
+</div>
+<div class="footer">HR Manager · Guida Dipendente · Marzo 2026</div>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guida Amministratore – HR Manager</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 15px; color: #1e293b; background: #f8fafc; }
+  .cover { background: #7f1d1d; color: #fff; padding: 48px 32px; text-align: center; }
+  .cover h1 { font-size: 30px; font-weight: bold; }
+  .cover .ruolo { margin-top: 10px; background: #dc2626; display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 14px; }
+  .cover p { margin-top: 10px; color: #fecaca; font-size: 14px; }
+  .container { max-width: 780px; margin: 0 auto; padding: 32px 20px; }
+  .section-label { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin: 28px 0 10px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+  .card h2 { font-size: 18px; font-weight: bold; color: #7f1d1d; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .card h2 .ico { font-size: 22px; }
+  p { line-height: 1.75; margin-bottom: 10px; color: #374151; }
+  ul { padding-left: 20px; margin-bottom: 10px; line-height: 2; color: #374151; }
+  .step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num { background: #7f1d1d; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
+  .info { background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #1e40af; }
+  .warn { background: #fff1f2; border-left: 4px solid #dc2626; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #991b1b; }
+  .ok { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #15803d; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 12px; }
+  @media print { body{background:#fff} .card{break-inside:avoid} @page{margin:1.5cm} }
+</style>
+</head>
+<body>
+<div class="cover">
+  <h1>HR Manager</h1>
+  <div class="ruolo">🔧 Guida per l'Amministratore</div>
+  <p>Gestione dipendenti, report e approvazioni</p>
+</div>
+<div class="container">
+
+  <div class="info" style="margin-bottom:20px">
+    L'amministratore ha accesso a tutte le funzioni del dipendente <strong>più</strong> la gestione completa dell'anagrafica e le funzioni descritte in questa guida. Non può modificare le impostazioni di sistema (riservate al Master).
+  </div>
+
+  <p class="section-label">Gestione dipendenti</p>
+
+  <div class="card">
+    <h2><span class="ico">➕</span> Aggiungere un nuovo dipendente</h2>
+    <div class="step"><div class="step-num">1</div><div>Vai su <strong>Dipendenti</strong> e clicca <strong>"➕ Nuovo dipendente"</strong>.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Compila i campi obbligatori: nome, cognome, numero registro, codice fiscale, email.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Scegli il <strong>ruolo</strong> dal menu a tendina (dipendente, responsabile, direttore, ecc.).</div></div>
+    <div class="step"><div class="step-num">4</div><div>Assegna il <strong>responsabile</strong> di riferimento (se applicabile).</div></div>
+    <div class="step"><div class="step-num">5</div><div>Inserisci username e <strong>password iniziale</strong> (minimo 6 caratteri).</div></div>
+    <div class="step"><div class="step-num">6</div><div>Clicca <strong>Salva</strong>.</div></div>
+    <div class="ok">Al primo accesso il dipendente sarà obbligato a cambiare la password. La password iniziale è solo temporanea.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">✏️</span> Modificare un dipendente</h2>
+    <div class="step"><div class="step-num">1</div><div>Vai su <strong>Dipendenti</strong> e clicca <strong>"Modifica"</strong> accanto al nominativo.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Modifica i dati desiderati. Per cambiare la password inseriscila nel campo apposito, altrimenti lascialo vuoto.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Clicca <strong>Salva</strong>.</div></div>
+    <p>Dal dettaglio del dipendente puoi anche attivare o disattivare:</p>
+    <ul>
+      <li><strong>Accesso</strong>: blocca o sblocca il login del dipendente</li>
+      <li><strong>GPS obbligatorio</strong>: richiede la posizione al momento della timbratura</li>
+      <li><strong>Straordinari</strong>: abilita il rilevamento automatico degli straordinari</li>
+      <li><strong>Reperibilità</strong>: abilita i turni di reperibilità</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🗑️</span> Eliminare un dipendente</h2>
+    <div class="step"><div class="step-num">1</div><div>Vai su <strong>Dipendenti</strong>, clicca su <strong>"Vedi"</strong> accanto al nominativo.</div></div>
+    <div class="step"><div class="step-num">2</div><div>In fondo alla scheda clicca <strong>"Elimina"</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Conferma l'operazione nella finestra di dialogo.</div></div>
+    <div class="warn">L'eliminazione è <strong>irreversibile</strong>. Il dipendente viene rimosso immediatamente per tutti gli utenti connessi. I dati storici (presenze, ferie, ecc.) rimangono nel sistema.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🔑</span> Gestire il reset password</h2>
+    <p>Se un dipendente ha richiesto il reset della password, ricevi una notifica. Per procedere:</p>
+    <div class="step"><div class="step-num">1</div><div>Vai sul dettaglio del dipendente.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Inserisci una nuova password temporanea nel campo apposito e salva.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Comunica la password temporanea al dipendente — al primo accesso verrà forzato il cambio.</div></div>
+  </div>
+
+  <p class="section-label">Report e approvazioni</p>
+
+  <div class="card">
+    <h2><span class="ico">📊</span> Report presenze</h2>
+    <p>Vista completa mensile di tutte le presenze. Usa le frecce per navigare tra i mesi. Clicca <strong>"🖨️ Stampa"</strong> per generare il report stampabile completo di ferie, malattie, permessi e riepilogo per dipendente.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">📋</span> Approva permessi</h2>
+    <p>L'amministratore vede e approva i permessi di tutti i dipendenti (eccetto master e altri amministratori) che sono in stato "In attesa".</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">✈️</span> Approva ferie</h2>
+    <p>L'amministratore approva le ferie di tutti i dipendenti in attesa di approvazione.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🔔</span> Notifiche</h2>
+    <p>L'amministratore riceve notifiche per: comunicazioni di malattia, richieste di reset password e tutte le richieste di permesso/ferie.</p>
+    <p>Nella pagina Notifiche puoi filtrare per dipendente, data e stato (lette/non lette).</p>
+  </div>
+
+</div>
+<div class="footer">HR Manager · Guida Amministratore · Marzo 2026</div>
+</body>
+</html>

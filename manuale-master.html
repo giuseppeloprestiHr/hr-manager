@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guida Master – HR Manager</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 15px; color: #1e293b; background: #f8fafc; }
+  .cover { background: #4c1d95; color: #fff; padding: 48px 32px; text-align: center; }
+  .cover h1 { font-size: 30px; font-weight: bold; }
+  .cover .ruolo { margin-top: 10px; background: #7c3aed; display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 14px; }
+  .cover p { margin-top: 10px; color: #ddd6fe; font-size: 14px; }
+  .container { max-width: 780px; margin: 0 auto; padding: 32px 20px; }
+  .section-label { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin: 28px 0 10px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+  .card h2 { font-size: 18px; font-weight: bold; color: #4c1d95; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .card h2 .ico { font-size: 22px; }
+  p { line-height: 1.75; margin-bottom: 10px; color: #374151; }
+  ul { padding-left: 20px; margin-bottom: 10px; line-height: 2; color: #374151; }
+  .step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num { background: #4c1d95; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
+  .info { background: #f5f3ff; border-left: 4px solid #7c3aed; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #4c1d95; }
+  .warn { background: #fff1f2; border-left: 4px solid #dc2626; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #991b1b; }
+  .ok { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #15803d; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; }
+  th { background:#4c1d95; color:#fff; padding:8px 12px; text-align:left; font-size:12px; }
+  td { padding:8px 12px; border-bottom:1px solid #e2e8f0; }
+  tr:nth-child(even) td { background:#f8fafc; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 12px; }
+  @media print { body{background:#fff} .card{break-inside:avoid} @page{margin:1.5cm} }
+</style>
+</head>
+<body>
+<div class="cover">
+  <h1>HR Manager</h1>
+  <div class="ruolo">👑 Guida per il Master</div>
+  <p>Accesso completo — gestione sistema, dipendenti e impostazioni</p>
+</div>
+<div class="container">
+
+  <div class="info" style="margin-bottom:20px">
+    Il Master ha accesso <strong>completo</strong> a tutte le funzioni del sistema, incluse le impostazioni tecniche. Utilizzare con attenzione le funzioni irreversibili.
+  </div>
+
+  <p class="section-label">Gestione dipendenti</p>
+
+  <div class="card">
+    <h2><span class="ico">👥</span> Dipendenti</h2>
+    <p>Il Master può aggiungere, modificare ed eliminare qualsiasi dipendente, inclusi altri amministratori. Le operazioni sono identiche a quelle dell'amministratore (vedi guida amministratore), con la differenza che il Master può intervenire su tutti i ruoli senza eccezioni.</p>
+    <div class="warn">L'eliminazione di un dipendente è <strong>irreversibile</strong> e viene propagata immediatamente a tutti gli utenti connessi.</div>
+  </div>
+
+  <p class="section-label">Impostazioni di sistema</p>
+
+  <div class="card">
+    <h2><span class="ico">⚙️</span> Manutenzione</h2>
+    <p>Accessibile solo al Master. Permette di configurare i parametri globali dell'applicativo.</p>
+
+    <table>
+      <tr><th>Impostazione</th><th>Descrizione</th></tr>
+      <tr><td><strong>Orario inizio turno</strong></td><td>Orario standard di inizio lavoro (es. 08:30). Usato per calcolare gli straordinari mattina.</td></tr>
+      <tr><td><strong>Orario fine turno</strong></td><td>Orario standard di fine lavoro (es. 17:00). Usato per calcolare gli straordinari sera.</td></tr>
+      <tr><td><strong>Tolleranza (minuti)</strong></td><td>Minuti di flessibilità oltre i quali scatta lo straordinario (es. 15 minuti). Se un dipendente entra 10 minuti prima e la tolleranza è 15, non viene rilevato nessuno straordinario.</td></tr>
+      <tr><td><strong>URL Webhook</strong></td><td>Indirizzo per l'invio di notifiche esterne (opzionale).</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🗑️</span> Reset completo dati</h2>
+    <p>Cancella <strong>tutti</strong> i dati del sistema: timbrature, presenze, ferie, permessi, malattie, notifiche, straordinari. I dati dei dipendenti (anagrafica) vengono ripristinati ai valori iniziali.</p>
+    <div class="warn"><strong>Attenzione: questa operazione è completamente irreversibile.</strong> Tutti i dati storici vengono persi definitivamente. Usare solo in caso di reset totale del sistema prima di una nuova partenza.</div>
+  </div>
+
+  <p class="section-label">Pubblicazione e aggiornamento</p>
+
+  <div class="card">
+    <h2><span class="ico">🚀</span> Aggiornare l'applicativo su GitHub Pages</h2>
+    <p>L'app è pubblicata su GitHub Pages all'indirizzo:</p>
+    <p style="background:#f1f5f9;padding:10px 14px;border-radius:8px;font-family:monospace;font-size:13px">https://giuseppeloprestihr.github.io/hr-manager/</p>
+    <p>Per pubblicare una nuova versione del file <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:13px">index.html</code>:</p>
+    <div class="step"><div class="step-num">1</div><div>Apri <strong>github.com</strong> e accedi con l'account <em>giuseppeloprestiHr</em>.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Apri il repository <strong>hr-manager</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Clicca <strong>Add file → Upload files</strong>.</div></div>
+    <div class="step"><div class="step-num">4</div><div>Trascina il nuovo <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:13px">index.html</code> nella zona tratteggiata.</div></div>
+    <div class="step"><div class="step-num">5</div><div>Clicca <strong>"Commit changes"</strong>. Dopo 1-2 minuti il sito si aggiorna.</div></div>
+    <div class="ok">GitHub sovrascrive automaticamente il file precedente. Non è necessario cancellare nulla prima di caricare la nuova versione.</div>
+  </div>
+
+  <p class="section-label">Riepilogo funzioni per ruolo</p>
+
+  <div class="card">
+    <h2><span class="ico">📋</span> Chi fa cosa</h2>
+    <table>
+      <tr><th>Funzione</th><th>Chi la gestisce</th></tr>
+      <tr><td>Timbratura quotidiana</td><td>Tutti i dipendenti</td></tr>
+      <tr><td>Richiesta permessi/ferie/malattia</td><td>Tutti i dipendenti</td></tr>
+      <tr><td>Approva permessi dipendenti</td><td>Responsabile del dipendente / Amministratore</td></tr>
+      <tr><td>Approva ferie dipendenti</td><td>Responsabile del dipendente</td></tr>
+      <tr><td>Approva permessi dei responsabili</td><td>Direttore</td></tr>
+      <tr><td>Approva straordinari (1° step)</td><td>Responsabile</td></tr>
+      <tr><td>Approva straordinari (2° step, definitivo)</td><td>Direttore</td></tr>
+      <tr><td>Report presenze e stampa</td><td>Direttore, Amministratore, Master</td></tr>
+      <tr><td>Aggiungere / modificare dipendenti</td><td>Amministratore, Master</td></tr>
+      <tr><td>Eliminare dipendenti</td><td>Amministratore, Master</td></tr>
+      <tr><td>Impostazioni sistema e reset</td><td>Solo Master</td></tr>
+    </table>
+  </div>
+
+</div>
+<div class="footer">HR Manager · Guida Master · Marzo 2026</div>
+</body>
+</html>
