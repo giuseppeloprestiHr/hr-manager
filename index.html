@@ -276,8 +276,8 @@ const DB = {
       case 'note_spese_voci':      return _syncTable('note_spese_voci',      data, _NSV.to);
       case 'hr_settings': {
         if (!data) return;
-        const { error } = await _supa.from('settings').upsert({ id:1, ..._S.to(data) }, { onConflict:'id' });
-        if (error) throw error;
+        const { error } = await _supa.from('settings').update(_S.to(data)).eq('id', 1);
+        if (error) { console.error('[DB] settings update error:', error.message); throw error; }
         break;
       }
     }
@@ -7668,10 +7668,15 @@ function App() {
       invia(cfg.privateWebhookUrl, cfg.privateCalendarId || '');
   }, []);
 
-  const handleSaveSettings = (newSettings) => {
+  const handleSaveSettings = async (newSettings) => {
     setSettings(newSettings);
     saveData('hr_settings', newSettings);
-    DB.sync('hr_settings', newSettings).catch(e => console.error('[DB] settings sync error', e));
+    try {
+      await DB.sync('hr_settings', newSettings);
+    } catch(e) {
+      console.error('[DB] settings sync error:', e);
+      alert('⚠️ Errore salvataggio impostazioni su database: ' + (e?.message || e));
+    }
   };
 
   // Reminder mancata timbratura (ogni minuto, dopo le 08:50)
