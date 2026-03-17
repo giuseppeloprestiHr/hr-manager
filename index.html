@@ -86,7 +86,8 @@ const _E = {
     cittaDiLavoro:r.citta_di_lavoro||'',
     autoId:r.auto_id||null,
     tipologiaAuto:r.tipologia_auto||'',
-    provenienzaAuto:r.provenienza_auto||'' }) : null,
+    provenienzaAuto:r.provenienza_auto||'',
+    valoriIniziali: r.valori_iniziali || {} }) : null,
   to: e => ({ id:e.id, nome:e.nome, cognome:e.cognome, registro:e.registro||null,
     data_inizio:e.dataInizio||null, cf:e.cf||null, telefono:e.telefono||null, email:e.email||null,
     responsabile_id:e.responsabileId||null, ruolo:e.ruolo, login:e.login, password:e.password,
@@ -98,7 +99,8 @@ const _E = {
     citta_di_lavoro:e.cittaDiLavoro||null,
     auto_id:e.autoId||null,
     tipologia_auto:e.tipologiaAuto||null,
-    provenienza_auto:e.provenienzaAuto||null }),
+    provenienza_auto:e.provenienzaAuto||null,
+    valori_iniziali: e.valoriIniziali || {} }),
 };
 const _T = {
   from: r => r ? ({ id:r.id, employeeId:r.employee_id, data:r.data, ora:r.ora,
@@ -657,6 +659,7 @@ function Login({ employees, onLogin }) {
 
   const handleLogin = () => {
     setError('');
+    if (employees.length === 0) { setError('⏳ Dati ancora in caricamento, riprova tra qualche secondo.'); return; }
     const emp = employees.find(e => e.login === loginVal.trim());
     if (!emp) { setError('Credenziali non valide.'); return; }
     if (emp.accessoDisabilitato) { setError('Il tuo accesso è stato disabilitato. Contatta il Master.'); return; }
@@ -716,13 +719,16 @@ function Login({ employees, onLogin }) {
         <div className="mt-6 bg-slate-50 rounded-2xl p-4 text-xs text-slate-400">
           <p className="font-semibold text-slate-500 mb-1">Credenziali demo:</p>
           <p className="mb-3 text-slate-400">Password unica: <strong className="text-slate-600 font-mono bg-white px-2 py-0.5 rounded-lg border border-slate-200">Hr2024!</strong></p>
-          {employees.map(e => (
-            <p key={e.id} className="mb-0.5">
-              👤 <strong>{e.login}</strong>{' '}
-              <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[e.ruolo]}`}>{ROLE_LABELS[e.ruolo]}</span>
-              {e.primoAccesso && <span className="ml-1 text-amber-500">⚠️ cambio pw</span>}
-            </p>
-          ))}
+          {employees.length === 0
+            ? <p className="text-amber-500">⏳ Caricamento utenti...</p>
+            : employees.map(e => (
+              <p key={e.id} className="mb-0.5">
+                👤 <strong>{e.login}</strong>{' '}
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[e.ruolo]}`}>{ROLE_LABELS[e.ruolo]}</span>
+                {e.primoAccesso && <span className="ml-1 text-amber-500">⚠️ cambio pw</span>}
+              </p>
+            ))
+          }
         </div>
       <p className="text-center text-slate-300 text-xs mt-6" style={{letterSpacing:'0.01em'}}>
         {(()=>{ const d=new Date(document.lastModified); return `Aggiornato il ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; })()} &nbsp;·&nbsp; Created by LPG
@@ -1665,8 +1671,6 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
     { label:'Città di lavoro',    value:emp.cittaDiLavoro || '—' },
     { label:'Centro di costo',    value:cdc ? `${cdc.numero} - ${cdc.testo}` : '—' },
     { label:'Auto aziendale',     value:auto ? `${auto.modello} / ${auto.targa}` : '—' },
-    { label:'Tipologia auto',     value:emp.tipologiaAuto || '—' },
-    { label:'Provenienza auto',   value:emp.provenienzaAuto || '—' },
   ];
   return (
     <div className="p-8">
@@ -1903,22 +1907,6 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">— Nessuna —</option>
               {autoList.map(a => <option key={a.id} value={a.id}>{a.modello} / {a.targa}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tipologia auto</label>
-            <select value={form.tipologiaAuto||''} onChange={e => setForm({...form, tipologiaAuto:e.target.value})}
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">— Non specificata —</option>
-              {TIPOLOGIE_AUTO.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Provenienza auto</label>
-            <select value={form.provenienzaAuto||''} onChange={e => setForm({...form, provenienzaAuto:e.target.value})}
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">— Non specificata —</option>
-              {PROVENIENZA_AUTO.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
           <div>
@@ -2548,51 +2536,113 @@ ${monthPresenze.length === 0
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-xs font-medium mb-1">Presenze nel mese</p>
-          <p className="text-3xl font-bold text-emerald-600" style={{fontFamily:'Syne,sans-serif'}}>{monthPresenze.length}</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-xs font-medium mb-1">Giorni lavorativi</p>
-          <p className="text-3xl font-bold text-slate-700" style={{fontFamily:'Syne,sans-serif'}}>{giorniLav}</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-xs font-medium mb-1">Assenze (lun-ven)</p>
-          <p className="text-3xl font-bold text-red-500" style={{fontFamily:'Syne,sans-serif'}}>{assenze}</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-xs font-medium mb-1">Ore permesso mese</p>
-          <p className="text-3xl font-bold text-violet-600" style={{fontFamily:'Syne,sans-serif'}}>{fmtDurata(orePermMese)}</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-xs font-medium mb-1">Ore permesso anno</p>
-          <p className="text-3xl font-bold text-violet-600" style={{fontFamily:'Syne,sans-serif'}}>{fmtDurata(orePermAnno)}</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-          <p className="text-slate-400 text-xs font-medium mb-1">Ferie approvate {annoStr}</p>
-          <p className="text-3xl font-bold text-sky-500" style={{fontFamily:'Syne,sans-serif'}}>{ferieGiorniAnno} gg</p>
-        </div>
-        {user.reperibile && (
-          <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-            <p className="text-slate-400 text-xs font-medium mb-1">📞 Gestioni tel. mese</p>
-            <p className="text-3xl font-bold text-indigo-600" style={{fontFamily:'Syne,sans-serif'}}>{gestMeseCount}</p>
+      {/* Stats — rettangoli raggruppati */}
+      {(() => {
+        const ini = user.valoriIniziali || {};
+        const iniPermAnno    = Number(ini.permessiOreAnno    || 0);
+        const iniFerieAnno   = Number(ini.ferieGiorniAnno    || 0);
+        const iniStraAnno    = Math.round(Number(ini.straordinariOreAnno || 0) * 60);
+        const iniRepAnno     = Number(ini.reperibilita        || 0);
+        const iniGestTelAnno = Number(ini.gestioniTelefoniche || 0);
+
+        // Reperibilità mese/anno
+        const repMeseCount = (reperibilita||[]).filter(r=>r.employeeId===user.id && r.pubblicata && r.data.startsWith(mStrFull)).length;
+        const repAnnoCount = (reperibilita||[]).filter(r=>r.employeeId===user.id && r.pubblicata && r.data.startsWith(annoStr)).length;
+        const gestAnnoCount = (gestioniTelefoniche||[]).filter(g=>g.employeeId===user.id&&g.data.startsWith(annoStr)).length;
+
+        // Assenze anno (giorni feriali non presenti, non in ferie, non in malattia, non futuri)
+        const oggi = todayStr();
+        let assenzeAnno = 0;
+        const daysInYear = [];
+        for (let m2=1; m2<=12; m2++) {
+          const dim = new Date(year, m2, 0).getDate();
+          for (let d2=1; d2<=dim; d2++) {
+            const mm2 = String(m2).padStart(2,'0');
+            const dd2 = String(d2).padStart(2,'0');
+            const str2 = `${year}-${mm2}-${dd2}`;
+            if (str2 > oggi) continue;
+            const dow2 = new Date(year, m2-1, d2).getDay();
+            if (dow2===0||dow2===6) continue;
+            daysInYear.push(str2);
+          }
+        }
+        const myTimbAnno = new Set(timbrature.filter(t=>t.employeeId===user.id&&t.data.startsWith(annoStr)).map(t=>t.data));
+        const myMalAnno = new Set();
+        (malattie||[]).filter(m2=>m2.employeeId===user.id).forEach(m2=>{
+          let cur2=new Date(m2.dataInizio+'T00:00:00');
+          const end2=new Date((m2.dataFine||m2.dataInizio)+'T00:00:00');
+          while(cur2<=end2){const s2=localDateStr(cur2);if(s2.startsWith(annoStr))myMalAnno.add(s2);cur2.setDate(cur2.getDate()+1);}
+        });
+        const myFerAnno = new Set();
+        (ferie||[]).filter(f2=>f2.employeeId===user.id&&f2.status===SF.APPROVATO&&f2.dataInizio.startsWith(annoStr)).forEach(f2=>{
+          let cur2=new Date(f2.dataInizio+'T00:00:00');
+          const end2=new Date(f2.dataFine+'T00:00:00');
+          while(cur2<=end2){myFerAnno.add(localDateStr(cur2));cur2.setDate(cur2.getDate()+1);}
+        });
+        assenzeAnno = daysInYear.filter(s2=>!myTimbAnno.has(s2)&&!myMalAnno.has(s2)&&!myFerAnno.has(s2)).length;
+
+        const statBox = (label, value, color='text-slate-700') => (
+          <div className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0">
+            <span className="text-xs text-slate-500">{label}</span>
+            <span className={`text-sm font-bold ${color}`}>{value}</span>
           </div>
-        )}
-        {user.straordinario && (
-          <div className="bg-white rounded-2xl p-5 border border-orange-100 shadow-sm">
-            <p className="text-slate-400 text-xs font-medium mb-1">⌚ Straordinari mese</p>
-            <p className="text-2xl font-bold text-orange-600" style={{fontFamily:'Syne,sans-serif'}}>{straMinMese>0?fmtMin(straMinMese):'—'}</p>
+        );
+
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+
+            {/* Presenze */}
+            <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🟢 Presenze</p>
+              {statBox('Giorni lavorativi mese', giorniLav, 'text-slate-700')}
+              {statBox('Presenze mese', monthPresenze.length, 'text-emerald-600')}
+              {statBox('Assenze mese', assenze, 'text-red-500')}
+              {statBox('Assenze anno', assenzeAnno, 'text-red-400')}
+            </div>
+
+            {/* Permessi */}
+            <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-sm">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🕐 Permessi</p>
+              {statBox('Ore permessi mese', fmtDurata(orePermMese), 'text-violet-600')}
+              {statBox('Ore permessi anno', fmtDurata(orePermAnno + iniPermAnno * 60), 'text-violet-700')}
+            </div>
+
+            {/* Ferie */}
+            <div className="bg-white rounded-2xl p-4 border border-sky-100 shadow-sm">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🏖 Ferie</p>
+              {statBox('Ferie mese (gg)', (ferie||[]).filter(f=>f.employeeId===user.id&&f.status===SF.APPROVATO&&f.dataInizio.startsWith(mStrFull)).reduce((s,f)=>s+f.giorniLavorativi,0)+' gg', 'text-sky-500')}
+              {statBox('Ferie anno (gg)', (ferieGiorniAnno + iniFerieAnno)+' gg', 'text-sky-600')}
+            </div>
+
+            {/* Straordinari */}
+            <div className={`rounded-2xl p-4 shadow-sm border ${user.straordinario ? 'bg-white border-orange-100' : 'bg-slate-100 border-slate-200'}`}>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">⌚ Straordinari</p>
+              {user.straordinario ? (<>
+                {statBox('Straordinari mese', straMinMese>0?fmtMin(straMinMese):'—', 'text-orange-600')}
+                {statBox('Straordinari anno', (straMinAnno+iniStraAnno)>0?fmtMin(straMinAnno+iniStraAnno):'—', 'text-orange-700')}
+              </>) : (
+                <p className="text-xs text-slate-400 italic">Non abilitato</p>
+              )}
+            </div>
+
+            {/* Reperibilità */}
+            <div className={`rounded-2xl p-4 shadow-sm border sm:col-span-2 xl:col-span-4 ${user.reperibile ? 'bg-white border-purple-100' : 'bg-slate-100 border-slate-200'}`}>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">📡 Reperibilità</p>
+              {user.reperibile ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {statBox('Giorni rep. mese', repMeseCount, 'text-purple-600')}
+                  {statBox('Giorni rep. anno', repAnnoCount + iniRepAnno, 'text-purple-700')}
+                  {statBox('Gestioni tel. mese', gestMeseCount, 'text-indigo-600')}
+                  {statBox('Gestioni tel. anno', gestAnnoCount + iniGestTelAnno, 'text-indigo-700')}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">Non abilitato</p>
+              )}
+            </div>
+
           </div>
-        )}
-        {user.straordinario && (
-          <div className="bg-white rounded-2xl p-5 border border-orange-100 shadow-sm">
-            <p className="text-slate-400 text-xs font-medium mb-1">⌚ Straordinari {annoStr}</p>
-            <p className="text-2xl font-bold text-orange-600" style={{fontFamily:'Syne,sans-serif'}}>{straMinAnno>0?fmtMin(straMinAnno):'—'}</p>
-          </div>
-        )}
-      </div>
+        );
+      })()}
 
       {/* Calendario a griglia */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
@@ -6540,7 +6590,7 @@ function ChiusureView({ settings }) {
   );
 }
 
-function Manutenzione({ settings, onSave, onBack, currentUserRole }) {
+function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, setEmployees, saveData }) {
   const isAdmin = currentUserRole === RUOLI.AMMINISTRATORE;
   const isMaster = currentUserRole === RUOLI.MASTER;
   const [form, setForm] = useState({
@@ -6615,7 +6665,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole }) {
       // 1 — Pulisce localStorage (tutte le chiavi)
       ['hr_employees','timbrature','malattie','notifiche','permessi','ferie',
        'reperibilita','gestioni_telefoniche','straordinari','hr_settings','hr_data_version',
-       'note_spese','note_spese_voci']
+       'note_spese','note_spese_voci','news']
         .forEach(k => localStorage.removeItem(k));
 
       // 2 — Pulisce tutte le tabelle Supabase
@@ -6631,6 +6681,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole }) {
           _supa.from('straordinari').delete().neq('id','__placeholder__'),
           _supa.from('note_spese').delete().neq('id','__placeholder__'),
           _supa.from('note_spese_voci').delete().neq('id','__placeholder__'),
+          _supa.from('news').delete().neq('id','__placeholder__'),
         ]);
 
         // 3 — Reinserisce i dipendenti demo (con straordinario:false)
@@ -6645,6 +6696,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole }) {
           private_calendar_embed_url: null, private_enabled: false,
           inizio_turno: '08:30', inizio_pausa: '12:30',
           fine_pausa: '13:00', fine_turno: '17:00', tolleranza_minuti: 15,
+          centri_di_costo: [], auto_list: [],
         };
         await _supa.from('settings').upsert(defaultSettings, { onConflict:'id' });
       }
@@ -6956,6 +7008,99 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole }) {
             <button onClick={handleSave} className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${saved ? 'bg-emerald-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
               {saved ? '✅ Salvato!' : '💾 Salva'}
             </button>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* ── VALORI INIZIALI DIPENDENTI — solo master ── */}
+      {isMaster && (
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
+          <span className="text-2xl">📊</span>
+          <div>
+            <p className="font-bold text-slate-800 text-base">Valori iniziali per dipendente</p>
+            <p className="text-slate-400 text-xs mt-0.5">Imposta i valori già maturati prima dell'avvio del gestionale (si sommano ai valori calcolati)</p>
+          </div>
+        </div>
+        <div className="px-6 py-5">
+          <div className="space-y-4">
+            {(employees||[]).filter(e=>e.ruolo===RUOLI.DIPENDENTE||e.ruolo===RUOLI.RESPONSABILE).map(emp => {
+              const ini = emp.valoriIniziali || {};
+              return (
+                <div key={emp.id} className="border border-slate-200 rounded-2xl p-4">
+                  <p className="font-semibold text-slate-700 text-sm mb-3">{emp.nome} {emp.cognome} <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ml-1 ${ROLE_COLORS[emp.ruolo]}`}>{ROLE_LABELS[emp.ruolo]}</span></p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Permessi (ore)</label>
+                      <input type="number" min="0" step="0.5" placeholder="0"
+                        value={ini.permessiOreAnno||''}
+                        onChange={e=>{
+                          const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,permessiOreAnno:parseFloat(e.target.value)||0}}:x);
+                          setEmployees(upd); saveData('hr_employees',upd);
+                          if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,permessiOreAnno:parseFloat(e.target.value)||0}}).eq('id',emp.id);
+                        }}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Ferie (giorni)</label>
+                      <input type="number" min="0" step="0.5" placeholder="0"
+                        value={ini.ferieGiorniAnno||''}
+                        onChange={e=>{
+                          const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,ferieGiorniAnno:parseFloat(e.target.value)||0}}:x);
+                          setEmployees(upd); saveData('hr_employees',upd);
+                          if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,ferieGiorniAnno:parseFloat(e.target.value)||0}}).eq('id',emp.id);
+                        }}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Straordinari (ore)</label>
+                      <input type="number" min="0" step="0.5" placeholder="0"
+                        value={ini.straordinariOreAnno||''}
+                        onChange={e=>{
+                          const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,straordinariOreAnno:parseFloat(e.target.value)||0}}:x);
+                          setEmployees(upd); saveData('hr_employees',upd);
+                          if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,straordinariOreAnno:parseFloat(e.target.value)||0}}).eq('id',emp.id);
+                        }}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Reperibilità (gg)</label>
+                      <input type="number" min="0" step="1" placeholder="0"
+                        value={ini.reperibilita||''}
+                        onChange={e=>{
+                          const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,reperibilita:parseInt(e.target.value)||0}}:x);
+                          setEmployees(upd); saveData('hr_employees',upd);
+                          if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,reperibilita:parseInt(e.target.value)||0}}).eq('id',emp.id);
+                        }}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Gestioni tel.</label>
+                      <input type="number" min="0" step="1" placeholder="0"
+                        value={ini.gestioniTelefoniche||''}
+                        onChange={e=>{
+                          const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,gestioniTelefoniche:parseInt(e.target.value)||0}}:x);
+                          setEmployees(upd); saveData('hr_employees',upd);
+                          if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,gestioniTelefoniche:parseInt(e.target.value)||0}}).eq('id',emp.id);
+                        }}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Note spese (€)</label>
+                      <input type="number" min="0" step="0.01" placeholder="0.00"
+                        value={ini.noteSpese||''}
+                        onChange={e=>{
+                          const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,noteSpese:parseFloat(e.target.value)||0}}:x);
+                          setEmployees(upd); saveData('hr_employees',upd);
+                          if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,noteSpese:parseFloat(e.target.value)||0}}).eq('id',emp.id);
+                        }}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -8087,12 +8232,15 @@ function App() {
     }
   };
 
-  // Reminder mancata timbratura (ogni minuto, dopo le 08:50)
+  // Reminder mancata timbratura (ogni minuto, 10 min dopo l'inizio turno)
   React.useEffect(() => {
     if (!userId) return;
     const check = () => {
       const now = new Date();
-      if (now.getHours() < 8 || (now.getHours() === 8 && now.getMinutes() < 50)) return;
+      const [_hh, _mm] = (settings?.inizioTurno || '08:30').split(':').map(Number);
+      const sogliaMin = _hh * 60 + _mm + 10;
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      if (nowMin < sogliaMin) return;
       const today = todayStr();
       const reminderKey = `reminder_sent_${today}`;
       const alreadySent = loadData(reminderKey, []);
@@ -8118,7 +8266,7 @@ function App() {
     const iv = setInterval(check, 60000);
     check();
     return () => clearInterval(iv);
-  }, [userId, timbrature, employees]);
+  }, [userId, timbrature, employees, settings]);
 
   const handleLogin = id => {
     // Ricarica employees e notifiche freschi dal localStorage
@@ -8244,10 +8392,11 @@ function App() {
     setEmployees(upd); saveData('hr_employees', upd);
   };
 
-  // Timbratura → notifica responsabile + direttori + master
+  // Timbratura → notifica responsabile + direttori + master + dipendente
   const handleTimbratura = (emp, ora, gps) => {
     const dest = [...supervisoriIds];
     if (emp.responsabileId && !dest.includes(emp.responsabileId)) dest.push(emp.responsabileId);
+    if (!dest.includes(emp.id)) dest.push(emp.id);
     let testo = `${emp.nome} ${emp.cognome} ha timbrato l'entrata alle ${ora}`;
     if (gps) {
       if (gps.address) testo += ` | 📍 ${gps.address}`;
@@ -8643,7 +8792,7 @@ function App() {
         return <NotifichePage notifiche={notifiche} employees={employees} userId={userId} userRole={r} onMarkRead={handleMarkRead} onMarkAllRead={handleMarkAllRead} />;
       case 'manutenzione':
         if (!canManage(r)) { goTo('dashboard'); return null; }
-        return <Manutenzione settings={settings} onSave={handleSaveSettings} onBack={()=>goTo('dashboard')} currentUserRole={r} />;
+        return <Manutenzione settings={settings} onSave={handleSaveSettings} onBack={()=>goTo('dashboard')} currentUserRole={r} employees={employees} setEmployees={setEmployees} saveData={saveData} />;
       case 'note-spese':
         return <NotaSpese user={user} noteSpese={noteSpese} noteSpeseVoci={noteSpeseVoci}
           setNoteSpese={setNoteSpese} setNoteSpeseVoci={setNoteSpeseVoci}
