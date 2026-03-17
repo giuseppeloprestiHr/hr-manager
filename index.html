@@ -2318,7 +2318,7 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
   const presenceMap  = {};
   myTimbrature.forEach(t => { presenceMap[t.data] = t; });
   const monthPresenze = myTimbrature.filter(t => t.data.startsWith(`${year}-${String(month).padStart(2,'0')}`));
-  const giorniLav = days.filter(d=>!d.isWeekend&&!d.isFuture).length;
+  const giorniLav = days.filter(d=>!d.isWeekend).length;
   const assenze   = days.filter(d=>!d.isWeekend&&!d.isFuture&&!presenceMap[d.str]).length;
 
   // Mappa malattia personale (include giorni futuri)
@@ -2544,6 +2544,7 @@ ${monthPresenze.length === 0
         const iniStraAnno    = Math.round(Number(ini.straordinariOreAnno || 0) * 60);
         const iniRepAnno     = Number(ini.reperibilita        || 0);
         const iniGestTelAnno = Number(ini.gestioniTelefoniche || 0);
+        const iniAssenzeAnno = Number(ini.assenze             || 0);
 
         // Reperibilità mese/anno
         const repMeseCount = (reperibilita||[]).filter(r=>r.employeeId===user.id && r.pubblicata && r.data.startsWith(mStrFull)).length;
@@ -2597,7 +2598,7 @@ ${monthPresenze.length === 0
               {statBox('Giorni lavorativi mese', giorniLav, 'text-slate-700')}
               {statBox('Presenze mese', monthPresenze.length, 'text-emerald-600')}
               {statBox('Assenze mese', assenze, 'text-red-500')}
-              {statBox('Assenze anno', assenzeAnno, 'text-red-400')}
+              {statBox('Assenze anno', assenzeAnno + iniAssenzeAnno, 'text-red-400')}
             </div>
 
             {/* Permessi */}
@@ -7025,7 +7026,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         </div>
         <div className="px-6 py-5">
           <div className="space-y-4">
-            {(employees||[]).filter(e=>e.ruolo===RUOLI.DIPENDENTE||e.ruolo===RUOLI.RESPONSABILE).map(emp => {
+            {(employees||[]).filter(e=>!e.accessoDisabilitato).sort((a,b)=>`${a.cognome} ${a.nome}`.localeCompare(`${b.cognome} ${b.nome}`)).map(emp => {
               const ini = emp.valoriIniziali || {};
               return (
                 <div key={emp.id} className="border border-slate-200 rounded-2xl p-4">
@@ -7094,6 +7095,17 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                           const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,noteSpese:parseFloat(e.target.value)||0}}:x);
                           setEmployees(upd); saveData('hr_employees',upd);
                           if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,noteSpese:parseFloat(e.target.value)||0}}).eq('id',emp.id);
+                        }}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Assenze (giorni)</label>
+                      <input type="number" min="0" step="1" placeholder="0"
+                        value={ini.assenze||''}
+                        onChange={e=>{
+                          const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,assenze:parseInt(e.target.value)||0}}:x);
+                          setEmployees(upd); saveData('hr_employees',upd);
+                          if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,assenze:parseInt(e.target.value)||0}}).eq('id',emp.id);
                         }}
                         className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
                     </div>
