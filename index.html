@@ -187,7 +187,8 @@ const _S = {
     finePausa:r.fine_pausa||'13:00', fineTurno:r.fine_turno||'17:00',
     tolleranzaMinuti:r.tolleranza_minuti??15,
     centriDiCosto:r.centri_di_costo||[{id:'1',numero:'100',testo:'Sanitario'}],
-    autoList:r.auto_list||[] }) : {},
+    autoList:r.auto_list||[],
+    chiusureAziendali:r.chiusure_aziendali||[] }) : {},
   to: s => ({ webhook_url:s.webhookUrl||null, calendar_id:s.calendarId||null,
     calendar_embed_url:s.calendarEmbedUrl||null, calendar_enabled:!!s.calendarEnabled,
     private_webhook_url:s.privateWebhookUrl||null, private_calendar_id:s.privateCalendarId||null,
@@ -196,7 +197,8 @@ const _S = {
     fine_pausa:s.finePausa||'13:00', fine_turno:s.fineTurno||'17:00',
     tolleranza_minuti:s.tolleranzaMinuti??15,
     centri_di_costo:s.centriDiCosto||[{id:'1',numero:'100',testo:'Sanitario'}],
-    auto_list:s.autoList||[] }),
+    auto_list:s.autoList||[],
+    chiusure_aziendali:s.chiusureAziendali||[] }),
 };
 const _NS = {
   from: r => r ? ({ id:r.id, employeeId:r.employee_id, anno:r.anno, mese:r.mese,
@@ -1200,6 +1202,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. Tel.', icon:'☎️', color:'bg-indigo-500' }] : []),
     { id:'note-spese',        label:'Note Spese',          icon:'💳', color:'bg-emerald-700' },
     { id:'news',              label:'News',                icon:'📢', color:'bg-pink-600' },
+    { id:'chiusure-view',     label:'Chiusure aziendali',  icon:'🏢', color:'bg-slate-500' },
     { id:'mia-anagrafica',    label:'La mia anagrafica',   icon:'👤', color:'bg-slate-600' },
   ];
   const navTilesMaster = [
@@ -1241,6 +1244,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. Tel.', icon:'☎️', color:'bg-indigo-500' }] : []),
     { id:'note-spese',     label:'Note Spese',        icon:'💳', color:'bg-emerald-700' },
     { id:'news',           label:'News',              icon:'📢', color:'bg-pink-600' },
+    { id:'chiusure-view',  label:'Chiusure aziendali',icon:'🏢', color:'bg-slate-500' },
     { id:'mia-anagrafica', label:'La mia anagrafica', icon:'👤', color:'bg-slate-600' },
   ];
 
@@ -6023,7 +6027,7 @@ function NotaSpeseListaMaster({ user, employees, noteSpese, noteSpeseVoci, setti
   const now = new Date();
   const [anno, setAnno] = useState(now.getFullYear());
   const [mese, setMese] = useState(now.getMonth() + 1);
-  const [expandedNS, setExpandedNS] = useState(null);
+  // expandedNS rimosso: contabilità sempre visibile
 
   const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
   const mStr = `${anno}-${String(mese).padStart(2,'0')}`;
@@ -6178,7 +6182,6 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
             const vAS = voci.filter(v=>(v.natura==='vitto'||v.natura==='alloggio')&&v.luogo==='In sede').reduce((s,v)=>s+v.importo,0);
             const vAF = (totCol('vitto')+totCol('alloggio')) - vAS;
             const fN = v => `€ ${v.toFixed(2)}`;
-            const isOpen = expandedNS === ns.id;
             return (
               <div key={ns.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 {/* Riga principale */}
@@ -6192,18 +6195,13 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
                   </div>
                   <span className="font-bold text-slate-700 text-base">€ {tot.toFixed(2)}</span>
                   <div className="flex gap-2">
-                    <button onClick={() => setExpandedNS(isOpen ? null : ns.id)}
-                      className="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors">
-                      {isOpen ? '▲ Chiudi' : '▼ Contabilità'}
-                    </button>
                     <button onClick={() => onSblocca(ns, emp)}
                       className="bg-amber-100 text-amber-700 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-200 transition-colors">🔓 Sblocca</button>
                   </div>
                 </div>
 
-                {/* Riquadro contabilità espandibile */}
-                {isOpen && (
-                  <div className="border-t border-slate-100 bg-slate-700 text-white px-5 py-4 text-sm">
+                {/* Riquadro contabilità sempre visibile */}
+                <div className="border-t border-slate-100 bg-slate-700 text-white px-5 py-4 text-sm">
                     {/* Header contabilità */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 pb-3 border-b border-slate-500">
                       <div>
@@ -6236,7 +6234,6 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
                     <p className="text-slate-400 text-xs italic">F = FURGONI · D = DIPENDENTI · A = AMMINISTRATORI</p>
                     <p className="text-slate-400 text-xs mt-2">💡 Stampa questa pagina dal browser per ottenere il report completo</p>
                   </div>
-                )}
               </div>
             );
           })}
@@ -6525,6 +6522,18 @@ function ChiusureView({ settings }) {
         <div className="mt-6 bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400">
           <p className="text-3xl mb-2">📅</p>
           <p>Nessuna chiusura aziendale programmata</p>
+        </div>
+      )}
+      {chiusure.filter(d=>d.startsWith(String(anno))).length > 0 && (
+        <div className="mt-6 bg-white rounded-2xl border border-slate-100 p-4">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Chiusure {anno}</p>
+          <div className="flex flex-wrap gap-2">
+            {chiusure.filter(d=>d.startsWith(String(anno))).sort().map(d=>(
+              <span key={d} className="bg-red-100 text-red-700 text-xs font-medium px-3 py-1 rounded-full">
+                {new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short'})}
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </div>
