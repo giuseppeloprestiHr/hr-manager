@@ -325,10 +325,11 @@ const SF = {
   ANNULLATA:    'annullata',
 };
 const SP = {
-  PENDING:   'pending',
-  APPROVATO: 'approvato',
-  RIFIUTATO: 'rifiutato',
-  ANNULLATO: 'annullato',
+  PENDING:     'pending',
+  PENDING_DIR: 'pending_dir',
+  APPROVATO:   'approvato',
+  RIFIUTATO:   'rifiutato',
+  ANNULLATO:   'annullato',
 };
 const SS = {
   PENDING_RESP: 'pending_resp',
@@ -493,11 +494,13 @@ const puoApprovare = (feria, approvatoreId, approvatoreRuolo, employees) => {
 const feriaInStorico = (feria, userId, userRuolo, employees) => {
   const emp = employees.find(e => e.id === feria.employeeId);
   if (!emp) return false;
+  if (userRuolo === RUOLI.MASTER)
+    return feria.status !== SF.PENDING_RESP; // stesso del amministratore: vede tutto tranne i pending iniziali
   if (userRuolo === RUOLI.AMMINISTRATORE)
     return feria.status !== SF.PENDING_RESP;
   if (userRuolo === RUOLI.DIRETTORE)
     return [SF.PENDING_DIR, SF.APPROVATO, SF.RIFIUTATO, SF.ANNULLATA].includes(feria.status);
-  if (userRuolo === RUOLI.RESPONSABILE || userRuolo === RUOLI.MASTER) {
+  if (userRuolo === RUOLI.RESPONSABILE) {
     if (emp.responsabileId !== userId) return false;
     return (feria.status === SF.PENDING_DIR && feria.approvatoRespId === userId)
         || feria.status === SF.APPROVATO
@@ -522,7 +525,7 @@ const permessoStepIniziale = (ruolo) => {
   // Direttore: già approvato
   if (ruolo === RUOLI.AMMINISTRATORE) return SP.APPROVATO;
   if (ruolo === RUOLI.DIRETTORE)      return SP.APPROVATO;
-  if (ruolo === RUOLI.RESPONSABILE)   return 'pending_dir'; // step1 saltato
+  if (ruolo === RUOLI.RESPONSABILE)   return SP.PENDING_DIR; // step1 saltato
   return SP.PENDING; // dipendenti normali
 };
 
@@ -750,6 +753,7 @@ function ResetRequestButton({ resetLogin, setResetMsg }) {
       // Salva richiestaReset: true
       const updEmp = employees.map(e => e.id===emp.id ? {...e, richiestaReset:true} : e);
       try { localStorage.setItem('hr_employees', JSON.stringify(updEmp)); } catch {}
+      if (typeof DB !== 'undefined') DB.sync('hr_employees', updEmp).catch(()=>{});
       // Crea notifica per tutti i master nel localStorage
       const masterIds = updEmp.filter(e=>[RUOLI.MASTER, RUOLI.AMMINISTRATORE].includes(e.ruolo)).map(e=>e.id);
       if (masterIds.length > 0) {
@@ -763,7 +767,9 @@ function ResetRequestButton({ resetLogin, setResetMsg }) {
           timestamp: Date.now(),
           lette: []
         };
-        try { localStorage.setItem('notifiche', JSON.stringify([...notifiche, nuova])); } catch {}
+        const updNotifiche = [...notifiche, nuova];
+        try { localStorage.setItem('notifiche', JSON.stringify(updNotifiche)); } catch {}
+        if (typeof DB !== 'undefined') DB.sync('notifiche', updNotifiche).catch(()=>{});
       }
       setResetMsg('Richiesta inviata! Il Master riceverà una notifica e approverà il reset.');
     }}
@@ -843,7 +849,7 @@ function MobileTopBar({ user, view, setView, onLogout, resetRequests, notifiche,
   const r = user.ruolo;
   const isDashboard = view === 'dashboard';
   const unread = (notifiche||[]).filter(n =>
-    (r=== RUOLI.MASTER || n.destinatari.includes(userId)) && !n.lette.includes(userId)
+    (canManage(r) || n.destinatari.includes(userId)) && !n.lette.includes(userId)
   ).length;
   return (
     <div className="lg:hidden flex items-center justify-between px-4 py-3 shadow-sm sticky top-0 z-20" style={{background:'#0f1f3d'}}>
@@ -912,6 +918,10 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     { id:'report',               label:'Report presenze',     icon:'📊' },
     { id:'note-spese-master',    label:'Note Spese',          icon:'💳' },
     { id:'news-editor',          label:'Invia News',          icon:'📢' },
+    ...(r === RUOLI.AMMINISTRATORE ? [
+      { id:'approva-permessi',   label:'Approva permessi',    icon:'📋' },
+      { id:'approva-ferie',      label:'Approva ferie',       icon:'✈️' },
+    ] : []),
     { id:'notifiche',            label:'Notifiche',           icon:'🔔', badge: true },
     { id:'manutenzione',         label:'Manutenzione',        icon:'⚙️' },
   ] : r=== RUOLI.DIRETTORE ? [
@@ -1141,6 +1151,10 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
   const todayAll = timbrature.filter(t => t.data===td);
   const teamSize = employees.filter(e => e.responsabileId===user.id).length;
   const resetList = canManage(r) ? employees.filter(e=>e.richiestaReset) : [];
+  // Alert dipendenti senza responsabile — solo per master
+  const dipSenzaResp = r === RUOLI.MASTER
+    ? employees.filter(e => e.ruolo === RUOLI.DIPENDENTE && !e.responsabileId && !e.accessoDisabilitato)
+    : [];
 
   // Permessi del team in attesa — solo per responsabile
   const permessiPending = r === RUOLI.RESPONSABILE
@@ -1217,6 +1231,10 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     { id:'dipendente-form',      label:'Nuovo dipendente',    icon:'➕', color:'bg-sky-500' },
     { id:'note-spese-master',    label:'Note Spese',          icon:'💳', color:'bg-emerald-600' },
     { id:'news-editor',          label:'Invia News',          icon:'📢', color:'bg-pink-600' },
+    ...(r === RUOLI.AMMINISTRATORE ? [
+      { id:'approva-permessi',   label:'Approva permessi',    icon:'📋', color:'bg-violet-600' },
+      { id:'approva-ferie',      label:'Approva ferie',       icon:'✈️', color:'bg-cyan-600' },
+    ] : []),
     { id:'notifiche',            label:'Notifiche',           icon:'🔔', color:'bg-blue-700' },
     { id:'manutenzione',         label:'Manutenzione',        icon:'⚙️', color:'bg-slate-700' },
   ];
@@ -1360,7 +1378,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </button>
       )}
 
-      {/* Banner straordinari step2 — direttore / admin */}
+      {/* Banner straordinari step2 — solo direttore */}
       {straPendingStep2.length > 0 && (
         <button onClick={()=>setView('approva-straordinari')}
           className="w-full mb-5 bg-orange-50 border border-orange-200 rounded-2xl p-4 text-left hover:bg-orange-100 hover:border-orange-400 transition-all group">
@@ -1411,6 +1429,27 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
                 <button onClick={()=>{ setSelectedEmployee(emp); setView('reset-approva'); }}
                   className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
                   Approva
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Alert dipendenti senza responsabile — solo master */}
+      {dipSenzaResp.length > 0 && (
+        <div className="mb-5 bg-amber-50 border border-amber-300 rounded-2xl p-4">
+          <p className="font-semibold text-amber-800 text-sm mb-2">⚠️ Dipendenti senza responsabile assegnato ({dipSenzaResp.length})</p>
+          <div className="space-y-1.5">
+            {dipSenzaResp.map(emp => (
+              <div key={emp.id} className="flex items-center justify-between bg-white rounded-xl px-4 py-2 border border-amber-100">
+                <div>
+                  <p className="text-sm font-medium text-slate-700">{emp.nome} {emp.cognome}</p>
+                  <p className="text-xs text-slate-400">{emp.login}</p>
+                </div>
+                <button onClick={()=>{ setSelectedEmployee(emp); setView('dipendente-form'); }}
+                  className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                  Assegna
                 </button>
               </div>
             ))}
@@ -3612,7 +3651,8 @@ function PermessiOrari({ user, employees, permessi, setPermessi, onRichiesta, on
       const conferma = window.confirm(`Attenzione: la data inserita (${fmtData(data)}) è precedente a oggi. Vuoi procedere comunque?`);
       if (!conferma) return;
     }
-    const permStatus = permessoStepIniziale(user.ruolo); // ← regola centralizzata
+    const empRuolo = (employees.find(e=>e.id===empId)?.ruolo) || user.ruolo;
+    const permStatus = permessoStepIniziale(empRuolo); // ← regola centralizzata, basata sul ruolo dell'employee
     const record = {
       id: String(Date.now())+Math.random().toString(36).slice(2),
       employeeId: empId,
@@ -4061,8 +4101,8 @@ function ApprovaStraordinari({ user, employees, straordinari, setStraordinari, o
   const handleRifiuta = (s) => {
     const nota = noteRifiuto[s.id]||'';
     if (!nota.trim()) return;
-    onRifiuta(s.id, nota.trim());
-    setShowRifiuto(p=>({...p,[s.id]:false}));
+    const p = onRifiuta(s.id, nota.trim());
+    Promise.resolve(p).finally(() => setShowRifiuto(prev=>({...prev,[s.id]:false})));
   };
 
   const TIPO_LABEL = { mattina:'🌅 Mattina', sera:'🌆 Sera' };
@@ -8506,24 +8546,22 @@ function App() {
   };
 
   // Rifiuta straordinario (Responsabile o Direttore)
-  const handleRifiutaStr = (id, noteRifiuto) => {
-    setStraordinari(prev => {
-      const upd = prev.map(s => s.id===id
-        ? {...s, status: SS.RIFIUTATO, rifiutatoDaId: user.id, noteRifiuto}
-        : s);
-      saveData('straordinari', upd);
-      DB.sync('straordinari', upd);
-      // Notifica al dipendente
-      const s = upd.find(x=>x.id===id);
-      if (s) {
-        const tipoLabel = s.tipo === 'mattina' ? '🌅 mattina' : '🌆 sera';
-        creaNotifica('straordinario',
-          `❌ Il tuo straordinario ${tipoLabel} del ${fmtData(s.data)} è stato rifiutato — nota: "${noteRifiuto}"`,
-          [s.employeeId], s.employeeId
-        );
-      }
-      return upd;
-    });
+  // Restituisce la Promise di DB.sync così il chiamante può chiudere la UI solo dopo il sync
+  const handleRifiutaStr = (id, nota) => {
+    const aggiornati = straordinari.map(s => s.id===id
+      ? {...s, status: SS.RIFIUTATO, rifiutatoDaId: user.id, noteRifiuto: nota}
+      : s);
+    setStraordinari(aggiornati);
+    saveData('straordinari', aggiornati);
+    const s = aggiornati.find(x=>x.id===id);
+    if (s) {
+      const tipoLabel = s.tipo === 'mattina' ? '🌅 mattina' : '🌆 sera';
+      creaNotifica('straordinario',
+        `❌ Il tuo straordinario ${tipoLabel} del ${fmtData(s.data)} è stato rifiutato — nota: "${nota}"`,
+        [s.employeeId], s.employeeId
+      );
+    }
+    return DB.sync('straordinari', aggiornati);
   };
 
   const handleMalattia = (emp, dataInizio, dataFine, protocollo, malattieFiglio) => {
@@ -8554,6 +8592,7 @@ function App() {
 
   // ── PERMESSI ORARI ──
   const handlePermessoRichiesta = (p) => {
+    if (p.status === SP.APPROVATO) return; // admin/direttore: già approvato, nessuna notifica necessaria
     const emp = employees.find(e=>e.id===p.employeeId);
     if (!emp) return;
     // Se il richiedente è un responsabile, la notifica va a direttori + master/amministratori
