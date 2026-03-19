@@ -1596,7 +1596,7 @@ function EmployeeList({ user, employees, setView, setSelectedEmployee }) {
             <thead>
               <tr className="bg-slate-50 text-xs text-slate-400 uppercase tracking-wider">
                 <th className="px-5 py-3 text-left">Dipendente</th>
-                <th className="px-5 py-3 text-left">Registro</th>
+                <th className="px-5 py-3 text-left">Codice Dipendente</th>
                 <th className="px-5 py-3 text-left hidden md:table-cell">Ruolo</th>
                 <th className="px-5 py-3 text-left hidden lg:table-cell">Responsabile</th>
                 <th className="px-5 py-3 text-left hidden lg:table-cell">Inizio</th>
@@ -1700,7 +1700,7 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
   const auto = (settings?.autoList||[]).find(a => a.id === emp.autoId);
   const fields = [
     { label:'Nome completo',      value:`${emp.nome} ${emp.cognome}` },
-    { label:'N. Registro',        value:emp.registro },
+    { label:'Codice Dipendente',   value:emp.registro },
     { label:'Codice Fiscale',     value:emp.cf },
     { label:'Data inizio lavoro', value:formatDate(emp.dataInizio) },
     { label:'Telefono',           value:emp.telefono || '—' },
@@ -1926,7 +1926,7 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <EmpField label="Nome *"             name="nome"      form={form} setForm={setForm} errors={errors} />
           <EmpField label="Cognome *"          name="cognome"   form={form} setForm={setForm} errors={errors} />
-          <EmpField label="N. Registro *"      name="registro"  form={form} setForm={setForm} errors={errors} />
+          <EmpField label="Codice Dipendente *" name="registro"  form={form} setForm={setForm} errors={errors} />
           <EmpField label="Codice Fiscale *"   name="cf"        form={form} setForm={setForm} errors={errors} />
           <EmpField label="Data inizio lavoro" name="dataInizio" type="date" form={form} setForm={setForm} errors={errors} />
           <EmpField label="Telefono"           name="telefono"  form={form} setForm={setForm} errors={errors} />
@@ -2414,8 +2414,12 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
 
   const annoStr   = String(year);
   const mStrFull  = `${year}-${String(month).padStart(2,'0')}`;
-  const orePermMese = (permessi||[]).filter(p=>p.employeeId===user.id&&p.status=== SF.APPROVATO&&p.data.startsWith(mStrFull)).reduce((s,p)=>s+p.orePermesso,0);
-  const orePermAnno = (permessi||[]).filter(p=>p.employeeId===user.id&&p.status=== SF.APPROVATO&&p.data.startsWith(annoStr)).reduce((s,p)=>s+p.orePermesso,0);
+  const permApprMese = (permessi||[]).filter(p=>p.employeeId===user.id&&p.status===SF.APPROVATO&&p.data.startsWith(mStrFull));
+  const permApprAnno = (permessi||[]).filter(p=>p.employeeId===user.id&&p.status===SF.APPROVATO&&p.data.startsWith(annoStr));
+  const orePermMese = permApprMese.reduce((s,p)=>s+p.orePermesso,0);
+  const orePermAnno = permApprAnno.reduce((s,p)=>s+p.orePermesso,0);
+  const permTipMese = tip => permApprMese.filter(p=>p.tipologia===tip).reduce((s,p)=>s+p.orePermesso,0);
+  const permTipAnno = tip => permApprAnno.filter(p=>p.tipologia===tip).reduce((s,p)=>s+p.orePermesso,0);
   const ferieGiorniAnno = (ferie||[]).filter(f=>f.employeeId===user.id&&f.status=== SF.APPROVATO&&f.dataInizio.startsWith(annoStr)).reduce((s,f)=>s+f.giorniLavorativi,0);
 
   // Straordinari approvati
@@ -2578,7 +2582,6 @@ ${monthPresenze.length === 0
       {/* Stats — rettangoli raggruppati */}
       {(() => {
         const ini = user.valoriIniziali || {};
-        const iniPermAnno    = Number(ini.permessiOreAnno    || 0);
         const iniFerieAnno   = Number(ini.ferieGiorniAnno    || 0);
         const iniStraAnno    = Math.round(Number(ini.straordinariOreAnno || 0) * 60);
         const iniRepAnno     = Number(ini.reperibilita        || 0);
@@ -2641,17 +2644,57 @@ ${monthPresenze.length === 0
             </div>
 
             {/* Permessi */}
-            <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-sm">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🕐 Permessi</p>
-              {statBox('Ore permessi mese', fmtDurata(orePermMese), 'text-violet-600')}
-              {statBox('Ore permessi anno', fmtDurata(orePermAnno + iniPermAnno * 60), 'text-violet-700')}
-            </div>
+            {(() => {
+              const ini = user.valoriIniziali || {};
+              const TIPS = [
+                { id:'rol',                label:'ROL',                keyIni:'permessiRolAnno' },
+                { id:'ex_festivita',       label:"EX-FESTIVITA'",      keyIni:'permessiExFestivitaAnno' },
+                { id:'permessi_personali', label:'PERMESSI PERSONALI', keyIni:'permessiPersonaliAnno' },
+                { id:'permessi_studio',    label:'PERMESSI STUDIO',    keyIni:'permessiStudioAnno' },
+              ];
+              const totMese = TIPS.reduce((s,t)=>s+permTipMese(t.id),0);
+              const totAnno = TIPS.reduce((s,t)=>s+permTipAnno(t.id)+Number(ini[t.keyIni]||0)*60,0);
+              return (
+                <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-sm sm:col-span-2 xl:col-span-2">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🕐 Permessi</p>
+                  <table className="w-full text-xs mb-3">
+                    <thead>
+                      <tr>
+                        <th className="text-left text-slate-400 font-semibold pb-1.5 pr-3"></th>
+                        <th className="text-right text-slate-400 font-semibold pb-1.5 pr-2">Mese</th>
+                        <th className="text-right text-slate-400 font-semibold pb-1.5">Anno</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {TIPS.map(t => {
+                        const m = permTipMese(t.id);
+                        const a = permTipAnno(t.id) + Number(ini[t.keyIni]||0)*60;
+                        return (
+                          <tr key={t.id}>
+                            <td className="py-1.5 pr-3 text-slate-500">{t.label}</td>
+                            <td className="py-1.5 pr-2 text-right font-semibold text-violet-600">{m>0?fmtDurata(m):'—'}</td>
+                            <td className="py-1.5 text-right font-semibold text-violet-700">{a>0?fmtDurata(a):'—'}</td>
+                          </tr>
+                        );
+                      })}
+                      <tr className="border-t-2 border-violet-200">
+                        <td className="pt-2 pr-3 font-bold text-slate-700">PERMESSI TOTALI</td>
+                        <td className="pt-2 pr-2 text-right font-bold text-violet-600">{totMese>0?fmtDurata(totMese):'—'}</td>
+                        <td className="pt-2 text-right font-bold text-violet-700">{totAnno>0?fmtDurata(totAnno):'—'}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p className="text-xs text-slate-400 italic leading-relaxed">Attenzione, i permessi riportati non tengono conto dei permessi maturati ogni mese ma solo di quelli effettivamente presi nel mese e nell&apos;anno.</p>
+                </div>
+              );
+            })()}
 
             {/* Ferie */}
             <div className="bg-white rounded-2xl p-4 border border-sky-100 shadow-sm">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🏖 Ferie</p>
               {statBox('Ferie mese (gg)', (ferie||[]).filter(f=>f.employeeId===user.id&&f.status===SF.APPROVATO&&f.dataInizio.startsWith(mStrFull)).reduce((s,f)=>s+f.giorniLavorativi,0)+' gg', 'text-sky-500')}
               {statBox('Ferie anno (gg)', (ferieGiorniAnno + iniFerieAnno)+' gg', 'text-sky-600')}
+              <p className="text-xs text-slate-400 italic leading-relaxed mt-3">Attenzione, le ferie riportate non tengono conto delle ferie maturate ogni mese ma solo di quelle effettivamente prese nel mese e nell&apos;anno.</p>
             </div>
 
             {/* Straordinari */}
@@ -3523,9 +3566,10 @@ function ResetApprova({ emp, onApprova, onBack }) {
 // ============================================================
 
 const TIPOLOGIE_PERMESSO = [
-  { id: 'legge104',          label: 'Permesso Legge 104' },
-  { id: 'donazione_sangue',  label: 'Permesso per Donazione Sangue' },
-  { id: 'congedo_parentale', label: 'Permesso per Congedo Parentale' },
+  { id: 'rol',                label: 'ROL (Riduzione Orario Lavorativo)' },
+  { id: 'ex_festivita',       label: "EX-FESTIVITA'" },
+  { id: 'permessi_personali', label: 'PERMESSI PERSONALI' },
+  { id: 'permessi_studio',    label: 'PERMESSI STUDIO' },
 ];
 const TIPOLOGIA_LABEL = TIPOLOGIE_PERMESSO.reduce((acc, t) => { acc[t.id] = t.label; return acc; }, {});
 
@@ -3647,6 +3691,7 @@ function PermessiOrari({ user, employees, permessi, setPermessi, onRichiesta, on
     if (!oraFine)       { setErr("Inserisci l'ora di fine."); return; }
     if (oraFine <= oraInizio) { setErr("L'ora di fine deve essere successiva all'ora di inizio."); return; }
     if (!motivo.trim()) { setErr('Inserisci il motivo del permesso.'); return; }
+    if (!tipologia)     { setErr('Seleziona la tipologia di permesso.'); return; }
     if (data < todayStr()) {
       const conferma = window.confirm(`Attenzione: la data inserita (${fmtData(data)}) è precedente a oggi. Vuoi procedere comunque?`);
       if (!conferma) return;
@@ -3821,34 +3866,19 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
           </div>
           {/* Tipologie di permesso */}
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-2">Tipologia di permesso (opzionale)</label>
+            <label className="block text-xs font-medium text-slate-500 mb-2">Tipologia di permesso <span className="text-red-400">*</span></label>
             <div className="space-y-2">
               {TIPOLOGIE_PERMESSO.map(t => (
                 <label key={t.id} className="flex items-center gap-3 cursor-pointer group">
-                  <input type="checkbox" checked={tipologia===t.id}
-                    onChange={e => setTipologia(e.target.checked ? t.id : '')}
-                    className="w-4 h-4 accent-violet-600 rounded cursor-pointer"/>
+                  <input type="radio" name="tipologia-permesso" value={t.id} checked={tipologia===t.id}
+                    onChange={() => { setTipologia(t.id); setErr(''); }}
+                    className="w-4 h-4 accent-violet-600 cursor-pointer"/>
                   <span className={`text-sm font-medium transition-colors ${tipologia===t.id ? 'text-violet-700' : 'text-slate-600 group-hover:text-slate-800'}`}>
                     {t.label}
                   </span>
                 </label>
               ))}
             </div>
-            {tipologia && (
-              <p className="text-xs text-slate-400 mt-2">La tipologia è visibile solo a master e amministratori.</p>
-            )}
-            {tipologia === 'donazione_sangue' && (
-              <div className="mt-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2">
-                <span className="text-base leading-none mt-0.5">🩸</span>
-                <p className="text-xs font-semibold text-red-700">Ricordarsi di inviare all'Amministrazione il relativo certificato.</p>
-              </div>
-            )}
-            {tipologia === 'congedo_parentale' && (
-              <div className="mt-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-start gap-2">
-                <span className="text-base leading-none mt-0.5">👶</span>
-                <p className="text-xs font-semibold text-blue-700">Ricordarsi di verificare con l'Amministrazione il recepimento dei congedi parentali inviati da Inps.</p>
-              </div>
-            )}
           </div>
           {err && <p className="text-xs text-red-500 font-medium">{err}</p>}
           {ok  && <p className="text-xs text-emerald-600 font-semibold">✅ Richiesta inviata! Il responsabile riceverà una notifica.</p>}
@@ -7072,16 +7102,29 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                 <div key={emp.id} className="border border-slate-200 rounded-2xl p-4">
                   <p className="font-semibold text-slate-700 text-sm mb-3">{emp.nome} {emp.cognome} <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ml-1 ${ROLE_COLORS[emp.ruolo]}`}>{ROLE_LABELS[emp.ruolo]}</span></p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Permessi (ore)</label>
-                      <input type="number" min="0" step="0.5" placeholder="0"
-                        value={ini.permessiOreAnno||''}
-                        onChange={e=>{
-                          const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,permessiOreAnno:parseFloat(e.target.value)||0}}:x);
-                          setEmployees(upd); saveData('hr_employees',upd);
-                          if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,permessiOreAnno:parseFloat(e.target.value)||0}}).eq('id',emp.id);
-                        }}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
+                    <div className="col-span-2 md:col-span-3">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Permessi pregressi (ore per tipologia)</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {[
+                          { key:'permessiRolAnno',              label:'ROL (ore)' },
+                          { key:'permessiExFestivitaAnno',      label:"EX-FESTIVITA' (ore)" },
+                          { key:'permessiPersonaliAnno',        label:'PERS. (ore)' },
+                          { key:'permessiStudioAnno',           label:'STUDIO (ore)' },
+                        ].map(({key, label}) => (
+                          <div key={key}>
+                            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{label}</label>
+                            <input type="number" min="0" step="0.5" placeholder="0"
+                              value={ini[key]||''}
+                              onChange={e=>{
+                                const val = parseFloat(e.target.value)||0;
+                                const upd = (employees||[]).map(x=>x.id===emp.id?{...x,valoriIniziali:{...x.valoriIniziali,[key]:val}}:x);
+                                setEmployees(upd); saveData('hr_employees',upd);
+                                if(_supa) _supa.from('employees').update({valori_iniziali:{...ini,[key]:val}}).eq('id',emp.id);
+                              }}
+                              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50"/>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Ferie (giorni)</label>
