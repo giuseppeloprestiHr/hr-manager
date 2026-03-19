@@ -2647,13 +2647,17 @@ ${monthPresenze.length === 0
             {(() => {
               const ini = user.valoriIniziali || {};
               const TIPS = [
-                { id:'rol',                label:'ROL',                keyIni:'permessiRolAnno' },
-                { id:'ex_festivita',       label:"EX-FESTIVITA'",      keyIni:'permessiExFestivitaAnno' },
-                { id:'permessi_personali', label:'PERMESSI PERSONALI', keyIni:'permessiPersonaliAnno' },
-                { id:'permessi_studio',    label:'PERMESSI STUDIO',    keyIni:'permessiStudioAnno' },
+                { ids:['rol'],                                          label:'Permesso Orario - ROL',                keyIni:'permessiRolAnno' },
+                { ids:['ex_festivita'],                                 label:'Permesso Orario - Ex Festività',       keyIni:'permessiExFestivitaAnno' },
+                { ids:['permessi_personali','permessi_studio'],         label:'Permessi Personali / Permessi Studio', keyIni:'permessiPersonaliAnno' },
+                { ids:['legge_104'],                                    label:'Permesso Legge 104',                   keyIni:'permessiLegge104Anno' },
+                { ids:['donazione_sangue'],                             label:'Permesso per Donazione Sangue',        keyIni:'permessiDonazioneSangueAnno' },
+                { ids:['congedo_parentale'],                            label:'Permesso per Congedo Parentale',       keyIni:'permessiCongedoParentaleAnno' },
               ];
-              const totMese = TIPS.reduce((s,t)=>s+permTipMese(t.id),0);
-              const totAnno = TIPS.reduce((s,t)=>s+permTipAnno(t.id)+Number(ini[t.keyIni]||0)*60,0);
+              const tipMese = t => t.ids.reduce((s,id)=>s+permTipMese(id),0);
+              const tipAnno = t => t.ids.reduce((s,id)=>s+permTipAnno(id),0);
+              const totMese = TIPS.reduce((s,t)=>s+tipMese(t),0);
+              const totAnno = TIPS.reduce((s,t)=>s+tipAnno(t)+Number(ini[t.keyIni]||0)*60,0);
               return (
                 <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-sm sm:col-span-2 xl:col-span-2">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🕐 Permessi</p>
@@ -2667,10 +2671,10 @@ ${monthPresenze.length === 0
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {TIPS.map(t => {
-                        const m = permTipMese(t.id);
-                        const a = permTipAnno(t.id) + Number(ini[t.keyIni]||0)*60;
+                        const m = tipMese(t);
+                        const a = tipAnno(t) + Number(ini[t.keyIni]||0)*60;
                         return (
-                          <tr key={t.id}>
+                          <tr key={t.ids[0]}>
                             <td className="py-1.5 pr-3 text-slate-500">{t.label}</td>
                             <td className="py-1.5 pr-2 text-right font-semibold text-violet-600">{m>0?fmtDurata(m):'—'}</td>
                             <td className="py-1.5 text-right font-semibold text-violet-700">{a>0?fmtDurata(a):'—'}</td>
@@ -3566,12 +3570,17 @@ function ResetApprova({ emp, onApprova, onBack }) {
 // ============================================================
 
 const TIPOLOGIE_PERMESSO = [
-  { id: 'rol',                label: 'ROL (Riduzione Orario Lavorativo)' },
-  { id: 'ex_festivita',       label: "EX-FESTIVITA'" },
-  { id: 'permessi_personali', label: 'PERMESSI PERSONALI' },
-  { id: 'permessi_studio',    label: 'PERMESSI STUDIO' },
+  { id: 'rol',                label: 'Permesso Orario - ROL' },
+  { id: 'ex_festivita',       label: 'Permesso Orario - Ex Festività' },
+  { id: 'permessi_personali', label: 'Permessi Personali / Permessi Studio' },
+  { id: 'legge_104',          label: 'Permesso Legge 104' },
+  { id: 'donazione_sangue',   label: 'Permesso per Donazione Sangue' },
+  { id: 'congedo_parentale',  label: 'Permesso per Congedo Parentale' },
 ];
-const TIPOLOGIA_LABEL = TIPOLOGIE_PERMESSO.reduce((acc, t) => { acc[t.id] = t.label; return acc; }, {});
+const TIPOLOGIA_LABEL = {
+  ...TIPOLOGIE_PERMESSO.reduce((acc, t) => { acc[t.id] = t.label; return acc; }, {}),
+  permessi_studio: 'Permessi Personali / Permessi Studio', // retrocompatibilità
+};
 
 function generaDocumentoPermesso(p, emp, approvatoDaEmp) {
   const luogo = approvatoDaEmp ? (approvatoDaEmp.nome + ' ' + approvatoDaEmp.cognome) : 'Responsabile';
@@ -7104,12 +7113,14 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     <div className="col-span-2 md:col-span-3">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Permessi pregressi (ore per tipologia)</p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {[
                           { key:'permessiRolAnno',              label:'ROL (ore)' },
-                          { key:'permessiExFestivitaAnno',      label:"EX-FESTIVITA' (ore)" },
-                          { key:'permessiPersonaliAnno',        label:'PERS. (ore)' },
-                          { key:'permessiStudioAnno',           label:'STUDIO (ore)' },
+                          { key:'permessiExFestivitaAnno',      label:'Ex Festività (ore)' },
+                          { key:'permessiPersonaliAnno',        label:'Pers./Studio (ore)' },
+                          { key:'permessiLegge104Anno',         label:'Legge 104 (ore)' },
+                          { key:'permessiDonazioneSangueAnno',  label:'Donaz. Sangue (ore)' },
+                          { key:'permessiCongedoParentaleAnno', label:'Congedo Parent. (ore)' },
                         ].map(({key, label}) => (
                           <div key={key}>
                             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{label}</label>
