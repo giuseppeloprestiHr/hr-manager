@@ -6670,6 +6670,20 @@ function ChiusureView({ settings }) {
   );
 }
 
+const RILPRE_GIUST_DEFAULT = [
+  { id: String(Date.now() + 1),  codice: 'FE', descrizione: 'Ferie' },
+  { id: String(Date.now() + 2),  codice: 'RO', descrizione: 'ROL (Riduzione Orario Lavorativo)' },
+  { id: String(Date.now() + 3),  codice: 'PP', descrizione: 'Permessi personali' },
+  { id: String(Date.now() + 4),  codice: 'H7', descrizione: 'Permessi L.104 familiari' },
+  { id: String(Date.now() + 5),  codice: 'EO', descrizione: 'Ex festività goduta' },
+  { id: String(Date.now() + 6),  codice: 'CM', descrizione: 'Congedo matrimoniale' },
+  { id: String(Date.now() + 7),  codice: 'PA', descrizione: 'Congedo obbligatorio padre' },
+  { id: String(Date.now() + 8),  codice: 'AQ', descrizione: 'Allattamento' },
+  { id: String(Date.now() + 9),  codice: 'DS', descrizione: 'Donazione sangue' },
+  { id: String(Date.now() + 10), codice: 'ML', descrizione: 'Malattia' },
+  { id: String(Date.now() + 11), codice: 'ST', descrizione: 'Straordinari' },
+];
+
 function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, setEmployees, saveData }) {
   const isAdmin = currentUserRole === RUOLI.AMMINISTRATORE;
   const isMaster = currentUserRole === RUOLI.MASTER;
@@ -6687,8 +6701,11 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     finePausa:            settings.finePausa   || '13:00',
     fineTurno:            settings.fineTurno   || '17:00',
     tolleranzaMinuti:     settings.tolleranzaMinuti ?? 15,
-    centriDiCosto:        settings.centriDiCosto || [{id:'1',numero:'100',testo:'Sanitario'}],
-    autoList:             settings.autoList || [],
+    centriDiCosto:           settings.centriDiCosto || [{id:'1',numero:'100',testo:'Sanitario'}],
+    autoList:                settings.autoList || [],
+    rilpreCodiceAzienda:     settings.rilpreCodiceAzienda || '0113',
+    rilpreCodiceFiliale:     settings.rilpreCodiceFiliale || '01',
+    rilpreGiustificativi:    settings.rilpreGiustificativi || RILPRE_GIUST_DEFAULT,
   });
   // ── Centri di costo state ──
   const [newCdc, setNewCdc] = useState({numero:'', testo:''});
@@ -6696,6 +6713,8 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
   // ── Auto state ──
   const [newAuto, setNewAuto] = useState({modello:'', targa:'', tipologia:'', provenienza:''});
   const [editAutoId, setEditAutoId] = useState(null);
+  // ── RILPRE state ──
+  const [newGiust, setNewGiust] = useState({codice:'', descrizione:''});
 
   const handleAddCdc = () => {
     if (!newCdc.numero.trim() || !newCdc.testo.trim()) return;
@@ -7207,6 +7226,107 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                 </div>
               );
             })}
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* ── SEZIONE RILPRE — solo Master ── */}
+      {isMaster && (
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
+          <span className="text-2xl">📋</span>
+          <div>
+            <p className="font-bold text-slate-800 text-base">Rilevazione Presenze (RILPRE)</p>
+            <p className="text-slate-400 text-xs mt-0.5">Parametri per l'esportazione presenze: codici azienda, filiale e giustificativi</p>
+          </div>
+        </div>
+        <div className="px-6 py-5 space-y-5">
+          {/* Codice Azienda e Filiale */}
+          <div className="flex gap-4 flex-wrap">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Codice Azienda (4 cifre)</label>
+              <input type="text" maxLength={4} placeholder="0113"
+                value={form.rilpreCodiceAzienda}
+                onChange={e => setForm(f => ({...f, rilpreCodiceAzienda: e.target.value.replace(/\D/g,'').slice(0,4)}))}
+                className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-28 font-mono"/>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Codice Filiale (2 cifre)</label>
+              <input type="text" maxLength={2} placeholder="01"
+                value={form.rilpreCodiceFiliale}
+                onChange={e => setForm(f => ({...f, rilpreCodiceFiliale: e.target.value.replace(/\D/g,'').slice(0,2)}))}
+                className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-24 font-mono"/>
+            </div>
+          </div>
+
+          {/* Tabella Giustificativi */}
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Codici Giustificativi</p>
+            <div className="border border-slate-200 rounded-xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide w-28">Codice</th>
+                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Giustificativo</th>
+                    <th className="w-12"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {form.rilpreGiustificativi.map((g, idx) => (
+                    <tr key={g.id} className="group">
+                      <td className="px-3 py-2">
+                        <input type="text" maxLength={4}
+                          value={g.codice}
+                          onChange={e => {
+                            const upd = form.rilpreGiustificativi.map((x,i) => i===idx ? {...x, codice: e.target.value.toUpperCase().slice(0,4)} : x);
+                            setForm(f => ({...f, rilpreGiustificativi: upd}));
+                          }}
+                          className="w-20 border border-slate-200 rounded-lg px-2 py-1 text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input type="text"
+                          value={g.descrizione}
+                          onChange={e => {
+                            const upd = form.rilpreGiustificativi.map((x,i) => i===idx ? {...x, descrizione: e.target.value} : x);
+                            setForm(f => ({...f, rilpreGiustificativi: upd}));
+                          }}
+                          className="w-full border border-slate-200 rounded-lg px-2 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <button onClick={() => setForm(f => ({...f, rilpreGiustificativi: f.rilpreGiustificativi.filter((_,i) => i!==idx)}))}
+                          className="text-red-400 hover:text-red-600 text-xs px-1.5 py-1 rounded-lg hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Aggiungi giustificativo */}
+            <div className="flex gap-2 mt-3 flex-wrap">
+              <input type="text" maxLength={4} placeholder="Codice" value={newGiust.codice}
+                onChange={e => setNewGiust(n => ({...n, codice: e.target.value.toUpperCase().slice(0,4)}))}
+                className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-24 font-mono"/>
+              <input type="text" placeholder="Descrizione giustificativo" value={newGiust.descrizione}
+                onChange={e => setNewGiust(n => ({...n, descrizione: e.target.value}))}
+                className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-48"/>
+              <button
+                onClick={() => {
+                  if (!newGiust.codice.trim() || !newGiust.descrizione.trim()) return;
+                  setForm(f => ({...f, rilpreGiustificativi: [...f.rilpreGiustificativi, {id: String(Date.now()), codice: newGiust.codice.trim(), descrizione: newGiust.descrizione.trim()}]}));
+                  setNewGiust({codice:'', descrizione:''});
+                }}
+                disabled={!newGiust.codice.trim() || !newGiust.descrizione.trim()}
+                className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:bg-slate-300">
+                + Aggiungi
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <button onClick={handleSave} className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${saved ? 'bg-emerald-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
+              {saved ? '✅ Salvato!' : '💾 Salva'}
+            </button>
           </div>
         </div>
       </div>
