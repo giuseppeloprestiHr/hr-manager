@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guida Direttore – HR Manager</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 15px; color: #1e293b; background: #f8fafc; }
+  .cover { background: #1e3a6e; color: #fff; padding: 48px 32px; text-align: center; }
+  .cover h1 { font-size: 30px; font-weight: bold; }
+  .cover .ruolo { margin-top: 10px; background: #2563eb; display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 14px; }
+  .cover p { margin-top: 10px; color: #bfdbfe; font-size: 14px; }
+  .container { max-width: 780px; margin: 0 auto; padding: 32px 20px; }
+  .section-label { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin: 28px 0 10px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+  .card h2 { font-size: 18px; font-weight: bold; color: #1e3a6e; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .card h2 .ico { font-size: 22px; }
+  p { line-height: 1.75; margin-bottom: 10px; color: #374151; }
+  ul { padding-left: 20px; margin-bottom: 10px; line-height: 2; color: #374151; }
+  .step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num { background: #1e3a6e; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
+  .info { background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #1e40af; }
+  .warn { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #92400e; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 12px; }
+  @media print { body{background:#fff} .card{break-inside:avoid} @page{margin:1.5cm} }
+</style>
+</head>
+<body>
+<div class="cover">
+  <h1>HR Manager</h1>
+  <div class="ruolo">🏢 Guida per il Direttore</div>
+  <p>Supervisione, approvazioni finali e report</p>
+</div>
+<div class="container">
+
+  <div class="info" style="margin-bottom:20px">
+    Il direttore ha accesso a tutte le funzioni del dipendente (timbratura, ferie, permessi, malattia) <strong>più</strong> le funzioni di supervisione descritte in questa guida.
+  </div>
+
+  <p class="section-label">Approvazioni</p>
+
+  <div class="card">
+    <h2><span class="ico">📋</span> Approva permessi</h2>
+    <p>Il direttore gestisce i permessi orari richiesti dai <strong>Responsabili</strong>. I permessi dei dipendenti ordinari sono gestiti dai loro responsabili.</p>
+    <div class="step"><div class="step-num">1</div><div>Vai su <strong>Approva permessi</strong> dal menu laterale o dai tile della dashboard.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Leggi la richiesta del responsabile: data, ore e motivo.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Clicca <strong>✅ Approva</strong> o <strong>✗ Rifiuta</strong> (con nota obbligatoria).</div></div>
+    <div class="info">In fondo alla pagina trovi lo <strong>storico delle richieste già gestite</strong>.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">✈️</span> Approva ferie</h2>
+    <p>Il direttore approva le ferie dei dipendenti che non hanno un responsabile assegnato e le ferie dei responsabili stessi.</p>
+    <div class="step"><div class="step-num">1</div><div>Vai su <strong>Approva ferie</strong>.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Clicca <strong>✅ Approva</strong> o <strong>✗ Rifiuta</strong> per ogni richiesta.</div></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">📈</span> Approva straordinari (approvazione definitiva)</h2>
+    <p>Gli straordinari arrivano al direttore dopo che il responsabile ha già dato il primo via libera. Il direttore dà l'approvazione <strong>finale e definitiva</strong>.</p>
+    <div class="step"><div class="step-num">1</div><div>Vai su <strong>Approva straordinari</strong>.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Leggi la nota del dipendente e verifica che il responsabile abbia già approvato.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Clicca <strong>✅ Approva</strong>: lo straordinario è confermato e il dipendente riceve la notifica.</div></div>
+    <div class="step"><div class="step-num">4</div><div>Oppure clicca <strong>✗ Rifiuta</strong> con nota motivazionale.</div></div>
+    <div class="info">In fondo alla pagina trovi lo <strong>storico delle richieste già gestite</strong>.</div>
+  </div>
+
+  <p class="section-label">Monitoraggio</p>
+
+  <div class="card">
+    <h2><span class="ico">📊</span> Report presenze</h2>
+    <p>Vista completa delle presenze mensili di tutto il personale.</p>
+    <ul>
+      <li>Usa le frecce <strong>‹ ›</strong> per navigare tra i mesi</li>
+      <li>Le celle mostrano: P (presente), F (ferie), M (malattia), A (assente)</li>
+      <li>Clicca <strong>"🖨️ Stampa"</strong> per generare e scaricare il report in formato stampabile</li>
+    </ul>
+    <div class="info">Il report di stampa include un riepilogo per dipendente con: presenze, malattia, ferie, assenze, permessi e percentuale di presenza. Funziona correttamente per qualsiasi mese, passato o futuro.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">📅</span> Calendario team</h2>
+    <p>Vista mensile con le presenze di tutto il personale. Permette di avere una panoramica rapida delle assenze pianificate.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">👥</span> Dipendenti</h2>
+    <p>Visualizzazione dell'anagrafica di tutti i dipendenti: dati personali, ruolo, responsabile assegnato e data di inizio.</p>
+    <div class="warn">Il direttore può visualizzare i dati ma non può modificare o eliminare i dipendenti. Per modifiche rivolgersi all'amministratore.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🔔</span> Notifiche</h2>
+    <p>Ricevi notifiche per ogni straordinario che richiede la tua approvazione definitiva e per le richieste di permesso dei responsabili.</p>
+    <p>Nella pagina Notifiche puoi filtrare per dipendente, data e stato (lette/non lette).</p>
+  </div>
+
+</div>
+<div class="footer">HR Manager · Guida Direttore · Marzo 2026</div>
+</body>
+</html>

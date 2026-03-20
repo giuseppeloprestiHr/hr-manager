@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guida Responsabile – HR Manager</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 15px; color: #1e293b; background: #f8fafc; }
+  .cover { background: #166534; color: #fff; padding: 48px 32px; text-align: center; }
+  .cover h1 { font-size: 30px; font-weight: bold; }
+  .cover .ruolo { margin-top: 10px; background: #16a34a; display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 14px; }
+  .cover p { margin-top: 10px; color: #bbf7d0; font-size: 14px; }
+  .container { max-width: 780px; margin: 0 auto; padding: 32px 20px; }
+  .section-label { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin: 28px 0 10px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+  .card h2 { font-size: 18px; font-weight: bold; color: #166534; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .card h2 .ico { font-size: 22px; }
+  p { line-height: 1.75; margin-bottom: 10px; color: #374151; }
+  ul { padding-left: 20px; margin-bottom: 10px; line-height: 2; color: #374151; }
+  .step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num { background: #166534; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
+  .info { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #15803d; }
+  .warn { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #92400e; }
+  .blue { background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 13px; color: #1e40af; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 12px; }
+  @media print { body{background:#fff} .card{break-inside:avoid} @page{margin:1.5cm} }
+</style>
+</head>
+<body>
+<div class="cover">
+  <h1>HR Manager</h1>
+  <div class="ruolo">👨‍💼 Guida per il Responsabile</div>
+  <p>Gestione del team, approvazioni e calendario</p>
+</div>
+<div class="container">
+
+  <div class="blue" style="margin-bottom:20px">
+    Il responsabile ha accesso a tutte le funzioni del dipendente (timbratura, ferie, permessi, malattia) <strong>più</strong> le funzioni di gestione del team descritte in questa guida.
+  </div>
+
+  <p class="section-label">Gestione del team</p>
+
+  <div class="card">
+    <h2><span class="ico">👥</span> Il mio team</h2>
+    <p>Mostra l'elenco di tutti i dipendenti a te assegnati. Per ogni dipendente puoi cliccare su <strong>"Vedi"</strong> per accedere al dettaglio anagrafico e visualizzare i suoi dati.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">📅</span> Calendario team</h2>
+    <p>Vista mensile con le presenze, ferie e malattie di tutto il tuo team. Utile per verificare chi è presente prima di approvare nuove assenze.</p>
+    <p>Usa le frecce <strong>‹ ›</strong> per navigare tra i mesi.</p>
+  </div>
+
+  <p class="section-label">Approvazioni</p>
+
+  <div class="card">
+    <h2><span class="ico">📋</span> Approva permessi</h2>
+    <p>Qui trovi tutte le richieste di permesso orario dei tuoi dipendenti in attesa di risposta.</p>
+    <div class="step"><div class="step-num">1</div><div>Leggi la richiesta: dipendente, data, ore e motivo.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Clicca <strong>✅ Approva</strong> per autorizzarla — il dipendente riceve una notifica.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Oppure clicca <strong>✗ Rifiuta</strong>, scrivi il motivo del rifiuto e conferma.</div></div>
+    <div class="info">In fondo alla pagina trovi lo <strong>storico delle richieste già gestite</strong> con il loro stato (approvato, rifiutato, inoltrato al direttore).</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">✈️</span> Approva ferie</h2>
+    <p>Funziona esattamente come "Approva permessi". Trovi le richieste di ferie dei tuoi dipendenti in attesa di approvazione.</p>
+    <div class="warn">Prima di approvare, controlla il calendario team per verificare che non ci siano già troppe assenze nello stesso periodo.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">📈</span> Approva straordinari</h2>
+    <p>Quando un tuo dipendente registra uno straordinario, la richiesta arriva qui per la tua approvazione (primo step).</p>
+    <div class="step"><div class="step-num">1</div><div>Leggi la nota motivazionale del dipendente.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Clicca <strong>✅ Approva</strong>: la richiesta passa automaticamente al Direttore per l'approvazione definitiva.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Oppure clicca <strong>✗ Rifiuta</strong> e inserisci il motivo.</div></div>
+    <div class="info">In fondo alla pagina trovi lo <strong>storico delle richieste già gestite</strong>.</div>
+  </div>
+
+  <p class="section-label">Altre funzioni</p>
+
+  <div class="card">
+    <h2><span class="ico">🙋</span> Reperibilità</h2>
+    <p>Permette di gestire i turni di reperibilità del team e di registrare le gestioni telefoniche effettuate dai dipendenti durante la reperibilità.</p>
+    <div class="warn">Non è possibile assegnare reperibilità a un dipendente nei giorni in cui ha ferie approvate.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🔔</span> Notifiche</h2>
+    <p>Ricevi notifiche per ogni nuova richiesta di permesso, ferie, malattia e straordinario dei tuoi dipendenti. Il numero rosso sul campanellino indica le notifiche non lette.</p>
+    <p>Nella pagina Notifiche puoi filtrare per dipendente, data e stato (lette/non lette).</p>
+  </div>
+
+</div>
+<div class="footer">HR Manager · Guida Responsabile · Marzo 2026</div>
+</body>
+</html>

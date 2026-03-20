@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manuale Utente – HR Manager</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 14px; color: #1e293b; background: #f8fafc; }
+  .cover { background: #1e3a6e; color: #fff; padding: 60px 40px; text-align: center; }
+  .cover h1 { font-size: 36px; font-weight: bold; letter-spacing: .05em; margin-bottom: 10px; }
+  .cover p { font-size: 16px; color: #94a3b8; margin-top: 8px; }
+  .cover .version { margin-top: 20px; background: rgba(255,255,255,.1); display: inline-block; padding: 6px 18px; border-radius: 20px; font-size: 13px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+  .toc { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px 28px; margin-bottom: 40px; }
+  .toc h2 { font-size: 16px; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 14px; }
+  .toc ol { padding-left: 20px; line-height: 2; }
+  .toc a { color: #2563eb; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 28px; margin-bottom: 28px; }
+  .section h2 { font-size: 20px; font-weight: bold; color: #1e3a6e; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 18px; }
+  .section h3 { font-size: 15px; font-weight: bold; color: #334155; margin: 18px 0 8px; }
+  .section h4 { font-size: 13px; font-weight: bold; color: #475569; margin: 12px 0 6px; text-transform: uppercase; letter-spacing: .03em; }
+  p { line-height: 1.7; margin-bottom: 10px; color: #374151; }
+  ul, ol { padding-left: 22px; margin-bottom: 12px; line-height: 1.9; color: #374151; }
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin: 16px 0; }
+  .role-card { border-radius: 10px; padding: 14px; text-align: center; }
+  .role-card .emoji { font-size: 24px; }
+  .role-card .name { font-weight: bold; font-size: 13px; margin-top: 6px; }
+  .role-card .desc { font-size: 11px; color: #64748b; margin-top: 4px; }
+  .r-master    { background: #faf5ff; border: 1px solid #d8b4fe; }
+  .r-admin     { background: #fff1f2; border: 1px solid #fca5a5; }
+  .r-dir       { background: #eff6ff; border: 1px solid #93c5fd; }
+  .r-resp      { background: #f0fdf4; border: 1px solid #86efac; }
+  .r-dip       { background: #f8fafc; border: 1px solid #cbd5e1; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; margin: 2px; }
+  .badge-master    { background: #faf5ff; color: #7c3aed; border: 1px solid #c4b5fd; }
+  .badge-admin     { background: #fff1f2; color: #dc2626; border: 1px solid #fca5a5; }
+  .badge-dir       { background: #eff6ff; color: #2563eb; border: 1px solid #93c5fd; }
+  .badge-resp      { background: #f0fdf4; color: #16a34a; border: 1px solid #86efac; }
+  .badge-dip       { background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; }
+  .info-box { background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 13px; color: #1e40af; }
+  .warn-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 13px; color: #92400e; }
+  .success-box { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 13px; color: #15803d; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #1e3a6e; color: #fff; padding: 10px 12px; text-align: left; font-size: 12px; }
+  td { padding: 9px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .step { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+  .step-num { background: #1e3a6e; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; flex-shrink: 0; }
+  .step-body { flex: 1; }
+  .changelog-item { border-left: 3px solid #2563eb; padding: 10px 14px; margin-bottom: 10px; background: #f8fafc; border-radius: 0 8px 8px 0; }
+  .changelog-item .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-right: 8px; }
+  .tag-fix { background: #fef3c7; color: #92400e; }
+  .tag-new { background: #dcfce7; color: #166534; }
+  .tag-imp { background: #dbeafe; color: #1e40af; }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #dc2626; }
+  .footer { text-align: center; padding: 30px; color: #94a3b8; font-size: 12px; }
+  @media print {
+    body { background: #fff; }
+    .section { break-inside: avoid; border: 1px solid #ccc; }
+    @page { margin: 1.5cm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>HR Manager</h1>
+  <p>Manuale Utente — Guida completa all'utilizzo dell'applicativo</p>
+  <div class="version">Versione aggiornata · Marzo 2026</div>
+</div>
+
+<div class="container">
+
+  <!-- INDICE -->
+  <div class="toc">
+    <h2>Indice</h2>
+    <ol>
+      <li><a href="#s1">Introduzione e accesso</a></li>
+      <li><a href="#s2">Ruoli e permessi</a></li>
+      <li><a href="#s3">Funzionalità per il dipendente</a></li>
+      <li><a href="#s4">Funzionalità per il responsabile</a></li>
+      <li><a href="#s5">Funzionalità per il direttore</a></li>
+      <li><a href="#s6">Funzionalità per amministratore e master</a></li>
+      <li><a href="#s7">Notifiche</a></li>
+      <li><a href="#s8">Report presenze e stampa</a></li>
+      <li><a href="#s9">Aggiornamenti recenti</a></li>
+      <li><a href="#s10">Pubblicazione e aggiornamento su GitHub Pages</a></li>
+    </ol>
+  </div>
+
+  <!-- SEZIONE 1 -->
+  <div class="section" id="s1">
+    <h2>1. Introduzione e accesso</h2>
+    <p>HR Manager è un'applicazione web per la gestione delle presenze, ferie, permessi, malattie e straordinari del personale. Funziona direttamente nel browser senza installazioni.</p>
+
+    <h3>Accesso al sistema</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">Aprire l'URL fornito dall'amministratore nel browser (Chrome o Edge consigliati).</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">Inserire le credenziali di accesso: <strong>Username</strong> e <strong>Password</strong> forniti dall'amministratore.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">Al primo accesso verrà richiesto di impostare una nuova password personale.</div></div>
+
+    <div class="info-box">Al primo accesso la password è temporanea. Il sistema obbliga il cambio immediato prima di poter utilizzare qualsiasi funzione.</div>
+
+    <h3>Recupero password</h3>
+    <p>Nella schermata di login è presente il link <strong>"Password dimenticata?"</strong>. Inserire il proprio username e verrà inviata una notifica all'amministratore che provvederà al reset.</p>
+  </div>
+
+  <!-- SEZIONE 2 -->
+  <div class="section" id="s2">
+    <h2>2. Ruoli e permessi</h2>
+    <p>Il sistema prevede 5 livelli di accesso con permessi progressivi:</p>
+    <div class="role-grid">
+      <div class="role-card r-master"><div class="emoji">👑</div><div class="name">Master</div><div class="desc">Accesso totale al sistema</div></div>
+      <div class="role-card r-admin"><div class="emoji">🔧</div><div class="name">Amministratore</div><div class="desc">Gestione dipendenti e report</div></div>
+      <div class="role-card r-dir"><div class="emoji">🏢</div><div class="name">Direttore</div><div class="desc">Approvazione finale permessi e ferie</div></div>
+      <div class="role-card r-resp"><div class="emoji">👨‍💼</div><div class="name">Responsabile</div><div class="desc">Gestione del proprio team</div></div>
+      <div class="role-card r-dip"><div class="emoji">👤</div><div class="name">Dipendente</div><div class="desc">Operazioni personali</div></div>
+    </div>
+
+    <table>
+      <tr><th>Funzione</th><th>Dipendente</th><th>Responsabile</th><th>Direttore</th><th>Admin</th><th>Master</th></tr>
+      <tr><td>Timbratura</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Richiesta permessi/ferie</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Comunicazione malattia</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Straordinari</td><td>✅*</td><td>✅*</td><td>✅*</td><td>✅*</td><td>✅*</td></tr>
+      <tr><td>Visualizza team</td><td>—</td><td>✅ (suo team)</td><td>✅ (tutti)</td><td>✅ (tutti)</td><td>✅ (tutti)</td></tr>
+      <tr><td>Approva permessi (step 1)</td><td>—</td><td>✅</td><td>✅**</td><td>✅</td><td>—</td></tr>
+      <tr><td>Approva ferie (step 1)</td><td>—</td><td>✅</td><td>✅</td><td>✅</td><td>—</td></tr>
+      <tr><td>Approva straordinari (step 1)</td><td>—</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>Approva straordinari (step 2)</td><td>—</td><td>—</td><td>✅</td><td>—</td><td>—</td></tr>
+      <tr><td>Report presenze</td><td>—</td><td>—</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Gestione dipendenti</td><td>—</td><td>—</td><td>—</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Impostazioni sistema</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✅</td></tr>
+    </table>
+    <p style="font-size:12px;color:#64748b">* solo se abilitati dall'amministratore &nbsp;|&nbsp; ** solo per i permessi dei responsabili</p>
+  </div>
+
+  <!-- SEZIONE 3 -->
+  <div class="section" id="s3">
+    <h2>3. Funzionalità per il dipendente</h2>
+
+    <h3>⏱️ Timbratura</h3>
+    <p>La timbratura registra l'orario di entrata e, separatamente, l'orario di uscita.</p>
+    <ul>
+      <li>Cliccare <strong>"Timbra entrata"</strong> al mattino all'arrivo</li>
+      <li>Cliccare <strong>"Timbra uscita"</strong> alla fine della giornata</li>
+      <li>Se abilitato, il sistema richiede la posizione GPS al momento della timbratura</li>
+      <li>Se l'orario è fuori dalla fascia lavorativa configurata (oltre la tolleranza), viene richiesta una nota obbligatoria per lo straordinario</li>
+    </ul>
+    <div class="warn-box">La timbratura può essere effettuata una sola volta al giorno. Non è possibile modificare una timbratura già registrata.</div>
+
+    <h3>🩺 Comunicazione malattia</h3>
+    <p>Permette di comunicare un periodo di assenza per malattia.</p>
+    <ul>
+      <li>Indicare data inizio e data fine (può essere anche un solo giorno)</li>
+      <li>La comunicazione viene notificata al responsabile e all'amministratore</li>
+      <li>I giorni di malattia appaiono evidenziati in giallo nel calendario</li>
+    </ul>
+
+    <h3>📋 Permessi orari</h3>
+    <p>Permette di richiedere un permesso per una parte della giornata lavorativa.</p>
+    <ul>
+      <li>Indicare data, ora inizio e ora fine del permesso</li>
+      <li>Il permesso va approvato dal responsabile (e dal direttore se il richiedente è un responsabile)</li>
+      <li>Finché non approvato, lo stato è <em>"In attesa"</em></li>
+    </ul>
+
+    <h3>✈️ Ferie</h3>
+    <p>Permette di richiedere un periodo di ferie.</p>
+    <ul>
+      <li>Indicare data inizio e data fine</li>
+      <li>Le ferie devono essere approvate dal responsabile</li>
+      <li>I giorni di ferie approvate appaiono in azzurro nel calendario</li>
+      <li>Le ferie in attesa di approvazione appaiono in azzurro chiaro tratteggiato</li>
+    </ul>
+
+    <h3>📈 Straordinari</h3>
+    <p>Gli straordinari vengono rilevati automaticamente al momento della timbratura quando l'orario è fuori dalla fascia lavorativa configurata.</p>
+    <ul>
+      <li><strong>Straordinario mattina</strong>: rilevato all'entrata, se si timbra prima dell'orario di inizio (oltre la tolleranza)</li>
+      <li><strong>Straordinario sera</strong>: rilevato all'uscita, se si timbra dopo l'orario di fine turno (oltre la tolleranza)</li>
+      <li>Per entrambi è obbligatorio inserire una nota motivazionale</li>
+      <li>Gli straordinari seguono un flusso di approvazione: prima il responsabile, poi il direttore</li>
+    </ul>
+
+    <h3>📅 Il mio calendario</h3>
+    <p>Mostra una vista mensile con tutti gli eventi personali: presenze, malattie, ferie e permessi. È possibile navigare tra i mesi con le frecce.</p>
+
+    <h3>👤 La mia anagrafica</h3>
+    <p>Mostra i dati personali registrati. Permette di modificare la propria password.</p>
+  </div>
+
+  <!-- SEZIONE 4 -->
+  <div class="section" id="s4">
+    <h2>4. Funzionalità per il responsabile</h2>
+    <p>Il responsabile ha accesso a tutte le funzioni del dipendente, più le seguenti funzioni di gestione del team:</p>
+
+    <h3>👥 Il mio team</h3>
+    <p>Visualizza l'elenco dei dipendenti assegnati. Per ogni dipendente è possibile vedere il dettaglio anagrafico e i dati di presenza.</p>
+
+    <h3>📋 Approva permessi</h3>
+    <p>Mostra le richieste di permesso orario dei dipendenti del team in attesa di approvazione.</p>
+    <ul>
+      <li>Cliccare <strong>"Approva"</strong> per autorizzare il permesso</li>
+      <li>Cliccare <strong>"Rifiuta"</strong> e inserire una nota obbligatoria per respingere la richiesta</li>
+      <li>Il dipendente riceve una notifica dell'esito</li>
+    </ul>
+    <div class="success-box">La sezione include uno <strong>storico delle richieste già gestite</strong> con lo stato aggiornato (approvato, rifiutato, inoltrato al direttore).</div>
+
+    <h3>✈️ Approva ferie</h3>
+    <p>Funziona con la stessa logica di Approva permessi, applicata alle richieste di ferie.</p>
+
+    <h3>📈 Approva straordinari</h3>
+    <p>Prima fase di approvazione degli straordinari. Il responsabile verifica la nota del dipendente e decide se approvare (il record passa poi al direttore per l'approvazione finale) o rifiutare.</p>
+    <div class="success-box">La sezione include uno <strong>storico delle richieste già gestite</strong>.</div>
+
+    <h3>📅 Calendario team</h3>
+    <p>Vista mensile con le presenze, ferie e malattie di tutto il team. Utile per pianificare le assenze.</p>
+
+    <h3>🙋 Reperibilità</h3>
+    <p>Permette di assegnare turni di reperibilità ai dipendenti del team e di registrare le gestioni telefoniche effettuate durante la reperibilità.</p>
+  </div>
+
+  <!-- SEZIONE 5 -->
+  <div class="section" id="s5">
+    <h2>5. Funzionalità per il direttore</h2>
+    <p>Il direttore ha accesso a tutte le funzioni del dipendente, più le seguenti funzioni di supervisione:</p>
+
+    <h3>📋 Approva permessi</h3>
+    <p>Il direttore vede e approva i permessi richiesti dai <strong>responsabili</strong> (non dai dipendenti ordinari, che vengono gestiti dal loro responsabile).</p>
+
+    <h3>✈️ Approva ferie</h3>
+    <p>Il direttore approva le ferie di tutti i dipendenti che non hanno un responsabile assegnato, e dei responsabili stessi.</p>
+
+    <h3>📈 Approva straordinari (step 2)</h3>
+    <p>Seconda e ultima fase di approvazione degli straordinari, dopo che il responsabile ha già dato il primo via libera. Il direttore dà l'approvazione definitiva.</p>
+    <div class="success-box">La sezione include uno <strong>storico delle richieste già gestite</strong>.</div>
+
+    <h3>📊 Report presenze</h3>
+    <p>Accesso completo al report mensile con la possibilità di stampa (vedi sezione 8).</p>
+
+    <h3>📅 Calendario team</h3>
+    <p>Vista mensile delle presenze di tutto il personale.</p>
+
+    <h3>👥 Dipendenti</h3>
+    <p>Visualizzazione dell'anagrafica di tutti i dipendenti (senza possibilità di modifica).</p>
+  </div>
+
+  <!-- SEZIONE 6 -->
+  <div class="section" id="s6">
+    <h2>6. Funzionalità per amministratore e master</h2>
+
+    <h3>👥 Gestione dipendenti</h3>
+    <p>Permette di aggiungere, modificare ed eliminare i dipendenti.</p>
+    <h4>Aggiungere un nuovo dipendente</h4>
+    <ul>
+      <li>Cliccare <strong>"➕ Nuovo dipendente"</strong></li>
+      <li>Compilare tutti i campi obbligatori: nome, cognome, numero registro, codice fiscale, email, username e password iniziale</li>
+      <li>Selezionare il ruolo (solo l'amministratore può assegnare ruoli diversi da "Dipendente")</li>
+      <li>Assegnare il responsabile di riferimento</li>
+      <li>Cliccare <strong>"Salva"</strong></li>
+    </ul>
+    <div class="info-box">Il nuovo dipendente al primo accesso sarà obbligato a cambiare la password.</div>
+    <h4>Modificare un dipendente</h4>
+    <p>Dalla lista dipendenti cliccare <strong>"Modifica"</strong> accanto al nominativo. È possibile aggiornare tutti i dati, abilitare/disabilitare l'accesso, il GPS obbligatorio, la reperibilità e gli straordinari.</p>
+    <h4>Eliminare un dipendente</h4>
+    <p>Dal dettaglio del dipendente cliccare <strong>"Elimina"</strong>. L'operazione è irreversibile e viene propagata immediatamente a tutti gli utenti connessi.</p>
+
+    <h3>📊 Report presenze</h3>
+    <p>Vista completa di tutte le presenze con filtri per mese. Include dati di straordinari, reperibilità e gestioni telefoniche.</p>
+
+    <h3>⚙️ Manutenzione (solo Master)</h3>
+    <p>Permette di configurare i parametri di sistema:</p>
+    <ul>
+      <li>Orario inizio e fine turno standard</li>
+      <li>Tolleranza in minuti per il calcolo degli straordinari</li>
+      <li>URL Webhook per notifiche esterne</li>
+      <li>Reset completo dei dati (operazione irreversibile)</li>
+    </ul>
+  </div>
+
+  <!-- SEZIONE 7 -->
+  <div class="section" id="s7">
+    <h2>7. Notifiche</h2>
+    <p>Il sistema invia notifiche automatiche per tutti gli eventi principali. Le notifiche non lette sono indicate da un badge rosso sull'icona 🔔.</p>
+
+    <h3>Filtri disponibili nella pagina Notifiche</h3>
+    <ul>
+      <li><strong>Dipendente</strong>: filtra le notifiche relative a un dipendente specifico</li>
+      <li><strong>Data da / Data a</strong>: filtra per intervallo di date</li>
+      <li><strong>Stato</strong>: mostra tutte, solo lette, solo non lette</li>
+      <li><strong>Ricerca testo</strong>: cerca nel testo della notifica</li>
+    </ul>
+
+    <table>
+      <tr><th>Evento</th><th>Chi riceve la notifica</th></tr>
+      <tr><td>Richiesta permesso</td><td>Responsabile del dipendente</td></tr>
+      <tr><td>Richiesta ferie</td><td>Responsabile del dipendente</td></tr>
+      <tr><td>Permesso/ferie approvato</td><td>Dipendente richiedente</td></tr>
+      <tr><td>Permesso/ferie rifiutato</td><td>Dipendente richiedente</td></tr>
+      <tr><td>Straordinario registrato</td><td>Responsabile del dipendente</td></tr>
+      <tr><td>Straordinario approvato (step 1)</td><td>Direttore</td></tr>
+      <tr><td>Straordinario approvato definitivamente</td><td>Dipendente richiedente</td></tr>
+      <tr><td>Comunicazione malattia</td><td>Responsabile e Amministratore</td></tr>
+      <tr><td>Richiesta reset password</td><td>Master e Amministratore</td></tr>
+    </table>
+  </div>
+
+  <!-- SEZIONE 8 -->
+  <div class="section" id="s8">
+    <h2>8. Report presenze e stampa</h2>
+    <p>Il report presenze è accessibile da direttore, amministratore e master. Mostra una griglia mensile con le presenze di tutti i dipendenti.</p>
+
+    <h3>Navigazione tra i mesi</h3>
+    <p>Usare le frecce <strong>‹ ›</strong> accanto al nome del mese per spostarsi avanti o indietro. Il report si aggiorna automaticamente per il mese selezionato.</p>
+
+    <h3>Legenda colori</h3>
+    <table>
+      <tr><th>Colore</th><th>Significato</th></tr>
+      <tr><td><span style="background:#dcfce7;padding:2px 10px;border-radius:4px">Verde</span></td><td>P = Presente (con orario di entrata)</td></tr>
+      <tr><td><span style="background:#bae6fd;padding:2px 10px;border-radius:4px">Azzurro</span></td><td>F = Ferie approvate</td></tr>
+      <tr><td><span style="background:#bae6fd;border:2px dashed #7dd3fc;padding:2px 10px;border-radius:4px">Azzurro tratteggiato</span></td><td>Ferie in attesa di approvazione</td></tr>
+      <tr><td><span style="background:#fef9c3;padding:2px 10px;border-radius:4px">Giallo</span></td><td>M = Malattia</td></tr>
+      <tr><td><span style="background:#fff1f2;padding:2px 10px;border-radius:4px">Rosa/Rosso</span></td><td>A = Assente</td></tr>
+      <tr><td><span style="background:#e2e8f0;padding:2px 10px;border-radius:4px">Grigio</span></td><td>Weekend (sabato e domenica)</td></tr>
+    </table>
+
+    <h3>Stampa del report</h3>
+    <p>Cliccare il pulsante <strong>"🖨️ Stampa"</strong> per generare il report in formato stampabile. Il sistema:</p>
+    <ul>
+      <li>Scarica un file HTML con il calendario settimanale del mese selezionato</li>
+      <li>Include un riepilogo per dipendente con: presenze, malattia, ferie, assenze, permessi e percentuale di presenza</li>
+      <li>Apre automaticamente la finestra di stampa del browser</li>
+      <li>Funziona correttamente per qualsiasi mese, passato o futuro</li>
+    </ul>
+    <div class="info-box">Il report di stampa include anche le ferie approvate, anche per mesi futuri in cui i dipendenti hanno già pianificato le assenze.</div>
+  </div>
+
+  <!-- SEZIONE 9 -->
+  <div class="section" id="s9">
+    <h2>9. Aggiornamenti recenti</h2>
+    <p>Elenco delle modifiche e correzioni apportate all'applicativo:</p>
+
+    <div class="changelog-item">
+      <span class="tag tag-new">NUOVO</span>
+      <strong>Filtri colonna nelle Notifiche</strong>
+      <p style="margin-top:6px;font-size:13px">Aggiunta barra di filtri nella pagina "Le mie notifiche" con: filtro per dipendente, data da/a, e stato letto/non letto.</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-fix">FIX</span>
+      <strong>Icona stetoscopio — colore corretto</strong>
+      <p style="margin-top:6px;font-size:13px">L'icona nella sezione Malattia ora mostra il colore corretto (bianco sui tile colorati, grigio sulla sidebar) grazie alla sostituzione con un'icona SVG.</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-new">NUOVO</span>
+      <strong>Legenda Report Presenze completata</strong>
+      <p style="margin-top:6px;font-size:13px">Aggiunte le voci "Ferie (F)" e "Ferie in attesa di approvazione" nella legenda del report mensile.</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-fix">FIX</span>
+      <strong>Stampa report per mesi non correnti</strong>
+      <p style="margin-top:6px;font-size:13px">Corretto il bug che causava la visualizzazione di dati errati (celle vuote, conteggi a zero) quando si stampava un report per un mese diverso da quello corrente.</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-new">NUOVO</span>
+      <strong>Ferie incluse nel report di stampa</strong>
+      <p style="margin-top:6px;font-size:13px">Il report stampato ora include le ferie approvate (celle azzurre con "F"), la colonna "Ferie" nel riepilogo per dipendente e la voce corrispondente nella legenda.</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-fix">FIX</span>
+      <strong>Credenziali invertite — nuovo dipendente</strong>
+      <p style="margin-top:6px;font-size:13px">Corretto il problema per cui il browser compilava automaticamente i campi username/password nel form "Nuovo dipendente" con le credenziali dell'utente corrente.</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-fix">FIX</span>
+      <strong>Straordinario mattina non riproposto all'uscita</strong>
+      <p style="margin-top:6px;font-size:13px">Se un dipendente ha già registrato uno straordinario mattina al momento dell'entrata, al momento della timbratura uscita non viene più riproposta la richiesta di motivazione per lo stesso straordinario.</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-new">NUOVO</span>
+      <strong>Storico richieste in Approva Straordinari</strong>
+      <p style="margin-top:6px;font-size:13px">Responsabile e Direttore ora vedono uno storico delle richieste di straordinario già gestite (approvate, inoltrate o rifiutate) nella pagina "Approva straordinari".</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-fix">FIX</span>
+      <strong>Approva permessi visibile nel menu Direttore</strong>
+      <p style="margin-top:6px;font-size:13px">La voce "Approva permessi" è stata aggiunta al menu laterale e ai tile della dashboard del Direttore. In precedenza la pagina esisteva ma non era raggiungibile dal menu.</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-fix">FIX</span>
+      <strong>Nuovi dipendenti visibili a tutti gli utenti</strong>
+      <p style="margin-top:6px;font-size:13px">Corretto il bug per cui un dipendente appena creato spariva dalla lista dopo pochi secondi a causa della mancata sincronizzazione con il database remoto (Supabase).</p>
+    </div>
+
+    <div class="changelog-item">
+      <span class="tag tag-fix">FIX</span>
+      <strong>Eliminazione dipendente propagata a tutti gli utenti</strong>
+      <p style="margin-top:6px;font-size:13px">Quando il master elimina un dipendente, la cancellazione viene ora propagata correttamente al database remoto. In precedenza il dipendente eliminato continuava ad apparire agli altri utenti connessi.</p>
+    </div>
+  </div>
+
+  <!-- SEZIONE 10 -->
+  <div class="section" id="s10">
+    <h2>10. Pubblicazione e aggiornamento su GitHub Pages</h2>
+    <p>L'applicativo è pubblicato su <strong>GitHub Pages</strong>, un servizio gratuito di hosting per pagine web statiche.</p>
+
+    <h3>URL dell'applicativo</h3>
+    <p>L'app è raggiungibile all'indirizzo:</p>
+    <code>https://giuseppeloprestihr.github.io/hr-manager/</code>
+
+    <div class="warn-box">Il repository è pubblico: chiunque abbia l'URL può aprire l'app. Le credenziali di accesso proteggono i dati, ma il codice sorgente è visibile.</div>
+
+    <h3>Come aggiornare l'applicativo</h3>
+    <p>Ogni volta che viene prodotta una nuova versione del file <code>index.html</code>, seguire questi passaggi per pubblicarla:</p>
+
+    <div class="step"><div class="step-num">1</div><div class="step-body">Aprire il browser e andare su <strong>github.com</strong>, accedere con l'account <em>giuseppeloprestiHr</em>.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">Aprire il repository <strong>hr-manager</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">Cliccare sul file <strong>index.html</strong> nella lista dei file.</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">Cliccare il pulsante con la <strong>matita ✏️</strong> (o i tre puntini) in alto a destra e scegliere <strong>"Upload file"</strong> — oppure tornare alla home del repository e cliccare <strong>Add file → Upload files</strong>.</div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body">Trascinare il nuovo <code>index.html</code> nella zona tratteggiata.</div></div>
+    <div class="step"><div class="step-num">6</div><div class="step-body">Cliccare <strong>"Commit changes"</strong>.</div></div>
+    <div class="step"><div class="step-num">7</div><div class="step-body">Aspettare 1-2 minuti, poi ricaricare la pagina dell'app per vedere le modifiche.</div></div>
+
+    <div class="info-box">GitHub sovrascrive automaticamente il file precedente. Non è necessario cancellare nulla prima di caricare la nuova versione.</div>
+
+    <h3>Verifica dello stato del deploy</h3>
+    <p>Per verificare che il deploy sia completato: andare su <strong>Settings → Pages</strong> nel repository. Quando è tutto ok appare il messaggio <em>"Your site is live at…"</em> con l'URL verde.</p>
+
+    <h3>Struttura del progetto</h3>
+    <table>
+      <tr><th>File</th><th>Descrizione</th></tr>
+      <tr><td><code>index.html</code></td><td>L'intera applicazione (HTML, CSS, JavaScript)</td></tr>
+      <tr><td><code>manuale.html</code></td><td>Questo manuale utente</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  HR Manager · Manuale Utente · Versione Marzo 2026<br>
+  Documento generato automaticamente
+</div>
+
+</body>
+</html>
