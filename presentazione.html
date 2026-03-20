@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presentazione – HR Manager</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 15px; color: #1e293b; background: #f8fafc; }
+  .cover { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: #fff; padding: 56px 32px; text-align: center; }
+  .cover h1 { font-size: 34px; font-weight: bold; letter-spacing: .02em; }
+  .cover .tag { margin-top: 12px; background: rgba(255,255,255,0.15); display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 14px; letter-spacing:.04em; }
+  .cover p { margin-top: 14px; color: #94a3b8; font-size: 15px; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+  .container { max-width: 780px; margin: 0 auto; padding: 36px 20px; }
+  .section-label { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin: 32px 0 12px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+  .card h2 { font-size: 17px; font-weight: bold; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .card h2 .ico { font-size: 22px; }
+  p { line-height: 1.8; margin-bottom: 10px; color: #374151; }
+  ul { padding-left: 20px; margin-bottom: 10px; line-height: 2.1; color: #374151; }
+  ul li { margin-bottom: 2px; }
+  .highlight { background: #f0f9ff; border-left: 4px solid #0284c7; border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 14px; color: #0c4a6e; line-height: 1.7; }
+  .ok { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 14px; color: #15803d; line-height: 1.7; }
+  .warn { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 14px; color: #92400e; line-height: 1.7; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .grid-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+  .grid-item .label { font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; margin-bottom: 6px; }
+  .grid-item .value { font-size: 14px; color: #1e293b; line-height: 1.6; }
+  .big-quote { background: #0f172a; color: #e2e8f0; border-radius: 14px; padding: 28px 28px; margin: 20px 0; font-size: 16px; line-height: 1.8; font-style: italic; }
+  .big-quote strong { color: #7dd3fc; font-style: normal; }
+  .rule-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+  .rule-ico { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .rule-text { line-height: 1.75; color: #374151; font-size: 14px; }
+  .rule-text strong { color: #0f172a; }
+  .footer { text-align: center; padding: 28px; color: #94a3b8; font-size: 12px; }
+  @media (max-width: 540px) { .grid { grid-template-columns: 1fr; } }
+  @media print { body{background:#fff} .card{break-inside:avoid} @page{margin:1.5cm} }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>HR Manager</h1>
+  <div class="tag">Gestione del personale — semplice, chiara, sempre disponibile</div>
+  <p>Uno strumento pensato per toglierti il lavoro di testa, non per aggiungertene altro.</p>
+</div>
+
+<div class="container">
+
+  <!-- PROBLEMA -->
+  <p class="section-label">Il punto di partenza</p>
+
+  <div class="card">
+    <h2><span class="ico">🤔</span> Cosa succede oggi senza uno strumento dedicato</h2>
+    <p>Le richieste di ferie arrivano su WhatsApp. Gli straordinari si annotano su carta o su Excel. I permessi si approvano a voce. E quando arriva il momento di comunicare i dati al commercialista, si mette insieme tutto alla buona sperando che non manchi nulla.</p>
+    <p>Non è un problema di volontà: è che non esiste un posto unico dove tenere tutto. Ogni informazione vive in un posto diverso, e recuperarla richiede tempo che potresti usare meglio.</p>
+    <div class="big-quote">
+      Con HR Manager <strong>tutto quello che riguarda le persone del tuo team sta in un solo posto</strong>, accessibile in qualsiasi momento, da qualsiasi dispositivo.
+    </div>
+  </div>
+
+  <!-- CHI LAVORA E DA DOVE -->
+  <p class="section-label">Timbrature e presenze</p>
+
+  <div class="card">
+    <h2><span class="ico">📍</span> Sai sempre chi è al lavoro, da quando e da dove</h2>
+    <p>Ogni dipendente timbra direttamente dall'app — dal telefono o dal computer. In tempo reale vedi chi ha iniziato a lavorare, a che ora ha timbrato e da quale posizione geografica lo ha fatto.</p>
+    <ul>
+      <li>Niente più fogli firma, niente cartellini da timbrare a mano</li>
+      <li>Se qualcuno non ha ancora timbrato lo vedi subito</li>
+      <li>Timbrate in ingresso e in uscita, con eventuale pausa pranzo</li>
+      <li>Storico completo per ogni dipendente, sempre consultabile</li>
+    </ul>
+    <div class="highlight">
+      <strong>Regola:</strong> ogni timbratura registra automaticamente l'orario e la posizione. Non è possibile modificarla retroattivamente senza lasciare traccia. I dati sono affidabili perché non dipendono dalla memoria di nessuno.
+    </div>
+  </div>
+
+  <!-- STRAORDINARI -->
+  <div class="card">
+    <h2><span class="ico">⏱️</span> Straordinari calcolati in automatico</h2>
+    <p>Imposti tu gli orari standard del turno e i minuti di tolleranza. Da quel momento il sistema calcola da solo quando c'è uno straordinario, sia al mattino che alla sera.</p>
+    <div class="ok">
+      Se la tolleranza è di 15 minuti e un dipendente entra 10 minuti prima, non scatta nessuno straordinario. Se entra 20 minuti prima, sì — e viene registrato.
+    </div>
+    <p>Niente più discussioni su chi ha fatto cosa e quante ore in più. I numeri ci sono e sono verificabili.</p>
+  </div>
+
+  <!-- FERIE E PERMESSI -->
+  <p class="section-label">Ferie, permessi e malattie</p>
+
+  <div class="card">
+    <h2><span class="ico">📋</span> Burocrazia ridotta al minimo</h2>
+    <p>Il dipendente fa la richiesta dall'app in pochi secondi. Il responsabile la riceve, la approva o la rifiuta (con nota), e il dipendente viene notificato subito. Niente email perse, niente messaggi su WhatsApp, niente fogli da stampare e firmare.</p>
+
+    <div class="grid">
+      <div class="grid-item">
+        <div class="label">Ferie</div>
+        <div class="value">Richiesta dal dipendente → approvazione del responsabile. Quota residua aggiornata in automatico.</div>
+      </div>
+      <div class="grid-item">
+        <div class="label">Permessi</div>
+        <div class="value">Regolati per legge (104, permessi sindacali, ecc.) o aziendali. Ogni tipologia ha le sue regole.</div>
+      </div>
+      <div class="grid-item">
+        <div class="label">Malattia</div>
+        <div class="value">Il dipendente comunica l'assenza, l'amministratore può aggiornare i giorni. Tutto tracciato.</div>
+      </div>
+      <div class="grid-item">
+        <div class="label">Note spese</div>
+        <div class="value">Il dipendente carica la nota spese dall'app. Il responsabile approva. Niente carte smarrite.</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>Regola:</strong> nessuna richiesta può considerarsi approvata finché non passa dall'app. Questo protegge sia il dipendente che l'azienda, perché c'è sempre una traccia ufficiale con data e ora.
+    </div>
+  </div>
+
+  <!-- CALENDARIO -->
+  <p class="section-label">Calendario e pianificazione</p>
+
+  <div class="card">
+    <h2><span class="ico">📅</span> Tutto il team in un colpo d'occhio</h2>
+    <p>Il calendario mostra in modo visivo tutti gli eventi del tuo team: ferie approvate, permessi, assenze, malattie, straordinari. Un'occhiata e sai subito chi c'è e chi no in un determinato giorno.</p>
+    <ul>
+      <li>Navigazione per mese o per settimana</li>
+      <li>Colori diversi per tipo di evento (ferie, permesso, malattia…)</li>
+      <li>Filtro per singolo dipendente o per tutto il team</li>
+      <li>Utile per pianificare coperture e turni senza sorprese</li>
+    </ul>
+    <div class="ok">
+      Il calendario aziendale può essere pubblicato e consultato da tutti. Festività, chiusure aziendali, eventi interni: tutto in un posto che tutti vedono.
+    </div>
+  </div>
+
+  <!-- COMMERCIALISTA -->
+  <p class="section-label">Collegamento con il commercialista</p>
+
+  <div class="card">
+    <h2><span class="ico">🤝</span> I dati al commercialista, senza fare copia-incolla</h2>
+    <p>A fine mese non devi più raccogliere i dati a mano e spedirli via email sperando che siano giusti. HR Manager aggrega automaticamente presenze, assenze, ferie e straordinari in un formato pronto per essere trasmesso al gestionale del tuo commercialista.</p>
+    <ul>
+      <li>Export delle presenze mensili per dipendente</li>
+      <li>Riepilogo ferie fruite e residue</li>
+      <li>Dettaglio permessi e assenze per tipo</li>
+      <li>Straordinari calcolati e verificabili</li>
+    </ul>
+    <div class="highlight">
+      <strong>Risultato concreto:</strong> meno tempo perso a raccogliere dati, meno errori, e il commercialista riceve informazioni accurate senza dover aspettare o richiedere chiarimenti.
+    </div>
+  </div>
+
+  <!-- REGOLE -->
+  <p class="section-label">Come funziona — le regole di base</p>
+
+  <div class="card">
+    <h2><span class="ico">📌</span> Quello che è bene sapere subito</h2>
+
+    <div class="rule-row">
+      <div class="rule-ico">🔐</div>
+      <div class="rule-text"><strong>Ogni persona ha il suo accesso personale.</strong> Niente account condivisi. Ognuno vede solo quello che riguarda il suo ruolo: il dipendente vede i propri dati, il responsabile vede il suo team, il direttore vede tutto il reparto.</div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-ico">✅</div>
+      <div class="rule-text"><strong>Nulla si approva a voce.</strong> Ogni richiesta passa dall'app e lascia una traccia. Se non è nell'app, non è approvata — indipendentemente da cosa si è detto.</div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-ico">📲</div>
+      <div class="rule-text"><strong>Funziona da qualunque dispositivo.</strong> Telefono, tablet, computer — basta un browser. Non si installa niente, non servono aggiornamenti manuali.</div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-ico">🔔</div>
+      <div class="rule-text"><strong>Le notifiche arrivano in tempo reale.</strong> Quando una richiesta viene inviata, approvata o rifiutata, l'interessato lo sa subito. Niente attese o ambiguità.</div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-ico">🗂️</div>
+      <div class="rule-text"><strong>I dati non si perdono.</strong> Tutto è salvato in cloud. Niente più fogli smarriti, Excel sovrascritti per sbaglio o email cancellate. Lo storico è sempre disponibile.</div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-ico">⚙️</div>
+      <div class="rule-text"><strong>Le regole le imposti tu.</strong> Orari di turno, tolleranza sugli straordinari, tipologie di permesso, quota ferie annuale: tutto è configurabile in base a come funziona la tua azienda.</div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-ico">🌐</div>
+      <div class="rule-text"><strong>Il calendario aziendale è condiviso.</strong> Tutti vedono le stesse informazioni. Niente più "non lo sapevo" su una chiusura o un evento.</div>
+    </div>
+  </div>
+
+  <!-- COSA CAMBIA -->
+  <p class="section-label">Cosa cambia davvero</p>
+
+  <div class="card">
+    <h2><span class="ico">💡</span> Prima e dopo</h2>
+    <div class="grid">
+      <div class="grid-item">
+        <div class="label" style="color:#dc2626">Prima</div>
+        <div class="value">Richieste via WhatsApp o a voce, spesso dimenticate o non registrate</div>
+      </div>
+      <div class="grid-item">
+        <div class="label" style="color:#15803d">Dopo</div>
+        <div class="value">Ogni richiesta è tracciata, ha una data e uno stato ufficiale</div>
+      </div>
+      <div class="grid-item">
+        <div class="label" style="color:#dc2626">Prima</div>
+        <div class="value">Dati al commercialista raccolti manualmente, spesso in ritardo</div>
+      </div>
+      <div class="grid-item">
+        <div class="label" style="color:#15803d">Dopo</div>
+        <div class="value">Export automatico, dati sempre pronti e verificati</div>
+      </div>
+      <div class="grid-item">
+        <div class="label" style="color:#dc2626">Prima</div>
+        <div class="value">Non sai in tempo reale chi è al lavoro e da quando</div>
+      </div>
+      <div class="grid-item">
+        <div class="label" style="color:#15803d">Dopo</div>
+        <div class="value">Apri l'app e in due secondi hai il quadro completo della giornata</div>
+      </div>
+      <div class="grid-item">
+        <div class="label" style="color:#dc2626">Prima</div>
+        <div class="value">Il calendario ferie esiste solo in testa a qualcuno</div>
+      </div>
+      <div class="grid-item">
+        <div class="label" style="color:#15803d">Dopo</div>
+        <div class="value">Tutti vedono lo stesso calendario, aggiornato in tempo reale</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COME È NATO -->
+  <p class="section-label">Come è nato e dove sta andando</p>
+
+  <div class="card">
+    <h2><span class="ico">🤖</span> Realizzato con l'intelligenza artificiale — Claude di Anthropic</h2>
+    <p>Questo applicativo è stato costruito interamente con il supporto di <strong>Claude</strong>, l'AI di Anthropic. Non è un prodotto comprato "a scatola chiusa": è qualcosa che ho sviluppato io, con uno strumento che mi ha permesso di costruire in poco tempo quello che normalmente richiederebbe mesi di sviluppo tradizionale.</p>
+    <p>Il vantaggio concreto per te è che <strong>l'app si può modificare</strong>. Se una funzione non ti convince, se hai bisogno di aggiungere qualcosa, se cambiano le regole aziendali — non siamo bloccati. Si interviene e si aggiorna.</p>
+    <div class="highlight">
+      <strong>Non è un software rigido.</strong> È uno strumento vivo, pensato per adattarsi a come lavori tu — non per farti adattare a lui.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🖥️</span> Dove finisce: server aziendale e database sicuro</h2>
+    <p>L'obiettivo finale è installare l'applicativo direttamente sul <strong>server aziendale</strong>, con un database dedicato e protetto. Questo significa che i dati del tuo personale non escono dall'azienda, non dipendono da servizi terzi e sono sotto il tuo controllo diretto.</p>
+    <ul>
+      <li>I dati restano all'interno dell'infrastruttura aziendale</li>
+      <li>Accesso possibile anche senza connessione internet esterna (rete locale)</li>
+      <li>Backup gestiti secondo le tue policy aziendali</li>
+      <li>Nessun costo di abbonamento a piattaforme esterne</li>
+    </ul>
+    <div class="ok">
+      <strong>Pieno controllo.</strong> Sai dove stanno i tuoi dati, chi li può vedere e come vengono protetti. Niente più "i dati sono su un cloud di qualcuno che non conosco".
+    </div>
+  </div>
+
+  <!-- CHIUSURA -->
+  <div class="card" style="border-color:#0284c7; background: #f0f9ff;">
+    <h2><span class="ico">🎯</span> In sintesi</h2>
+    <p>HR Manager non è uno strumento "per il futuro" o per grandi aziende. È qualcosa che puoi usare da subito, con il tuo team così com'è, per avere meno confusione e più controllo su quello che succede ogni giorno.</p>
+    <p>È stato costruito con l'AI, si può modificare quando serve, e alla fine andrà a girare sul tuo server con un database sicuro — tutto dentro casa tua.</p>
+    <p>Se vuoi vederlo in azione, dammi un quarto d'ora. Ti mostro come lo vede un dipendente, come lo vedi tu, e come parlano i dati a fine mese.</p>
+  </div>
+
+</div>
+<div class="footer">HR Manager · Presentazione interna · Marzo 2026</div>
+</body>
+</html>
