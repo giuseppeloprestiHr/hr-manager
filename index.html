@@ -1195,6 +1195,243 @@ function VersioneView({ onBack }) {
   );
 }
 
+// ============================================================
+// CREDITI E LICENZE VIEW
+// ============================================================
+function CreditiLicenzeView({ onBack }) {
+  const BadgeLicenza = ({ label, href, colore }) => {
+    const palette = {
+      mit:    { bg:'#dbeafe', text:'#1d4ed8', border:'#bfdbfe' },
+      ofl:    { bg:'#d1fae5', text:'#065f46', border:'#a7f3d0' },
+      isc:    { bg:'#ede9fe', text:'#5b21b6', border:'#ddd6fe' },
+      agpl:   { bg:'#fee2e2', text:'#991b1b', border:'#fecaca' },
+      bsd:    { bg:'#fef9c3', text:'#713f12', border:'#fde68a' },
+      odbl:   { bg:'#ffedd5', text:'#9a3412', border:'#fed7aa' },
+      google: { bg:'#f1f5f9', text:'#475569', border:'#e2e8f0' },
+      w3c:    { bg:'#f0fdf4', text:'#166534', border:'#bbf7d0' },
+      free:   { bg:'#f8fafc', text:'#64748b', border:'#e2e8f0' },
+    };
+    const s = palette[colore] || palette.free;
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer"
+        style={{display:'inline-block', background:s.bg, color:s.text, border:`1px solid ${s.border}`,
+          borderRadius:6, fontSize:10, fontWeight:700, letterSpacing:'0.08em',
+          padding:'3px 10px', textDecoration:'none', textTransform:'uppercase', cursor:'pointer'}}>
+        {label}
+      </a>
+    );
+  };
+
+  const librerie = [
+    {
+      nome: 'React & ReactDOM',
+      versione: '18.2.0',
+      copyright: '© Meta Platforms, Inc. and affiliates',
+      descrizione: 'Libreria UI per la costruzione dell\'interfaccia',
+      badge: { label:'Licenza MIT', href:'https://github.com/facebook/react/blob/main/LICENSE', colore:'mit' },
+    },
+    {
+      nome: 'Babel Standalone',
+      versione: '7.23.5',
+      copyright: '© Sebastian McKenzie & Babel contributors',
+      descrizione: 'Compilazione JSX nel browser a runtime',
+      badge: { label:'Licenza MIT', href:'https://github.com/babel/babel/blob/main/LICENSE', colore:'mit' },
+    },
+    {
+      nome: 'Tailwind CSS',
+      versione: 'Play CDN (latest)',
+      copyright: '© Tailwind Labs, Inc.',
+      descrizione: 'Framework CSS utility-first per lo stile',
+      badge: { label:'Licenza MIT', href:'https://github.com/tailwindlabs/tailwindcss/blob/master/LICENSE', colore:'mit' },
+    },
+    {
+      nome: 'Supabase JS',
+      versione: 'v2',
+      copyright: '© Supabase Inc.',
+      descrizione: 'Client per database PostgreSQL e API REST',
+      badge: { label:'Licenza MIT', href:'https://github.com/supabase/supabase-js/blob/master/LICENSE', colore:'mit' },
+    },
+    {
+      nome: 'Font: Syne',
+      versione: 'Google Fonts CDN',
+      copyright: '© Bonjour Monde, Lucas Descroix',
+      descrizione: 'Font display per titoli e intestazioni',
+      badge: { label:'SIL OFL 1.1', href:'https://scripts.sil.org/OFL', colore:'ofl' },
+    },
+    {
+      nome: 'Font: DM Sans',
+      versione: 'Google Fonts CDN',
+      copyright: '© Indian Type Foundry (ITF)',
+      descrizione: 'Font corpo testo, leggibilità ottimizzata',
+      badge: { label:'SIL OFL 1.1', href:'https://scripts.sil.org/OFL', colore:'ofl' },
+    },
+    {
+      nome: 'Google Fonts',
+      versione: 'Servizio CDN',
+      copyright: '© Google LLC',
+      descrizione: 'Distribuzione font web tramite CDN',
+      badge: { label:'Google ToS', href:'https://fonts.google.com/about', colore:'google' },
+    },
+    {
+      nome: 'cdnjs (Cloudflare)',
+      versione: 'Servizio CDN',
+      copyright: '© Cloudflare, Inc.',
+      descrizione: 'CDN per React, ReactDOM e Babel',
+      badge: { label:'Gratuito', href:'https://cdnjs.com/about', colore:'free' },
+    },
+    {
+      nome: 'jsDelivr',
+      versione: 'Servizio CDN',
+      copyright: '© Prospect One',
+      descrizione: 'CDN per Supabase JS client',
+      badge: { label:'ToS jsDelivr', href:'https://www.jsdelivr.com/terms', colore:'free' },
+    },
+    {
+      nome: 'Web Crypto API',
+      versione: 'Browser nativo',
+      copyright: '© W3C',
+      descrizione: 'Hashing password SHA-256 (crypto.subtle)',
+      badge: { label:'W3C Standard', href:'https://www.w3.org/TR/WebCryptoAPI/', colore:'w3c' },
+    },
+    {
+      nome: 'Service Worker API',
+      versione: 'Browser nativo',
+      copyright: '© W3C',
+      descrizione: 'Cache offline e funzionalità PWA',
+      badge: { label:'W3C Standard', href:'https://www.w3.org/TR/service-workers/', colore:'w3c' },
+    },
+    {
+      nome: 'Geolocation API',
+      versione: 'Browser nativo',
+      copyright: '© W3C',
+      descrizione: 'Rilevamento GPS per timbratura',
+      badge: { label:'W3C Standard', href:'https://www.w3.org/TR/geolocation/', colore:'w3c' },
+    },
+  ];
+
+  const considerazioni = [
+    {
+      titolo: 'GitHub Pages',
+      stato: 'bloccante',
+      problema: 'Le GitHub ToS vietano esplicitamente l\'uso commerciale di GitHub Pages per SaaS o e-commerce.',
+      soluzione: 'Migrare su Vercel, Netlify, Cloudflare Pages o VPS proprio prima della vendita.',
+    },
+    {
+      titolo: 'Supabase Free Tier',
+      stato: 'bloccante',
+      problema: 'Il piano gratuito sospende automaticamente il progetto dopo 7 giorni di inattività. Limiti: 500 MB DB, 2 GB bandwidth, nessun SLA.',
+      soluzione: 'Upgrade a piano Pro ($25/mese) oppure self-hosting Supabase su VPS (Apache 2.0).',
+    },
+    {
+      titolo: 'Tailwind Play CDN',
+      stato: 'tecnico',
+      problema: 'Progettata per sviluppo/prototipazione: compila tutto Tailwind nel browser (~350 KB JS in più). Tailwind stessa sconsiglia l\'uso in produzione.',
+      soluzione: 'In una riscrittura con build tool (Vite), usare Tailwind con PurgeCSS per ridurre il CSS a pochi KB.',
+    },
+    {
+      titolo: 'Babel Standalone',
+      stato: 'tecnico',
+      problema: 'Compila JSX nel browser a ogni caricamento: rallenta il primo avvio di 1–3 secondi. Non adatto per produzione ad alto traffico.',
+      soluzione: 'In una riscrittura con Vite/Create React App, il JSX viene compilato offline e servito già come JavaScript.',
+    },
+    {
+      titolo: 'Dipendenza CDN esterni',
+      stato: 'rischio',
+      problema: 'L\'app dipende da 3 CDN di terze parti (cdnjs, jsDelivr, Google Fonts). Se uno va down, l\'app non carica.',
+      soluzione: 'In produzione: includere le librerie nel bundle o usare un CDN con SLA garantito.',
+    },
+    {
+      titolo: 'Copyright notice MIT',
+      stato: 'legale',
+      problema: 'La licenza MIT richiede che il testo del copyright delle librerie usate sia visibile nel prodotto distribuito.',
+      soluzione: 'Questa pagina Crediti & Licenze soddisfa il requisito, purché accessibile all\'utente finale.',
+    },
+  ];
+
+  const statoConfig = {
+    bloccante: { bg:'bg-red-50', border:'border-red-200', badge:'bg-red-100 text-red-700', dot:'🔴' },
+    tecnico:   { bg:'bg-amber-50', border:'border-amber-200', badge:'bg-amber-100 text-amber-700', dot:'🟡' },
+    rischio:   { bg:'bg-orange-50', border:'border-orange-200', badge:'bg-orange-100 text-orange-700', dot:'🟠' },
+    legale:    { bg:'bg-blue-50', border:'border-blue-200', badge:'bg-blue-100 text-blue-700', dot:'🔵' },
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <button onClick={onBack} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>
+            ℹ️ Crediti e Licenze Open Source
+          </h1>
+          <p className="text-slate-400 text-sm mt-0.5">Librerie, font e servizi utilizzati · Analisi compatibilità commerciale</p>
+        </div>
+      </div>
+
+      {/* Griglia librerie */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        {librerie.map((lib, i) => (
+          <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col gap-2">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="font-bold text-slate-800 text-sm">{lib.nome}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{lib.versione}</p>
+              </div>
+              <BadgeLicenza label={lib.badge.label} href={lib.badge.href} colore={lib.badge.colore} />
+            </div>
+            <p className="text-xs text-slate-500 italic">{lib.copyright}</p>
+            <p className="text-xs text-slate-600">{lib.descrizione}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Note legali */}
+      <div className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 mb-10">
+        <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Note legali</p>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          Il codice sorgente completo delle suddette librerie e i termini esatti delle loro licenze MIT / OFL / ISC / W3C
+          possono essere trovati nei rispettivi repository pubblici, accessibili tramite i link indicati nei badge sopra.
+          Tali componenti sono forniti <em>"così come sono"</em>, senza alcuna garanzia da parte dei loro autori originali.
+        </p>
+        <p className="text-xs text-slate-500 leading-relaxed mt-2">
+          La visualizzazione di questa pagina soddisfa il requisito di attribuzione copyright richiesto dalla licenza MIT
+          per tutti i componenti open source inclusi in questo applicativo.
+        </p>
+      </div>
+
+      {/* Considerazioni commerciali */}
+      <h2 className="font-bold text-slate-700 text-lg mb-2" style={{fontFamily:'Syne,sans-serif'}}>
+        ⚠️ Considerazioni per uso commerciale
+      </h2>
+      <p className="text-sm text-slate-400 mb-5">Promemoria da risolvere prima di commercializzare l'applicativo.</p>
+
+      <div className="space-y-3 mb-10">
+        {considerazioni.map((c, i) => {
+          const cfg = statoConfig[c.stato];
+          return (
+            <div key={i} className={`rounded-2xl border ${cfg.bg} ${cfg.border} p-5`}>
+              <div className="flex items-center gap-3 mb-2">
+                <span>{cfg.dot}</span>
+                <p className="font-bold text-slate-800 text-sm">{c.titolo}</p>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.badge}`}>
+                  {c.stato === 'bloccante' ? 'Bloccante' : c.stato === 'tecnico' ? 'Tecnico' : c.stato === 'rischio' ? 'Rischio uptime' : 'Obbligo legale'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mb-1"><span className="font-semibold">Problema:</span> {c.problema}</p>
+              <p className="text-xs text-slate-600"><span className="font-semibold text-emerald-700">Soluzione:</span> {c.soluzione}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer */}
+      <p className="text-center text-slate-300 text-xs mt-4">HR Manager · Created by LPG · v{APP_VERSION}</p>
+    </div>
+  );
+}
+
 function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequests, notifiche, userId, onBell }) {
   const r = user.ruolo;
   const isMaster       = canManage(r);
@@ -1230,7 +1467,10 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     ] : []),
     { id:'notifiche',            label:'Notifiche',           icon:'🔔', badge: true },
     { id:'manutenzione',         label:'Manutenzione',        icon:'⚙️' },
-    ...(r === RUOLI.MASTER ? [{ id:'versione', label:'Versione', icon:'🏷️' }] : []),
+    ...(r === RUOLI.MASTER ? [
+      { id:'versione',         label:'Versione',          icon:'🏷️' },
+      { id:'crediti-licenze',  label:'Crediti e Licenze', icon:'ℹ️' },
+    ] : []),
   ] : r=== RUOLI.DIRETTORE ? [
     { id:'dipendenti',           label:'Dipendenti',          icon:'👥' },
     { id:'report',               label:'Report presenze',     icon:'📊' },
@@ -1544,7 +1784,10 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     ] : []),
     { id:'notifiche',            label:'Notifiche',           icon:'🔔', color:'bg-blue-700' },
     { id:'manutenzione',         label:'Manutenzione',        icon:'⚙️', color:'bg-slate-700' },
-    ...(r === RUOLI.MASTER ? [{ id:'versione', label:'Versione', icon:'🏷️', color:'bg-indigo-700' }] : []),
+    ...(r === RUOLI.MASTER ? [
+      { id:'versione',        label:'Versione',          icon:'🏷️', color:'bg-indigo-700' },
+      { id:'crediti-licenze', label:'Crediti e Licenze', icon:'ℹ️',  color:'bg-slate-600' },
+    ] : []),
   ];
   const navTilesDirettore = [
     { id:'dipendenti',           label:'Dipendenti',          icon:'👥', color:'bg-emerald-600' },
@@ -9512,6 +9755,9 @@ function App() {
       case 'versione':
         if (r !== RUOLI.MASTER) { goTo('dashboard'); return null; }
         return <VersioneView onBack={()=>goTo('dashboard')} />;
+      case 'crediti-licenze':
+        if (r !== RUOLI.MASTER) { goTo('dashboard'); return null; }
+        return <CreditiLicenzeView onBack={()=>goTo('dashboard')} />;
       default:
         return <Dashboard user={user} employees={employees} timbrature={timbrature} permessi={permessi} ferie={ferie} straordinari={straordinari} setView={goTo} setSelectedEmployee={setSelectedEmp} news={news} settings={settings}/>;
     }
