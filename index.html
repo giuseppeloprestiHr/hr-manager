@@ -87,8 +87,7 @@ const _E = {
     autoId:r.auto_id||null,
     tipologiaAuto:r.tipologia_auto||'',
     provenienzaAuto:r.provenienza_auto||'',
-    valoriIniziali: r.valori_iniziali || {},
-    sessionId: r.session_id || null }) : null,
+    valoriIniziali: r.valori_iniziali || {} }) : null,
   to: e => ({ id:e.id, nome:e.nome, cognome:e.cognome, registro:e.registro||null,
     data_inizio:e.dataInizio||null, cf:e.cf||null, telefono:e.telefono||null, email:e.email||null,
     responsabile_id:e.responsabileId||null, ruolo:e.ruolo, login:e.login, password:e.password,
@@ -101,8 +100,7 @@ const _E = {
     auto_id:e.autoId||null,
     tipologia_auto:e.tipologiaAuto||null,
     provenienza_auto:e.provenienzaAuto||null,
-    valori_iniziali: e.valoriIniziali || {},
-    session_id: e.sessionId || null }),
+    valori_iniziali: e.valoriIniziali || {} }),
 };
 const _T = {
   from: r => r ? ({ id:r.id, employeeId:r.employee_id, data:r.data, ora:r.ora,
@@ -594,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-21-005';
+const APP_VERSION = '2026-03-21-006';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -713,6 +711,11 @@ const CHANGELOG = [
     version: '2026-03-21-005',
     data: '21/03/2026',
     descrizione: 'Prevenzione accessi concorrenti: session ID univoco generato al login, salvato su Supabase e localStorage. BroadcastChannel per rilevamento istantaneo tra schede dello stesso browser. Polling Supabase ogni 30 secondi per rilevamento cross-device. Banner di avviso nella pagina di login in caso di disconnessione forzata. Richiede colonna session_id nella tabella employees su Supabase.'
+  },
+  {
+    version: '2026-03-21-006',
+    data: '21/03/2026',
+    descrizione: 'Fix critico login: rimosso session_id dal mapper _E (from/to). Il campo non deve transitare nel sync generale degli employees ma solo nelle chiamate dirette Supabase del sistema di sessione. Questo causava errori silenziosi che bloccavano il login prima di eseguire il SQL su Supabase.'
   },
 ];
 
