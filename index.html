@@ -589,7 +589,100 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-21-003';
+const APP_VERSION = '2026-03-21-004';
+
+// ============================================================
+// CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
+// usato nell'applicativo. Il componente CreditiLicenzeView legge
+// direttamente questo array. Colori badge: mit, ofl, w3c, isc,
+// agpl, bsd, odbl, google, free
+// ============================================================
+const CREDITS = [
+  {
+    nome: 'React & ReactDOM',
+    versione: '18.2.0',
+    copyright: '© Meta Platforms, Inc. and affiliates',
+    descrizione: 'Libreria UI per la costruzione dell\'interfaccia',
+    badge: { label:'Licenza MIT', href:'https://github.com/facebook/react/blob/main/LICENSE', colore:'mit' },
+  },
+  {
+    nome: 'Babel Standalone',
+    versione: '7.23.5',
+    copyright: '© Sebastian McKenzie & Babel contributors',
+    descrizione: 'Compilazione JSX nel browser a runtime',
+    badge: { label:'Licenza MIT', href:'https://github.com/babel/babel/blob/main/LICENSE', colore:'mit' },
+  },
+  {
+    nome: 'Tailwind CSS',
+    versione: 'Play CDN (latest)',
+    copyright: '© Tailwind Labs, Inc.',
+    descrizione: 'Framework CSS utility-first per lo stile',
+    badge: { label:'Licenza MIT', href:'https://github.com/tailwindlabs/tailwindcss/blob/master/LICENSE', colore:'mit' },
+  },
+  {
+    nome: 'Supabase JS',
+    versione: 'v2',
+    copyright: '© Supabase Inc.',
+    descrizione: 'Client per database PostgreSQL e API REST',
+    badge: { label:'Licenza MIT', href:'https://github.com/supabase/supabase-js/blob/master/LICENSE', colore:'mit' },
+  },
+  {
+    nome: 'Font: Syne',
+    versione: 'Google Fonts CDN',
+    copyright: '© Bonjour Monde, Lucas Descroix',
+    descrizione: 'Font display per titoli e intestazioni',
+    badge: { label:'SIL OFL 1.1', href:'https://scripts.sil.org/OFL', colore:'ofl' },
+  },
+  {
+    nome: 'Font: DM Sans',
+    versione: 'Google Fonts CDN',
+    copyright: '© Indian Type Foundry (ITF)',
+    descrizione: 'Font corpo testo, leggibilità ottimizzata',
+    badge: { label:'SIL OFL 1.1', href:'https://scripts.sil.org/OFL', colore:'ofl' },
+  },
+  {
+    nome: 'Google Fonts',
+    versione: 'Servizio CDN',
+    copyright: '© Google LLC',
+    descrizione: 'Distribuzione font web tramite CDN',
+    badge: { label:'Google ToS', href:'https://fonts.google.com/about', colore:'google' },
+  },
+  {
+    nome: 'cdnjs (Cloudflare)',
+    versione: 'Servizio CDN',
+    copyright: '© Cloudflare, Inc.',
+    descrizione: 'CDN per React, ReactDOM e Babel',
+    badge: { label:'Gratuito', href:'https://cdnjs.com/about', colore:'free' },
+  },
+  {
+    nome: 'jsDelivr',
+    versione: 'Servizio CDN',
+    copyright: '© Prospect One',
+    descrizione: 'CDN per Supabase JS client',
+    badge: { label:'ToS jsDelivr', href:'https://www.jsdelivr.com/terms', colore:'free' },
+  },
+  {
+    nome: 'Web Crypto API',
+    versione: 'Browser nativo',
+    copyright: '© W3C',
+    descrizione: 'Hashing password SHA-256 (crypto.subtle)',
+    badge: { label:'W3C Standard', href:'https://www.w3.org/TR/WebCryptoAPI/', colore:'w3c' },
+  },
+  {
+    nome: 'Service Worker API',
+    versione: 'Browser nativo',
+    copyright: '© W3C',
+    descrizione: 'Cache offline e funzionalità PWA',
+    badge: { label:'W3C Standard', href:'https://www.w3.org/TR/service-workers/', colore:'w3c' },
+  },
+  {
+    nome: 'Geolocation API',
+    versione: 'Browser nativo',
+    copyright: '© W3C',
+    descrizione: 'Rilevamento GPS per timbratura',
+    badge: { label:'W3C Standard', href:'https://www.w3.org/TR/geolocation/', colore:'w3c' },
+  },
+];
 const CHANGELOG = [
   {
     version: '2026-03-21-001',
@@ -605,6 +698,11 @@ const CHANGELOG = [
     version: '2026-03-21-003',
     data: '21/03/2026',
     descrizione: 'Correzione versione: aggiornamento APP_VERSION e CHANGELOG mancati nei commit precedenti. Da questa release: ogni modifica al codice aggiornerà sempre APP_VERSION e aggiungerà la relativa voce nel CHANGELOG.'
+  },
+  {
+    version: '2026-03-21-004',
+    data: '21/03/2026',
+    descrizione: 'Refactoring crediti: array CREDITS spostato come costante globale accanto a APP_VERSION e CHANGELOG. Aggiornata skill hr-version-bump per richiedere aggiornamento licenze ad ogni nuova dipendenza esterna.'
   },
 ];
 
@@ -1232,92 +1330,7 @@ function CreditiLicenzeView({ onBack }) {
     );
   };
 
-  const librerie = [
-    {
-      nome: 'React & ReactDOM',
-      versione: '18.2.0',
-      copyright: '© Meta Platforms, Inc. and affiliates',
-      descrizione: 'Libreria UI per la costruzione dell\'interfaccia',
-      badge: { label:'Licenza MIT', href:'https://github.com/facebook/react/blob/main/LICENSE', colore:'mit' },
-    },
-    {
-      nome: 'Babel Standalone',
-      versione: '7.23.5',
-      copyright: '© Sebastian McKenzie & Babel contributors',
-      descrizione: 'Compilazione JSX nel browser a runtime',
-      badge: { label:'Licenza MIT', href:'https://github.com/babel/babel/blob/main/LICENSE', colore:'mit' },
-    },
-    {
-      nome: 'Tailwind CSS',
-      versione: 'Play CDN (latest)',
-      copyright: '© Tailwind Labs, Inc.',
-      descrizione: 'Framework CSS utility-first per lo stile',
-      badge: { label:'Licenza MIT', href:'https://github.com/tailwindlabs/tailwindcss/blob/master/LICENSE', colore:'mit' },
-    },
-    {
-      nome: 'Supabase JS',
-      versione: 'v2',
-      copyright: '© Supabase Inc.',
-      descrizione: 'Client per database PostgreSQL e API REST',
-      badge: { label:'Licenza MIT', href:'https://github.com/supabase/supabase-js/blob/master/LICENSE', colore:'mit' },
-    },
-    {
-      nome: 'Font: Syne',
-      versione: 'Google Fonts CDN',
-      copyright: '© Bonjour Monde, Lucas Descroix',
-      descrizione: 'Font display per titoli e intestazioni',
-      badge: { label:'SIL OFL 1.1', href:'https://scripts.sil.org/OFL', colore:'ofl' },
-    },
-    {
-      nome: 'Font: DM Sans',
-      versione: 'Google Fonts CDN',
-      copyright: '© Indian Type Foundry (ITF)',
-      descrizione: 'Font corpo testo, leggibilità ottimizzata',
-      badge: { label:'SIL OFL 1.1', href:'https://scripts.sil.org/OFL', colore:'ofl' },
-    },
-    {
-      nome: 'Google Fonts',
-      versione: 'Servizio CDN',
-      copyright: '© Google LLC',
-      descrizione: 'Distribuzione font web tramite CDN',
-      badge: { label:'Google ToS', href:'https://fonts.google.com/about', colore:'google' },
-    },
-    {
-      nome: 'cdnjs (Cloudflare)',
-      versione: 'Servizio CDN',
-      copyright: '© Cloudflare, Inc.',
-      descrizione: 'CDN per React, ReactDOM e Babel',
-      badge: { label:'Gratuito', href:'https://cdnjs.com/about', colore:'free' },
-    },
-    {
-      nome: 'jsDelivr',
-      versione: 'Servizio CDN',
-      copyright: '© Prospect One',
-      descrizione: 'CDN per Supabase JS client',
-      badge: { label:'ToS jsDelivr', href:'https://www.jsdelivr.com/terms', colore:'free' },
-    },
-    {
-      nome: 'Web Crypto API',
-      versione: 'Browser nativo',
-      copyright: '© W3C',
-      descrizione: 'Hashing password SHA-256 (crypto.subtle)',
-      badge: { label:'W3C Standard', href:'https://www.w3.org/TR/WebCryptoAPI/', colore:'w3c' },
-    },
-    {
-      nome: 'Service Worker API',
-      versione: 'Browser nativo',
-      copyright: '© W3C',
-      descrizione: 'Cache offline e funzionalità PWA',
-      badge: { label:'W3C Standard', href:'https://www.w3.org/TR/service-workers/', colore:'w3c' },
-    },
-    {
-      nome: 'Geolocation API',
-      versione: 'Browser nativo',
-      copyright: '© W3C',
-      descrizione: 'Rilevamento GPS per timbratura',
-      badge: { label:'W3C Standard', href:'https://www.w3.org/TR/geolocation/', colore:'w3c' },
-    },
-  ];
+  const librerie = CREDITS; // definito come costante globale accanto a APP_VERSION
 
   const considerazioni = [
     {
