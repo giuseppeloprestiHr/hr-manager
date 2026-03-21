@@ -589,12 +589,22 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-21-001';
+const APP_VERSION = '2026-03-21-003';
 const CHANGELOG = [
   {
     version: '2026-03-21-001',
     data: '21/03/2026',
-    descrizione: 'Prima release con sistema di versioning automatico. Aggiunta voce "Versione" nel menu Master con documentazione completa delle funzionalità e giornale degli aggiornamenti. Numero di versione visibile nella pagina di login e nel footer della dashboard.'
+    descrizione: 'Prima release con sistema di versioning. Aggiunta voce "Versione" nel menu Master con documentazione completa delle funzionalità e giornale degli aggiornamenti. Numero di versione visibile nella pagina di login e nel footer della dashboard.'
+  },
+  {
+    version: '2026-03-21-002',
+    data: '21/03/2026',
+    descrizione: 'Aggiunta voce "Crediti e Licenze" nel menu Master. Griglia con 12 schede (librerie JS, font, CDN, API W3C) con badge licenza cliccabili. Sezione considerazioni commerciali con semaforo (bloccante/tecnico/rischio/legale). Note legali conformi ai requisiti copyright MIT.'
+  },
+  {
+    version: '2026-03-21-003',
+    data: '21/03/2026',
+    descrizione: 'Correzione versione: aggiornamento APP_VERSION e CHANGELOG mancati nei commit precedenti. Da questa release: ogni modifica al codice aggiornerà sempre APP_VERSION e aggiungerà la relativa voce nel CHANGELOG.'
   },
 ];
 
