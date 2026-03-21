@@ -87,7 +87,8 @@ const _E = {
     autoId:r.auto_id||null,
     tipologiaAuto:r.tipologia_auto||'',
     provenienzaAuto:r.provenienza_auto||'',
-    valoriIniziali: r.valori_iniziali || {} }) : null,
+    valoriIniziali: r.valori_iniziali || {},
+    sessionId: r.session_id || null }) : null,
   to: e => ({ id:e.id, nome:e.nome, cognome:e.cognome, registro:e.registro||null,
     data_inizio:e.dataInizio||null, cf:e.cf||null, telefono:e.telefono||null, email:e.email||null,
     responsabile_id:e.responsabileId||null, ruolo:e.ruolo, login:e.login, password:e.password,
@@ -100,7 +101,8 @@ const _E = {
     auto_id:e.autoId||null,
     tipologia_auto:e.tipologiaAuto||null,
     provenienza_auto:e.provenienzaAuto||null,
-    valori_iniziali: e.valoriIniziali || {} }),
+    valori_iniziali: e.valoriIniziali || {},
+    session_id: e.sessionId || null }),
 };
 const _T = {
   from: r => r ? ({ id:r.id, employeeId:r.employee_id, data:r.data, ora:r.ora,
@@ -305,6 +307,9 @@ async function hashPassword(plain) {
   const buf = await crypto.subtle.digest('SHA-256', enc);
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
+
+// Genera un ID di sessione univoco per il controllo accessi concorrenti
+const generateSessionId = () => `${Date.now()}-${Math.random().toString(36).slice(2,9)}`;
 
 const RUOLI = {
   MASTER:         'master',
@@ -589,7 +594,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-21-004';
+const APP_VERSION = '2026-03-21-005';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -704,6 +709,11 @@ const CHANGELOG = [
     data: '21/03/2026',
     descrizione: 'Refactoring crediti: array CREDITS spostato come costante globale accanto a APP_VERSION e CHANGELOG. Aggiornata skill hr-version-bump per richiedere aggiornamento licenze ad ogni nuova dipendenza esterna.'
   },
+  {
+    version: '2026-03-21-005',
+    data: '21/03/2026',
+    descrizione: 'Prevenzione accessi concorrenti: session ID univoco generato al login, salvato su Supabase e localStorage. BroadcastChannel per rilevamento istantaneo tra schede dello stesso browser. Polling Supabase ogni 30 secondi per rilevamento cross-device. Banner di avviso nella pagina di login in caso di disconnessione forzata. Richiede colonna session_id nella tabella employees su Supabase.'
+  },
 ];
 
 const loadEmployees = () => {
@@ -772,7 +782,7 @@ function PasswordInput({ placeholder, value, onChange, onKeyDown, className, onC
   );
 }
 
-function Login({ employees, onLogin }) {
+function Login({ employees, onLogin, forcedLogoutMsg, onClearMsg }) {
   const [loginVal, setLoginVal] = useState('');
   const [passVal,  setPassVal]  = useState('');
   const [error,    setError]    = useState('');
@@ -820,6 +830,16 @@ function Login({ employees, onLogin }) {
           <h1 className="text-3xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>HR Manager</h1>
           <p className="text-slate-400 text-sm mt-2">Accedi con le tue credenziali</p>
         </div>
+        {forcedLogoutMsg && (
+          <div className="mb-4 bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 flex items-start gap-3">
+            <span className="text-xl shrink-0">⚠️</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-amber-800">Sessione terminata</p>
+              <p className="text-xs text-amber-700 mt-0.5">{forcedLogoutMsg}</p>
+            </div>
+            <button onClick={onClearMsg} className="text-amber-400 hover:text-amber-600 text-lg leading-none shrink-0">×</button>
+          </div>
+        )}
         <div className="space-y-3 mb-4">
           <input type="text" placeholder="Username" value={loginVal}
             onChange={e=>{setLoginVal(e.target.value);setError('');}}
@@ -9061,6 +9081,7 @@ function App() {
   const [news, setNews]                   = useState(() => loadData('news', []));
   const [dbLoading, setDbLoading] = useState(true);
   const [dbError,   setDbError]   = useState(null);
+  const [forcedLogoutMsg, setForcedLogoutMsg] = useState(null);
 
   React.useEffect(() => {
     DB.loadAll()
@@ -9137,6 +9158,52 @@ function App() {
       }
     } catch(e) { /* notifiche non supportate su questo dispositivo */ }
   }, []);
+
+  // ── Controllo sessione concorrente ─────────────────────────────────────────
+  // Previene due accessi simultanei con lo stesso login.
+  // BroadcastChannel: rilevamento istantaneo tra tab/finestre dello stesso browser.
+  // Polling Supabase ogni 30s: rilevamento cross-device (altro PC, smartphone, ecc.)
+  React.useEffect(() => {
+    if (!userId) return;
+    const localSessionId = localStorage.getItem('hr_session_id');
+    if (!localSessionId) return;
+
+    const forceLogout = (msg) => {
+      localStorage.removeItem('hr_session_id');
+      setForcedLogoutMsg(msg);
+      setUserId(null); setView('dashboard'); setSelectedEmp(null);
+      setNeedsPassChange(false); setShowNotifiche(false);
+    };
+
+    // BroadcastChannel — stesso browser, tab diverse
+    let bc = null;
+    try {
+      bc = new BroadcastChannel('hr_manager_session');
+      bc.onmessage = (e) => {
+        if (e.data.type === 'new_login' && e.data.userId === userId && e.data.sessionId !== localSessionId) {
+          forceLogout('Accesso effettuato in un\'altra scheda con le stesse credenziali. Questa sessione è stata chiusa.');
+        }
+      };
+      bc.postMessage({ type: 'new_login', userId, sessionId: localSessionId });
+    } catch(e) { /* BroadcastChannel non disponibile */ }
+
+    // Polling Supabase — cross-device (altro PC, tablet, smartphone)
+    const checkSession = async () => {
+      if (!_supa) return;
+      try {
+        const { data } = await _supa.from('employees').select('session_id').eq('id', userId).single();
+        if (data && data.session_id && data.session_id !== localSessionId) {
+          forceLogout('La tua sessione è stata aperta su un altro dispositivo. Sei stato disconnesso per sicurezza.');
+        }
+      } catch(e) { /* Supabase non raggiungibile — nessuna azione */ }
+    };
+    const interval = setInterval(checkSession, 30000);
+
+    return () => {
+      if (bc) bc.close();
+      clearInterval(interval);
+    };
+  }, [userId]);
 
   // Richiesta permesso notifiche — separata dal login, protetta da try/catch mobile-safe
   React.useEffect(() => {
@@ -9231,6 +9298,11 @@ function App() {
   }, [userId, timbrature, employees, settings]);
 
   const handleLogin = id => {
+    setForcedLogoutMsg(null);
+    // Genera session ID univoco e lo salva in localStorage + Supabase
+    const sessionId = generateSessionId();
+    localStorage.setItem('hr_session_id', sessionId);
+    if (_supa) _supa.from('employees').update({ session_id: sessionId }).eq('id', id).catch(() => {});
     // Ricarica employees e notifiche freschi dal localStorage
     const freshEmployees = loadEmployees();
     setEmployees(freshEmployees);
@@ -9245,7 +9317,15 @@ function App() {
     // La richiesta viene gestita separatamente con try/catch in un useEffect.
   };
 
-  const handleLogout = () => { setUserId(null); setView('dashboard'); setSelectedEmp(null); setNeedsPassChange(false); setShowNotifiche(false); };
+  const handleLogout = () => {
+    // Rimuove session_id da Supabase e localStorage
+    const sid = localStorage.getItem('hr_session_id');
+    if (sid && userId && _supa) {
+      _supa.from('employees').update({ session_id: null }).eq('id', userId).catch(() => {});
+    }
+    localStorage.removeItem('hr_session_id');
+    setUserId(null); setView('dashboard'); setSelectedEmp(null); setNeedsPassChange(false); setShowNotifiche(false);
+  };
 
   const handleChangePassword = (newPass) => {
     hashPassword(newPass).then(hash => {
@@ -9683,7 +9763,7 @@ function App() {
       <button onClick={()=>window.location.reload()} style={{background:'#2563eb',color:'#fff',border:'none',borderRadius:12,padding:'10px 28px',cursor:'pointer',fontWeight:600,fontSize:14,marginTop:4}}>🔄 Riprova</button>
     </div>
   );
-  if (!user) return <Login employees={employees} onLogin={handleLogin} />;
+  if (!user) return <Login employees={employees} onLogin={handleLogin} forcedLogoutMsg={forcedLogoutMsg} onClearMsg={()=>setForcedLogoutMsg(null)} />;
   if (needsPassChange) return <ChangePassword user={user} onSave={handleChangePassword} isFirstAccess={!!user.primoAccesso} />;
 
   const r = user.ruolo;
