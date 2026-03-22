@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-001';
+const APP_VERSION = '2026-03-22-002';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -720,7 +720,12 @@ const CHANGELOG = [
   {
     version: '2026-03-22-001',
     data: '22/03/2026',
-    descrizione: 'Fix login definitivo: handleLogin ora usa gli employees già in memoria (da Supabase) invece di ricaricarli da localStorage. Il localStorage poteva contenere solo INITIAL_EMPLOYEES se il browser era stato ripulito, impedendo il riconoscimento dell\'utente reale dopo il login. Aggiunto salvataggio automatico degli employees in localStorage dopo DB.loadAll().'
+    descrizione: 'Fix login: handleLogin usa employees da memoria (Supabase) invece di localStorage. Aggiunto salvataggio automatico employees in localStorage dopo DB.loadAll().'
+  },
+  {
+    version: '2026-03-22-002',
+    data: '22/03/2026',
+    descrizione: 'Diagnostica login: aggiunto error handling esplicito su hashPassword e onLogin per mostrare il messaggio di errore reale invece di rimanere fermo silenziosamente.'
   },
 ];
 
@@ -808,7 +813,9 @@ function Login({ employees, onLogin, forcedLogoutMsg, onClearMsg }) {
     if (emp.accessoDisabilitato) { setError('Il tuo accesso è stato disabilitato. Contatta il Master.'); return; }
     hashPassword(passVal).then(hash => {
       if (emp.password !== hash) { setError('Credenziali non valide.'); return; }
-      onLogin(emp.id);
+      try { onLogin(emp.id); } catch(e) { setError('Errore interno: ' + (e?.message || e)); }
+    }).catch(err => {
+      setError('Errore autenticazione: ' + (err?.message || 'crypto non disponibile. Usa HTTPS.'));
     });
   };
 
