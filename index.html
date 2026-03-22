@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HR Manager">
   <style>
-    body { font-family: 'DM Sans', sans-serif; background: #f1f5f9; }
+    body { font-family: 'DM Sans', sans-serif; background: #e2e8f0; }
     .font-display { font-family: 'Syne', sans-serif; }
     ::-webkit-scrollbar { width: 6px; } 
     ::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-005';
+const APP_VERSION = '2026-03-22-006';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -742,6 +742,11 @@ const CHANGELOG = [
     data: '22/03/2026',
     descrizione: 'Redesign UI completo: sidebar bianca con icone SVG outline, accordion Manutenzione con 8 sotto-sezioni, login con logo circolare HR, greeting dashboard senza emoji, aggiunto Note Spese e News alle azioni rapide, testi interni più scuri, Comunicazione malattia rinominata e colore navy, banner stato Chiusure aziendali con data ultima modifica, componente Icon con set SVG Lucide-style.'
   },
+  {
+    version: '2026-03-22-006',
+    data: '22/03/2026',
+    descrizione: 'Fix e miglioramenti: voce menu Malattia (era "Invia comunicazione"), titolo pagina malattia aggiornato, malattia solo personale (rimosso selettore dipendente per master), sfondo applicazione più scuro, data duplicata in blu rimossa dal DateInput, emoji rimosse dai titoli pagina e dalle tile mobile (sostituite con icone SVG), documento permesso: rimosso "Luogo e Data" e aggiunta sezione "richiesto elettronicamente da", report stampato: aggiunto Rep./Gest.Tel./Straordinari al riepilogo mensile con riga totali, riepilogo mensile on-screen: aggiunta riga totali (master, direttore, responsabile), Manutenzione: aggiunto bottone Versione e Licenze nella barra pill, calendario chiusure aziendali: settimana da Lunedì a Domenica.'
+  },
 ];
 
 const loadEmployees = () => {
@@ -770,8 +775,8 @@ function DateInput({ label, value, onChange, required, className }) {
       )}
       <input type="date" value={value} onChange={onChange}
         className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"/>
-      {value && (
-        <p className="text-xs text-blue-600 font-medium mt-1">📅 {formatted}</p>
+      {value && formatted === 'Invalid Date' && (
+        <p className="text-xs text-red-500 font-medium mt-1">Data non valida</p>
       )}
     </div>
   );
@@ -1591,7 +1596,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     { id:'mia-anagrafica',  label:'La mia anagrafica' },
     { id:'timbratura',      label:'Timbratura' },
     { id:'mie-presenze',    label:'Il mio Calendario' },
-    { id:'malattia',        label:'Invia comunicazione' },
+    { id:'malattia',        label:'Malattia' },
     { id:'permessi',        label:'Permessi orari' },
     { id:'ferie',           label:'Ferie' },
     ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari' }] : []),
@@ -1943,67 +1948,67 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
 
   // Riquadri navigazione mobile — Area Dipendente (comune a tutti)
   const navTilesDip = [
-    { id:'timbratura',        label:'Timbratura',          icon:'🕰️', color:'bg-blue-900' },
-    { id:'mie-presenze',      label:'Il mio Calendario',   icon:'📅', color:'bg-indigo-600' },
-    { id:'malattia',          label:'Malattia',            icon:<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:'1em',height:'1em',display:'inline-block',verticalAlign:'middle'}}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15a6 6 0 0 0 6 6h0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>, color:'bg-rose-600' },
-    { id:'permessi',          label:'Permessi orari',      icon:'📋', color:'bg-violet-600' },
-    { id:'ferie',             label:'Ferie',               icon:'✈️', color:'bg-teal-600' },
-    ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'📈', color:'bg-orange-500' }] : []),
-    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. Tel.', icon:'☎️', color:'bg-indigo-500' }] : []),
-    { id:'note-spese',        label:'Note Spese',          icon:'💳', color:'bg-emerald-700' },
-    { id:'news',              label:'News',                icon:'📢', color:'bg-pink-600' },
-    { id:'chiusure-view',     label:'Chiusure aziendali',  icon:'🏢', color:'bg-slate-500' },
-    { id:'mia-anagrafica',    label:'La mia anagrafica',   icon:'👤', color:'bg-slate-600' },
+    { id:'timbratura',        label:'Timbratura',          icon:'clock',    color:'bg-blue-900' },
+    { id:'mie-presenze',      label:'Il mio Calendario',   icon:'calendar', color:'bg-indigo-600' },
+    { id:'malattia',          label:'Malattia',            icon:'send',     color:'bg-rose-600' },
+    { id:'permessi',          label:'Permessi orari',      icon:'clipboard',color:'bg-violet-600' },
+    { id:'ferie',             label:'Ferie',               icon:'plane',    color:'bg-teal-600' },
+    ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'trending', color:'bg-orange-500' }] : []),
+    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. Tel.', icon:'phone', color:'bg-indigo-500' }] : []),
+    { id:'note-spese',        label:'Note Spese',          icon:'card',     color:'bg-emerald-700' },
+    { id:'news',              label:'News',                icon:'newspaper', color:'bg-pink-600' },
+    { id:'chiusure-view',     label:'Chiusure aziendali',  icon:'building', color:'bg-slate-500' },
+    { id:'mia-anagrafica',    label:'La mia anagrafica',   icon:'user',     color:'bg-slate-600' },
   ];
   const navTilesMaster = [
-    { id:'dipendenti',           label:'Dipendenti',          icon:'👥', color:'bg-emerald-600' },
-    { id:'report',               label:'Report presenze',     icon:'📊', color:'bg-violet-600' },
-    { id:'dipendente-form',      label:'Nuovo dipendente',    icon:'➕', color:'bg-sky-500' },
-    { id:'note-spese-master',    label:'Note Spese',          icon:'💳', color:'bg-emerald-600' },
-    { id:'news-editor',          label:'Invia News',          icon:'📢', color:'bg-pink-600' },
+    { id:'dipendenti',           label:'Dipendenti',          icon:'users',    color:'bg-emerald-600' },
+    { id:'report',               label:'Report presenze',     icon:'chart',    color:'bg-violet-600' },
+    { id:'dipendente-form',      label:'Nuovo dipendente',    icon:'user-plus',color:'bg-sky-500' },
+    { id:'note-spese-master',    label:'Note Spese',          icon:'card',     color:'bg-emerald-600' },
+    { id:'news-editor',          label:'Invia News',          icon:'send',     color:'bg-pink-600' },
     ...(r === RUOLI.AMMINISTRATORE ? [
-      { id:'approva-permessi',   label:'Approva permessi',    icon:'📋', color:'bg-violet-600' },
-      { id:'approva-ferie',      label:'Approva ferie',       icon:'✈️', color:'bg-cyan-600' },
+      { id:'approva-permessi',   label:'Approva permessi',    icon:'clipboard',color:'bg-violet-600' },
+      { id:'approva-ferie',      label:'Approva ferie',       icon:'check',    color:'bg-cyan-600' },
     ] : []),
-    { id:'notifiche',            label:'Notifiche',           icon:'🔔', color:'bg-blue-700' },
-    { id:'manutenzione',         label:'Manutenzione',        icon:'⚙️', color:'bg-slate-700' },
+    { id:'notifiche',            label:'Notifiche',           icon:'bell',     color:'bg-blue-700' },
+    { id:'manutenzione',         label:'Manutenzione',        icon:'settings', color:'bg-slate-700' },
     ...(r === RUOLI.MASTER ? [
-      { id:'versione',        label:'Versione',          icon:'🏷️', color:'bg-indigo-700' },
-      { id:'crediti-licenze', label:'Crediti e Licenze', icon:'ℹ️',  color:'bg-slate-600' },
+      { id:'versione',        label:'Versione',          icon:'tag',  color:'bg-indigo-700' },
+      { id:'crediti-licenze', label:'Crediti e Licenze', icon:'info', color:'bg-slate-600' },
     ] : []),
   ];
   const navTilesDirettore = [
-    { id:'dipendenti',           label:'Dipendenti',          icon:'👥', color:'bg-emerald-600' },
-    { id:'report',               label:'Report presenze',     icon:'📊', color:'bg-violet-600' },
-    { id:'calendario-team',      label:'Calendario',          icon:'📅', color:'bg-teal-600' },
-    { id:'approva-permessi',     label:'Approva permessi',    icon:'📋', color:'bg-violet-600' },
-    { id:'approva-ferie',        label:'Approva ferie',       icon:'✈️', color:'bg-cyan-600' },
-    { id:'approva-straordinari', label:'Approva straord.',    icon:'📈', color:'bg-orange-600' },
-    { id:'calendario-chiusure',  label:'Chiusure aziendali',  icon:'🏢', color:'bg-slate-500' },
-    { id:'news-editor',          label:'Invia News',          icon:'📢', color:'bg-pink-600' },
-    { id:'notifiche',            label:'Notifiche',           icon:'🔔', color:'bg-blue-700' },
+    { id:'dipendenti',           label:'Dipendenti',          icon:'users',    color:'bg-emerald-600' },
+    { id:'report',               label:'Report presenze',     icon:'chart',    color:'bg-violet-600' },
+    { id:'calendario-team',      label:'Calendario',          icon:'calendar', color:'bg-teal-600' },
+    { id:'approva-permessi',     label:'Approva permessi',    icon:'clipboard',color:'bg-violet-600' },
+    { id:'approva-ferie',        label:'Approva ferie',       icon:'check',    color:'bg-cyan-600' },
+    { id:'approva-straordinari', label:'Approva straord.',    icon:'trending', color:'bg-orange-600' },
+    { id:'calendario-chiusure',  label:'Chiusure aziendali',  icon:'building', color:'bg-slate-500' },
+    { id:'news-editor',          label:'Invia News',          icon:'send',     color:'bg-pink-600' },
+    { id:'notifiche',            label:'Notifiche',           icon:'bell',     color:'bg-blue-700' },
   ];
   const navTilesResponsabile = [
-    { id:'dipendenti',           label:'Il mio team',         icon:'👥', color:'bg-emerald-600' },
-    { id:'reperibilita',         label:'Reperibilità',        icon:'🙋', color:'bg-purple-600' },
-    { id:'calendario-team',      label:'Calendario',          icon:'📅', color:'bg-teal-600' },
-    { id:'approva-permessi',     label:'Approva permessi',    icon:'📋', color:'bg-violet-600' },
-    { id:'approva-ferie',        label:'Approva ferie',       icon:'✈️', color:'bg-cyan-600' },
-    { id:'approva-straordinari', label:'Approva straord.',    icon:'📈', color:'bg-orange-500' },
-    { id:'notifiche',            label:'Notifiche',           icon:'🔔', color:'bg-blue-700' },
+    { id:'dipendenti',           label:'Il mio team',         icon:'users',    color:'bg-emerald-600' },
+    { id:'reperibilita',         label:'Reperibilità',        icon:'user-check',color:'bg-purple-600' },
+    { id:'calendario-team',      label:'Calendario',          icon:'calendar', color:'bg-teal-600' },
+    { id:'approva-permessi',     label:'Approva permessi',    icon:'clipboard',color:'bg-violet-600' },
+    { id:'approva-ferie',        label:'Approva ferie',       icon:'check',    color:'bg-cyan-600' },
+    { id:'approva-straordinari', label:'Approva straord.',    icon:'trending', color:'bg-orange-500' },
+    { id:'notifiche',            label:'Notifiche',           icon:'bell',     color:'bg-blue-700' },
   ];
   const navTiles = [
-    { id:'timbratura',     label:'Timbratura',        icon:'🕰️', color:'bg-blue-900' },
-    { id:'mie-presenze',   label:'Il mio Calendario', icon:'📅', color:'bg-indigo-600' },
-    { id:'malattia',       label:'Malattia',          icon:<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:'1em',height:'1em',display:'inline-block',verticalAlign:'middle'}}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15a6 6 0 0 0 6 6h0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>, color:'bg-rose-600' },
-    { id:'permessi',       label:'Permessi orari',    icon:'📋', color:'bg-violet-600' },
-    { id:'ferie',          label:'Ferie',             icon:'✈️', color:'bg-teal-600' },
-    ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'📈', color:'bg-orange-500' }] : []),
-    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. Tel.', icon:'☎️', color:'bg-indigo-500' }] : []),
-    { id:'note-spese',     label:'Note Spese',        icon:'💳', color:'bg-emerald-700' },
-    { id:'news',           label:'News',              icon:'📢', color:'bg-pink-600' },
-    { id:'chiusure-view',  label:'Chiusure aziendali',icon:'🏢', color:'bg-slate-500' },
-    { id:'mia-anagrafica', label:'La mia anagrafica', icon:'👤', color:'bg-slate-600' },
+    { id:'timbratura',     label:'Timbratura',        icon:'clock',    color:'bg-blue-900' },
+    { id:'mie-presenze',   label:'Il mio Calendario', icon:'calendar', color:'bg-indigo-600' },
+    { id:'malattia',       label:'Malattia',          icon:'send',     color:'bg-rose-600' },
+    { id:'permessi',       label:'Permessi orari',    icon:'clipboard',color:'bg-violet-600' },
+    { id:'ferie',          label:'Ferie',             icon:'plane',    color:'bg-teal-600' },
+    ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'trending', color:'bg-orange-500' }] : []),
+    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. Tel.', icon:'phone', color:'bg-indigo-500' }] : []),
+    { id:'note-spese',     label:'Note Spese',        icon:'card',      color:'bg-emerald-700' },
+    { id:'news',           label:'News',              icon:'newspaper', color:'bg-pink-600' },
+    { id:'chiusure-view',  label:'Chiusure aziendali',icon:'building',  color:'bg-slate-500' },
+    { id:'mia-anagrafica', label:'La mia anagrafica', icon:'user',      color:'bg-slate-600' },
   ];
 
   const AREA_MOBILE_LABEL = { master:'Area Master', amministratore:'Area Amministratore', direttore:'Area Direttore', responsabile:'Area Responsabile' };
@@ -2216,7 +2221,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
               {navTilesDip.map(t => (
                 <button key={t.id} onClick={()=>{ setSelectedEmployee(null); setView(t.id); }}
                   className={`${t.color} text-white rounded-2xl p-5 flex flex-col items-start gap-2 shadow-sm active:scale-95 transition-transform`}>
-                  <span className="text-4xl">{t.icon}</span>
+                  <Icon name={t.icon} size={28} color="white" />
                   <span className="font-semibold text-sm leading-tight">{t.label}</span>
                 </button>
               ))}
@@ -2227,7 +2232,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
               {areaTiles.map(t => (
                 <button key={t.id} onClick={()=>{ setSelectedEmployee(null); setView(t.id); }}
                   className={`${t.color} text-white rounded-2xl p-5 flex flex-col items-start gap-2 shadow-sm active:scale-95 transition-transform`}>
-                  <span className="text-4xl">{t.icon}</span>
+                  <Icon name={t.icon} size={28} color="white" />
                   <span className="font-semibold text-sm leading-tight">{t.label}</span>
                 </button>
               ))}
@@ -2240,7 +2245,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
               {navTiles.map(t => (
                 <button key={t.id} onClick={()=>{ setSelectedEmployee(null); setView(t.id); }}
                   className={`${t.color} text-white rounded-2xl p-5 flex flex-col items-start gap-2 shadow-sm active:scale-95 transition-transform`}>
-                  <span className="text-4xl">{t.icon}</span>
+                  <Icon name={t.icon} size={28} color="white" />
                   <span className="font-semibold text-sm leading-tight">{t.label}</span>
                 </button>
               ))}
@@ -3692,12 +3697,12 @@ function Ferie({ user, employees, ferie, setFerie, onRichiesta }) {
 
   return (
     <div className="p-4 lg:p-8 max-w-3xl">
-      <h2 className="text-2xl font-bold text-slate-800 mb-1" style={{fontFamily:'Syne,sans-serif'}}>🏖️ Ferie</h2>
+      <h2 className="text-2xl font-bold text-slate-800 mb-1" style={{fontFamily:'Syne,sans-serif'}}>Ferie</h2>
       <p className="text-slate-400 text-sm mb-6">{user.nome} {user.cognome} · Ferie approvate {annoCorr}: <strong className="text-emerald-600">{giorniAnno} {giorniAnno===1?'giorno':'giorni'}</strong></p>
 
       {/* Form nuova richiesta */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
-        <h3 className="font-bold text-slate-700 mb-4 text-base">📋 Nuova richiesta</h3>
+        <h3 className="font-bold text-slate-700 mb-4 text-base">Nuova richiesta</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <DateInput label="Data inizio" value={dataInizio}
             onChange={e=>{ setDataInizio(e.target.value); setErr(''); }} required />
@@ -3722,7 +3727,7 @@ function Ferie({ user, employees, ferie, setFerie, onRichiesta }) {
         {ok  && <div className="mb-3 px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">✅ Richiesta inviata correttamente!</div>}
         <button onClick={handleInvia}
           className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors">
-          ✈️ Invia richiesta
+          Invia richiesta
         </button>
       </div>
 
@@ -4100,7 +4105,7 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
   return (
     <div className="p-4 lg:p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Invia comunicazione</h2>
+        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Invia comunicazione malattia</h2>
         <p className="text-slate-600 text-sm mt-1">Inserisci o consulta le comunicazioni di malattia</p>
       </div>
 
@@ -4108,18 +4113,6 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 max-w-xl">
         <h3 className="font-bold text-slate-700 mb-4 text-sm uppercase tracking-wide">Nuova comunicazione</h3>
 
-        {/* Selezione dipendente (solo master) */}
-        {isMaster && (
-          <div className="mb-3">
-            <label className="block text-xs font-medium text-slate-500 mb-1">Dipendente</label>
-            <select value={empId} onChange={e=>{setEmpId(e.target.value);setErr('');}}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
-              {employees.map(e=>(
-                <option key={e.id} value={e.id}>{e.nome} {e.cognome} — {ROLE_LABELS[e.ruolo]}</option>
-              ))}
-            </select>
-          </div>
-        )}
 
         <div className="grid grid-cols-2 gap-3 mb-3">
           <DateInput label="Data inizio" value={dataInizio}
@@ -4385,11 +4378,10 @@ function generaDocumentoPermesso(p, emp, approvatoDaEmp) {
   In attesa di un vostro gentile riscontro, porgo distinti saluti.
 </div>
 <div class="firma-block">
-  <div class="firma-line"></div>
-  <div class="firma-label">Luogo e Data</div>
-</div>
-<div class="firma-block">
-  <div class="firma-line" style="width:280px"></div>
+  <p style="font-size:12px;margin-bottom:8px;">Il presente permesso è stato richiesto elettronicamente da:</p>
+  <p style="font-size:12px;margin-bottom:4px;"><strong>Dipendente ${emp.nome} ${emp.cognome}</strong></p>
+  ${p.timestamp ? `<p style="font-size:10px;color:#555;margin-bottom:0;">in data ${new Date(p.timestamp).toLocaleDateString('it-IT')} e ora ${new Date(p.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</p>` : ''}
+  <div class="firma-line" style="width:280px;margin-top:24px;"></div>
   <div class="firma-label">Firma del dipendente</div>
 </div>
 <div class="separatore"></div>
@@ -4555,7 +4547,7 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
   return (
     <div className="p-4 lg:p-8 max-w-3xl">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🕐 Permessi orari</h2>
+        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Permessi orari</h2>
         <p className="text-slate-600 text-sm mt-1">Richiedi o visualizza i permessi orari</p>
       </div>
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -5332,6 +5324,11 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       orePermessiEmp[p.employeeId] = (orePermessiEmp[p.employeeId]||0)+p.orePermesso;
     });
 
+    // Reperibilità, gestioni tel., straordinari per il PDF
+    const allReperibilita      = (() => { try { const s = localStorage.getItem('reperibilita');         return s ? JSON.parse(s) : []; } catch { return []; } })();
+    const allGestioniTel       = (() => { try { const s = localStorage.getItem('gestioni_telefoniche'); return s ? JSON.parse(s) : []; } catch { return []; } })();
+    const allStraordinariPdf   = (() => { try { const s = localStorage.getItem('straordinari');         return s ? JSON.parse(s) : []; } catch { return []; } })();
+
     const totalePresenze = Object.keys(freshMap).length;
     const printToday = todayStr();
     const _n0 = new Date();
@@ -5434,8 +5431,23 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       const ferCount = printDays.filter(d => !d.isFuture && !freshMap[`${emp.id}_${d.str}`] && freshFerieMap[`${emp.id}_${d.str}`]).length;
       const assenze  = printDays.filter(d => !d.isWeekend && !d.isFuture && !freshMap[`${emp.id}_${d.str}`] && !freshMalattiaMap[`${emp.id}_${d.str}`] && !freshFerieMap[`${emp.id}_${d.str}`]).length;
       const oreP     = orePermessiEmp[emp.id] || 0;
-      return `<tr><td class="nome">${emp.cognome} ${emp.nome}</td><td class="tot-num">${count}</td><td class="tot-num mal-num">${malCount}</td><td class="tot-num" style="background:#e0f2fe;color:#075985">${ferCount > 0 ? ferCount : '—'}</td><td class="tot-num">${assenze}</td><td class="tot-num" style="color:#7c3aed;font-weight:bold">${oreP > 0 ? fmtDurata(oreP) : '—'}</td><td class="tot-num">${giorniLavorativi > 0 ? Math.round(count/giorniLavorativi*100) : 0}%</td></tr>`;
+      const repC     = allReperibilita.filter(r=>r.employeeId===emp.id&&r.pubblicata&&r.data.startsWith(mStrPdf)).length;
+      const gestC    = allGestioniTel.filter(g=>g.employeeId===emp.id&&g.data.startsWith(mStrPdf)).length;
+      const straMin  = allStraordinariPdf.filter(s=>s.status===SS.APPROVATO&&s.employeeId===emp.id&&s.data.startsWith(mStrPdf)).reduce((a,s)=>a+s.minuti,0);
+      const fmtStra  = m => m>=60?`${Math.floor(m/60)}h${m%60>0?` ${m%60}m`:''}`:m>0?`${m}m`:'—';
+      return `<tr><td class="nome">${emp.cognome} ${emp.nome}</td><td class="tot-num">${count}</td><td class="tot-num mal-num">${malCount||'—'}</td><td class="tot-num" style="background:#e0f2fe;color:#075985">${ferCount||'—'}</td><td class="tot-num">${assenze||'—'}</td><td class="tot-num" style="color:#7c3aed;font-weight:bold">${oreP > 0 ? fmtDurata(oreP) : '—'}</td><td class="tot-num" style="color:#7e22ce">${repC||'—'}</td><td class="tot-num" style="color:#4338ca">${gestC||'—'}</td><td class="tot-num" style="color:#c2410c">${fmtStra(straMin)}</td><td class="tot-num">${giorniLavorativi > 0 ? Math.round(count/giorniLavorativi*100) : 0}%</td></tr>`;
     }).join('');
+
+    // Riga totali
+    const totPres  = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&freshMap[`${emp.id}_${d.str}`]).length,0);
+    const totMal   = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&freshMalattiaMap[`${emp.id}_${d.str}`]).length,0);
+    const totFer   = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&freshFerieMap[`${emp.id}_${d.str}`]).length,0);
+    const totAss   = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isWeekend&&!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&!freshMalattiaMap[`${emp.id}_${d.str}`]&&!freshFerieMap[`${emp.id}_${d.str}`]).length,0);
+    const totRep   = allReperibilita.filter(r=>r.pubblicata&&r.data.startsWith(mStrPdf)).length;
+    const totGest  = allGestioniTel.filter(g=>g.data.startsWith(mStrPdf)).length;
+    const totStra  = allStraordinariPdf.filter(s=>s.status===SS.APPROVATO&&s.data.startsWith(mStrPdf)).reduce((a,s)=>a+s.minuti,0);
+    const fmtStraT = m => m>=60?`${Math.floor(m/60)}h${m%60>0?` ${m%60}m`:''}`:m>0?`${m}m`:'—';
+    const riga_totali = `<tr style="background:#1e3a6e;color:#fff;font-weight:bold"><td class="nome" style="background:#1e3a6e;color:#fff">TOTALI</td><td class="tot-num" style="color:#fff">${totPres}</td><td class="tot-num" style="color:#fde047">${totMal||'—'}</td><td class="tot-num" style="color:#7dd3fc">${totFer||'—'}</td><td class="tot-num" style="color:#fca5a5">${totAss||'—'}</td><td class="tot-num" style="color:#c4b5fd">—</td><td class="tot-num" style="color:#d8b4fe">${totRep||'—'}</td><td class="tot-num" style="color:#a5b4fc">${totGest||'—'}</td><td class="tot-num" style="color:#fdba74">${fmtStraT(totStra)}</td><td class="tot-num" style="color:#fff">—</td></tr>`;
 
     const html = `<!DOCTYPE html>
 <html lang="it">
@@ -5503,8 +5515,9 @@ ${blocchi}
 
 <h2>Riepilogo mensile per dipendente</h2>
 <table class="tot-table" style="width:auto">
-  <thead><tr><th style="width:130px;text-align:left;padding-left:5px">Dipendente</th><th style="width:60px">Presenze</th><th style="width:60px">Malattia</th><th style="width:60px;color:#7dd3fc">Ferie</th><th style="width:60px">Assenze</th><th style="width:60px;color:#c4b5fd">Permessi</th><th style="width:60px">% presenza</th></tr></thead>
+  <thead><tr><th style="width:130px;text-align:left;padding-left:5px">Dipendente</th><th style="width:55px">Presenze</th><th style="width:55px">Malattia</th><th style="width:45px;color:#7dd3fc">Ferie</th><th style="width:45px">Assenze</th><th style="width:55px;color:#c4b5fd">Ore perm.</th><th style="width:40px;color:#d8b4fe">Rep.</th><th style="width:40px;color:#a5b4fc">Gest.</th><th style="width:55px;color:#fdba74">Straord.</th><th style="width:50px">% pres.</th></tr></thead>
   <tbody>${righe_totali}</tbody>
+  <tfoot>${riga_totali}</tfoot>
 </table>
 
 <div class="footer">HR Manager · Report generato automaticamente · ${MONTHS[month-1]} ${year}</div>
@@ -5701,7 +5714,7 @@ ${blocchi}
                   {empTotals.map(({emp, count, malattiaGiorni, assenze, nPermessi, oreP, ferieDays, repDays, gestMese, straMinuti}) => {
                     const giorniLav = days.filter(d=>!d.isWeekend&&!d.isFuture).length;
                     const pct = giorniLav > 0 ? Math.round(count/giorniLav*100) : 0;
-                    const fmtStra = (m) => m >= 60 ? `${Math.floor(m/60)}h ${m%60}min` : `${m}min`;
+                    const fmtStra = (m) => m >= 60 ? `${Math.floor(m/60)}h ${m%60>0?` ${m%60}m`:''}` : m>0?`${m}m`:'—';
                     return (
                       <tr key={emp.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-2.5">
@@ -5715,42 +5728,35 @@ ${blocchi}
                             </div>
                           </div>
                         </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${count>0?'text-emerald-700 bg-emerald-50':'text-slate-400 bg-slate-50'}`}>{count}</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${malattiaGiorni>0?'text-amber-700 bg-amber-50':'text-slate-400 bg-slate-50'}`}>{malattiaGiorni||'—'}</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${assenze>0?'text-red-600 bg-red-50':'text-slate-400 bg-slate-50'}`}>{assenze||'—'}</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${ferieDays>0?'text-sky-700 bg-sky-50':'text-slate-400 bg-slate-50'}`}>{ferieDays||'—'}</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${nPermessi>0?'text-violet-700 bg-violet-50':'text-slate-400 bg-slate-50'}`}>{nPermessi||'—'}</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-xs font-semibold ${oreP>0?'text-violet-600':'text-slate-300'}`}>{oreP>0?fmtDurata(oreP):'—'}</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${repDays>0?'text-purple-700 bg-purple-50':'text-slate-300 bg-slate-50'}`}>{repDays||'—'}</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${gestMese>0?'text-indigo-600 bg-indigo-50':'text-slate-300 bg-slate-50'}`}>{gestMese||'—'}</span>
-                        </td>
-                        {canSeeAll(userRole) && (
-                          <td className="px-3 py-2.5 text-center">
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${straMinuti>0?'text-orange-600 bg-orange-50':'text-slate-300 bg-slate-50'}`}>{straMinuti>0?fmtStra(straMinuti):'—'}</span>
-                          </td>
-                        )}
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-sm font-bold ${pct>=80?'text-emerald-600':pct>=50?'text-amber-600':'text-red-500'}`}>{pct}%</span>
-                        </td>
+                        <td className="px-3 py-2.5 text-center"><span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${count>0?'text-emerald-700 bg-emerald-50':'text-slate-400 bg-slate-50'}`}>{count}</span></td>
+                        <td className="px-3 py-2.5 text-center"><span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${malattiaGiorni>0?'text-amber-700 bg-amber-50':'text-slate-400 bg-slate-50'}`}>{malattiaGiorni||'—'}</span></td>
+                        <td className="px-3 py-2.5 text-center"><span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${assenze>0?'text-red-600 bg-red-50':'text-slate-400 bg-slate-50'}`}>{assenze||'—'}</span></td>
+                        <td className="px-3 py-2.5 text-center"><span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${ferieDays>0?'text-sky-700 bg-sky-50':'text-slate-400 bg-slate-50'}`}>{ferieDays||'—'}</span></td>
+                        <td className="px-3 py-2.5 text-center"><span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${nPermessi>0?'text-violet-700 bg-violet-50':'text-slate-400 bg-slate-50'}`}>{nPermessi||'—'}</span></td>
+                        <td className="px-3 py-2.5 text-center"><span className={`text-xs font-semibold ${oreP>0?'text-violet-600':'text-slate-300'}`}>{oreP>0?fmtDurata(oreP):'—'}</span></td>
+                        <td className="px-3 py-2.5 text-center"><span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${repDays>0?'text-purple-700 bg-purple-50':'text-slate-300 bg-slate-50'}`}>{repDays||'—'}</span></td>
+                        <td className="px-3 py-2.5 text-center"><span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${gestMese>0?'text-indigo-600 bg-indigo-50':'text-slate-300 bg-slate-50'}`}>{gestMese||'—'}</span></td>
+                        {canSeeAll(userRole) && <td className="px-3 py-2.5 text-center"><span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${straMinuti>0?'text-orange-600 bg-orange-50':'text-slate-300 bg-slate-50'}`}>{fmtStra(straMinuti)}</span></td>}
+                        <td className="px-3 py-2.5 text-center"><span className={`text-sm font-bold ${pct>=80?'text-emerald-600':pct>=50?'text-amber-600':'text-red-500'}`}>{pct}%</span></td>
                       </tr>
                     );
                   })}
                 </tbody>
+                <tfoot>
+                  <tr className="bg-slate-800 text-white text-xs font-bold">
+                    <td className="px-4 py-2.5 text-left">Totali</td>
+                    <td className="px-3 py-2.5 text-center">{empTotals.reduce((a,e)=>a+e.count,0)}</td>
+                    <td className="px-3 py-2.5 text-center">{empTotals.reduce((a,e)=>a+e.malattiaGiorni,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">{empTotals.reduce((a,e)=>a+e.assenze,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">{empTotals.reduce((a,e)=>a+e.ferieDays,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">{empTotals.reduce((a,e)=>a+e.nPermessi,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">—</td>
+                    <td className="px-3 py-2.5 text-center">{empTotals.reduce((a,e)=>a+e.repDays,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">{empTotals.reduce((a,e)=>a+e.gestMese,0)||'—'}</td>
+                    {canSeeAll(userRole) && <td className="px-3 py-2.5 text-center">{(() => { const m=empTotals.reduce((a,e)=>a+e.straMinuti,0); return m>=60?`${Math.floor(m/60)}h ${m%60>0?`${m%60}m`:''}`:m>0?`${m}m`:'—'; })()}</td>}
+                    <td className="px-3 py-2.5 text-center">—</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
@@ -6101,6 +6107,20 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
                     );
                   })}
                 </tbody>
+                <tfoot>
+                  <tr className="bg-slate-800 text-white text-xs font-bold">
+                    <td className="px-4 py-2.5 text-left">Totali</td>
+                    <td className="px-3 py-2.5 text-center">{teamEmployees.reduce((a,emp)=>a+days.filter(d=>!d.isFuture&&presenceMap[`${emp.id}_${d.str}`]).length,0)}</td>
+                    <td className="px-3 py-2.5 text-center">{teamEmployees.reduce((a,emp)=>a+days.filter(d=>!d.isFuture&&!presenceMap[`${emp.id}_${d.str}`]&&malattiaMap[`${emp.id}_${d.str}`]).length,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">{teamEmployees.reduce((a,emp)=>a+days.filter(d=>!d.isWeekend&&!d.isFuture&&!presenceMap[`${emp.id}_${d.str}`]&&!malattiaMap[`${emp.id}_${d.str}`]&&!ferieMap[`${emp.id}_${d.str}`]).length,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">{teamEmployees.reduce((a,emp)=>a+days.filter(d=>ferieMap[`${emp.id}_${d.str}`]).length,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">—</td>
+                    <td className="px-3 py-2.5 text-center">{teamEmployees.reduce((a,emp)=>a+(reperibilita||[]).filter(r=>r.employeeId===emp.id&&r.pubblicata&&r.data.startsWith(mStr)).length,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">{teamEmployees.reduce((a,emp)=>a+(gestioniTelefoniche||[]).filter(g=>g.employeeId===emp.id&&g.data.startsWith(mStr)).length,0)||'—'}</td>
+                    <td className="px-3 py-2.5 text-center">{(() => { const m=teamEmployees.reduce((a,emp)=>a+(straordinari||[]).filter(s=>s.status===SS.APPROVATO&&s.employeeId===emp.id&&s.data.startsWith(mStr)).reduce((b,s)=>b+s.minuti,0),0); return m>=60?`${Math.floor(m/60)}h ${m%60>0?`${m%60}m`:''}`:m>0?`${m}m`:'—'; })()}</td>
+                    <td className="px-3 py-2.5 text-center">—</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
@@ -6713,7 +6733,7 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
   return (
     <div className="p-4 lg:p-6">
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>💳 Note Spese</h2>
+        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Note Spese</h2>
         <div className="flex items-center gap-2 flex-wrap">
           {isConfermata ? (
             <>
@@ -7010,7 +7030,7 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
   return (
     <div className="p-4 lg:p-6">
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>💳 Note Spese — Vista Master</h2>
+        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Note Spese — Vista Master</h2>
       </div>
 
       {/* Navigazione mese */}
@@ -7139,7 +7159,7 @@ function News({ user, news, setNews, employees }) {
     <div className="p-4 lg:p-8">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>📢 News</h2>
+          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>News</h2>
           <p className="text-slate-600 text-sm mt-1">Comunicazioni interne aziendali</p>
         </div>
         {unread > 0 && <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">{unread} non lette</span>}
@@ -7259,7 +7279,7 @@ function CalendarioChiusure({ settings, onSave }) {
   const chiusure = settings?.chiusureAziendali || [];
 
   const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-  const DAYS_IT   = ['D','L','M','M','G','V','S'];
+  const DAYS_IT   = ['L','M','M','G','V','S','D'];
 
   const isChiusura = (d) => chiusure.includes(d);
   const toggleGiorno = (d) => {
@@ -7278,7 +7298,7 @@ function CalendarioChiusure({ settings, onSave }) {
     <div className="p-4 lg:p-8">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🏢 Chiusure aziendali</h2>
+          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Chiusure aziendali</h2>
           <p className="text-slate-600 text-sm mt-1">Clicca sui giorni per aggiungere/rimuovere chiusure. Si salvano automaticamente.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -7348,7 +7368,7 @@ function ChiusureView({ settings }) {
   const [anno, setAnno] = useState(now.getFullYear());
   const chiusure = settings?.chiusureAziendali || [];
   const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-  const DAYS_IT   = ['D','L','M','M','G','V','S'];
+  const DAYS_IT   = ['L','M','M','G','V','S','D'];
   const calMese = (m) => ({ firstDay: new Date(anno,m,1).getDay(), days: new Date(anno,m+1,0).getDate() });
 
   const lastUpdate = settings?.chiusureLastUpdate;
@@ -7532,7 +7552,7 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
   return out;
 }
 
-function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, setEmployees, saveData, timbrature, permessi, ferie, malattie, manSection, onSetManSection }) {
+function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, setEmployees, saveData, timbrature, permessi, ferie, malattie, manSection, onSetManSection, setView }) {
   const isAdmin = currentUserRole === RUOLI.AMMINISTRATORE;
   const isMaster = currentUserRole === RUOLI.MASTER;
   const [form, setForm] = useState({
@@ -7831,6 +7851,8 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     { id:'man-calendar', label:'Google Cal. pubb.',   icon:'calendar', show: true },
     { id:'man-cal-priv', label:'Google Cal. priv.',   icon:'calendar', show: true },
     { id:'man-info',     label:'Informazioni sistema',icon:'info',     show: true },
+    { id:'versione',     label:'Versione',            icon:'tag',      show: isMaster, targetView:'versione' },
+    { id:'crediti-licenze',label:'Licenze',           icon:'info',     show: isMaster, targetView:'crediti-licenze' },
   ].filter(s => s.show);
 
   const activeSection = manSection || (MAN_SECTIONS_DEF.length > 0 ? MAN_SECTIONS_DEF[0].id : null);
@@ -7853,7 +7875,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       <div className="flex flex-wrap gap-2 mb-6">
         {MAN_SECTIONS_DEF.map(s => (
           <button key={s.id}
-            onClick={() => onSetManSection && onSetManSection(s.id)}
+            onClick={() => s.targetView ? (setView && setView(s.targetView)) : (onSetManSection && onSetManSection(s.id))}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
               activeSection === s.id
                 ? 'text-white border-transparent'
@@ -10031,7 +10053,7 @@ function App() {
         return <NotifichePage notifiche={notifiche} employees={employees} userId={userId} userRole={r} onMarkRead={handleMarkRead} onMarkAllRead={handleMarkAllRead} />;
       case 'manutenzione':
         if (!canManage(r)) { goTo('dashboard'); return null; }
-        return <Manutenzione settings={settings} onSave={handleSaveSettings} onBack={()=>goTo('dashboard')} currentUserRole={r} employees={employees} setEmployees={setEmployees} saveData={saveData} timbrature={timbrature} permessi={permessi} ferie={ferie} malattie={malattie} manSection={manSection} onSetManSection={setManSection} />;
+        return <Manutenzione settings={settings} onSave={handleSaveSettings} onBack={()=>goTo('dashboard')} currentUserRole={r} employees={employees} setEmployees={setEmployees} saveData={saveData} timbrature={timbrature} permessi={permessi} ferie={ferie} malattie={malattie} manSection={manSection} onSetManSection={setManSection} setView={setView} />;
       case 'note-spese':
         return <NotaSpese user={user} noteSpese={noteSpese} noteSpeseVoci={noteSpeseVoci}
           setNoteSpese={setNoteSpese} setNoteSpeseVoci={setNoteSpeseVoci}
