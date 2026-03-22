@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-016';
+const APP_VERSION = '2026-03-22-017';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -6750,7 +6750,7 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
             <>
               <button onClick={() => setShowForm(true)} className="text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors" style={{background:'#1e3a6e'}}>+ Aggiungi spesa</button>
               {vociMese.length > 0 && (
-                <button onClick={() => setConfirmDialog(true)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors">✅ Conferma nota</button>
+                <button onClick={() => setConfirmDialog(true)} className="text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2" style={{background:'#1e3a6e'}}><Icon name="check" size={14} color="white"/> Conferma nota</button>
               )}
             </>
           )}
