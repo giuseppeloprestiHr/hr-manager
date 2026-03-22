@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-002';
+const APP_VERSION = '2026-03-22-003';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -727,6 +727,11 @@ const CHANGELOG = [
     data: '22/03/2026',
     descrizione: 'Diagnostica login: aggiunto error handling esplicito su hashPassword e onLogin per mostrare il messaggio di errore reale invece di rimanere fermo silenziosamente.'
   },
+  {
+    version: '2026-03-22-003',
+    data: '22/03/2026',
+    descrizione: 'Fix root cause login: .catch() non è disponibile su PostgrestFilterBuilder di Supabase JS v2. Sostituito con Promise.resolve(...).catch() in handleLogin e handleLogout. Questa era la vera causa del blocco silenzioso al login.'
+  },
 ];
 
 const loadEmployees = () => {
@@ -813,7 +818,7 @@ function Login({ employees, onLogin, forcedLogoutMsg, onClearMsg }) {
     if (emp.accessoDisabilitato) { setError('Il tuo accesso è stato disabilitato. Contatta il Master.'); return; }
     hashPassword(passVal).then(hash => {
       if (emp.password !== hash) { setError('Credenziali non valide.'); return; }
-      try { onLogin(emp.id); } catch(e) { setError('Errore interno: ' + (e?.message || e)); }
+      onLogin(emp.id);
     }).catch(err => {
       setError('Errore autenticazione: ' + (err?.message || 'crypto non disponibile. Usa HTTPS.'));
     });
@@ -9321,7 +9326,7 @@ function App() {
     // Genera session ID univoco e lo salva in localStorage + Supabase
     const sessionId = generateSessionId();
     localStorage.setItem('hr_session_id', sessionId);
-    if (_supa) _supa.from('employees').update({ session_id: sessionId }).eq('id', id).catch(() => {});
+    if (_supa) Promise.resolve(_supa.from('employees').update({ session_id: sessionId }).eq('id', id)).catch(() => {});
     // Usa gli employees già in memoria (caricati da Supabase) — NON ricaricare da localStorage
     // che potrebbe contenere solo INITIAL_EMPLOYEES se il browser è stato ripulito
     const emp = employees.find(e => e.id === id);
@@ -9337,7 +9342,7 @@ function App() {
     // Rimuove session_id da Supabase e localStorage
     const sid = localStorage.getItem('hr_session_id');
     if (sid && userId && _supa) {
-      _supa.from('employees').update({ session_id: null }).eq('id', userId).catch(() => {});
+      Promise.resolve(_supa.from('employees').update({ session_id: null }).eq('id', userId)).catch(() => {});
     }
     localStorage.removeItem('hr_session_id');
     setUserId(null); setView('dashboard'); setSelectedEmp(null); setNeedsPassChange(false); setShowNotifiche(false);
