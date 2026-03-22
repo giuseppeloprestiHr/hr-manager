@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-003';
+const APP_VERSION = '2026-03-22-004';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -731,6 +731,11 @@ const CHANGELOG = [
     version: '2026-03-22-003',
     data: '22/03/2026',
     descrizione: 'Fix root cause login: .catch() non è disponibile su PostgrestFilterBuilder di Supabase JS v2. Sostituito con Promise.resolve(...).catch() in handleLogin e handleLogout. Questa era la vera causa del blocco silenzioso al login.'
+  },
+  {
+    version: '2026-03-22-004',
+    data: '22/03/2026',
+    descrizione: 'Fix permessi responsabile: i permessi orari sono richieste personali. Rimosso il selettore team dalla pagina permessi per il ruolo responsabile. Ferie e malattia erano già personali.'
   },
 ];
 
@@ -4423,9 +4428,8 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
   };
   const STATUS_LABEL = { pending:'In attesa', approvato:'Approvato', rifiutato:'Rifiutato', annullato:'Annullato' };
 
-  const selectableEmps = user.ruolo === RUOLI.RESPONSABILE
-    ? [user, ...employees.filter(e=>e.responsabileId===user.id)]
-    : [user];
+  // Permessi, ferie e malattie sono richieste personali — il responsabile può inserire solo per se stesso
+  const selectableEmps = [user];
 
   return (
     <div className="p-4 lg:p-8 max-w-3xl">
