@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-017';
+const APP_VERSION = '2026-03-22-018';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -1623,8 +1623,9 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     { id:'note-spese-master', label:'Note Spese' },
     { id:'news-editor',       label:'Invia News' },
     ...(r === RUOLI.AMMINISTRATORE ? [
-      { id:'approva-permessi', label:'Approva permessi' },
-      { id:'approva-ferie',    label:'Approva ferie' },
+      { id:'approva-permessi',     label:'Approva permessi' },
+      { id:'approva-ferie',        label:'Approva ferie' },
+      { id:'approva-straordinari', label:'Approva straordinari' },
     ] : []),
     { id:'notifiche',         label:'Notifiche', badge:true },
     { id:'manutenzione',      label:'Manutenzione', accordion:true },
@@ -1939,9 +1940,10 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
       )
     : [];
 
-  // Straordinari pending step2 — solo direttore vede pending_dir
-  const straPendingStep2 = r=== RUOLI.DIRETTORE
-    ? (straordinari||[]).filter(s => s.status=== SS.PENDING_DIR && s.employeeId !== user.id)
+  // Straordinari pending step2 — direttore e amministratore (fallback) vedono pending_dir
+  const hasDirettore = employees.some(e => e.ruolo === RUOLI.DIRETTORE && !e.accessoDisabilitato);
+  const straPendingStep2 = (r === RUOLI.DIRETTORE || (r === RUOLI.AMMINISTRATORE && !hasDirettore))
+    ? (straordinari||[]).filter(s => s.status === SS.PENDING_DIR && s.employeeId !== user.id)
     : [];
 
   // Riquadri statistici (in cima)
@@ -1977,8 +1979,9 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     { id:'note-spese-master',    label:'Note Spese',          icon:'card',     color:'bg-emerald-600' },
     { id:'news-editor',          label:'Invia News',          icon:'send',     color:'bg-pink-600' },
     ...(r === RUOLI.AMMINISTRATORE ? [
-      { id:'approva-permessi',   label:'Approva permessi',    icon:'clipboard',color:'bg-violet-600' },
-      { id:'approva-ferie',      label:'Approva ferie',       icon:'check',    color:'bg-cyan-600' },
+      { id:'approva-permessi',     label:'Approva permessi',    icon:'clipboard',color:'bg-violet-600' },
+      { id:'approva-ferie',        label:'Approva ferie',       icon:'check',    color:'bg-cyan-600' },
+      { id:'approva-straordinari', label:'Approva straord.',    icon:'trending', color:'bg-orange-600' },
     ] : []),
     { id:'notifiche',            label:'Notifiche',           icon:'bell',     color:'bg-blue-700' },
     { id:'manutenzione',         label:'Manutenzione',        icon:'settings', color:'bg-slate-700' },
@@ -4852,7 +4855,7 @@ function ApprovaStraordinari({ user, employees, straordinari, setStraordinari, o
 
   // Filtra straordinari visibili per ruolo
   const visibili = (straordinari||[]).filter(s => {
-    if (isDir) return s.status === SS.PENDING_DIR;
+    if (isDir || isAdmin) return s.status === SS.PENDING_DIR;
     if (isResp) {
       const emp = employees.find(e=>e.id===s.employeeId);
       return s.status === SS.PENDING_RESP && emp?.responsabileId === user.id;
@@ -4862,7 +4865,7 @@ function ApprovaStraordinari({ user, employees, straordinari, setStraordinari, o
 
   // Storico richieste già gestite
   const storico = (straordinari||[]).filter(s => {
-    if (isDir) return s.status === SS.APPROVATO || (s.status === SS.RIFIUTATO && s.approvatoRespId != null);
+    if (isDir || isAdmin) return s.status === SS.APPROVATO || (s.status === SS.RIFIUTATO && s.approvatoRespId != null);
     if (isResp) {
       const emp = employees.find(e=>e.id===s.employeeId);
       if (!emp || emp.responsabileId !== user.id) return false;
@@ -4891,7 +4894,7 @@ function ApprovaStraordinari({ user, employees, straordinari, setStraordinari, o
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>⏰ Approva straordinari</h2>
         <p className="text-slate-600 text-sm mt-1">
-          {isResp ? 'Straordinari del tuo team in attesa di approvazione (step 1)' : 'Straordinari in attesa di approvazione definitiva (step 2)'}
+          {isResp ? 'Straordinari del tuo team in attesa di approvazione (step 1)' : isAdmin ? 'Straordinari in attesa di approvazione definitiva (step 2) — vista Amministratore' : 'Straordinari in attesa di approvazione definitiva (step 2)'}
         </p>
       </div>
       {visibili.length === 0 ? (
@@ -9839,11 +9842,13 @@ function App() {
         const emp = employees.find(e=>e.id===s.employeeId);
         const fmtMin = m => m >= 60 ? `${Math.floor(m/60)}h ${m%60}min` : `${m} min`;
         const tipoLabel = s.tipo === 'mattina' ? '🌅 mattina' : '🌆 sera';
-        const direttoriIds = employees.filter(e=>e.ruolo===RUOLI.DIRETTORE).map(e=>e.id);
-        if (direttoriIds.length > 0)
+        const direttoriIds = employees.filter(e=>e.ruolo===RUOLI.DIRETTORE && !e.accessoDisabilitato).map(e=>e.id);
+        const adminIds     = employees.filter(e=>e.ruolo===RUOLI.AMMINISTRATORE && !e.accessoDisabilitato).map(e=>e.id);
+        const step2Ids     = direttoriIds.length > 0 ? direttoriIds : adminIds;
+        if (step2Ids.length > 0)
           creaNotifica('straordinario',
-            `⏰ Straordinario di ${emp?.nome||''} ${emp?.cognome||''} ${tipoLabel} ${fmtData(s.data)} (${fmtMin(s.minuti)}) approvato dal Responsabile — in attesa approvazione Direttore`,
-            direttoriIds, s.employeeId
+            `⏰ Straordinario di ${emp?.nome||''} ${emp?.cognome||''} ${tipoLabel} ${fmtData(s.data)} (${fmtMin(s.minuti)}) approvato dal Responsabile — in attesa approvazione finale`,
+            step2Ids, s.employeeId
           );
       }
       return upd;
@@ -10170,7 +10175,7 @@ function App() {
         if (r !== RUOLI.AMMINISTRATORE && r !== RUOLI.RESPONSABILE && r !== RUOLI.DIRETTORE) { goTo('dashboard'); return null; }
         return <ApprovaFerie user={user} employees={employees} ferie={ferie} setFerie={setFerie} onApprovaResp={handleFerieApprovaResp} onApprovaDir={handleFerieApprovaDir} onRifiuta={handleFerieRifiuta} />;
       case 'approva-straordinari':
-        if (r !== RUOLI.RESPONSABILE && r !== RUOLI.DIRETTORE) { goTo('dashboard'); return null; }
+        if (r !== RUOLI.RESPONSABILE && r !== RUOLI.DIRETTORE && r !== RUOLI.AMMINISTRATORE) { goTo('dashboard'); return null; }
         return <ApprovaStraordinari user={user} employees={employees} straordinari={straordinari} setStraordinari={setStraordinari} onApprovaResp={handleApprovaStrResp} onApprovaDir={handleApprovaStrDir} onRifiuta={handleRifiutaStr} />;
       case 'notifiche':
         if (!canSeeNotifiche(r)) { goTo('dashboard'); return null; }
