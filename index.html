@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-019';
+const APP_VERSION = '2026-03-22-020';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -7279,6 +7279,43 @@ function NewsEditor({ user, news, setNews, employees, onCreaNotifica }) {
 }
 
 // ============================================================
+// FESTIVITÀ NAZIONALI ITALIANE
+// ============================================================
+function calcolaEaster(y) {
+  // Algoritmo di Gauss
+  const a = y % 19, b = Math.floor(y/100), c = y % 100;
+  const d = Math.floor(b/4), e = b % 4;
+  const f = Math.floor((b+8)/25), g = Math.floor((b-f+1)/3);
+  const h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c/4), k = c % 4;
+  const l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l) / 451);
+  const month = Math.floor((h + l - 7*m + 114) / 31); // 1-based
+  const day   = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(y, month-1, day);
+}
+
+function getFestivitaNazionali(y) {
+  const easter = calcolaEaster(y);
+  const luneAngelo = new Date(easter); luneAngelo.setDate(easter.getDate()+1);
+  const fmt = (d) => `${y}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return [
+    { data: `${y}-01-01`, nome: 'Capodanno' },
+    { data: `${y}-01-06`, nome: 'Epifania' },
+    { data: fmt(easter),    nome: 'Pasqua' },
+    { data: fmt(luneAngelo),nome: 'Lunedì dell\'Angelo' },
+    { data: `${y}-04-25`, nome: 'Festa della Liberazione' },
+    { data: `${y}-05-01`, nome: 'Festa del Lavoro' },
+    { data: `${y}-06-02`, nome: 'Festa della Repubblica' },
+    { data: `${y}-08-15`, nome: 'Ferragosto' },
+    { data: `${y}-11-01`, nome: 'Ognissanti' },
+    { data: `${y}-12-08`, nome: 'Immacolata Concezione' },
+    { data: `${y}-12-25`, nome: 'Natale' },
+    { data: `${y}-12-26`, nome: 'Santo Stefano' },
+  ];
+}
+
+// ============================================================
 // CALENDARIO CHIUSURE AZIENDALI (Direttore — crea/modifica)
 // ============================================================
 function CalendarioChiusure({ settings, onSave }) {
@@ -7290,8 +7327,13 @@ function CalendarioChiusure({ settings, onSave }) {
   const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
   const DAYS_IT   = ['L','M','M','G','V','S','D'];
 
+  const festivita = React.useMemo(() => getFestivitaNazionali(anno), [anno]);
+  const festivitaSet = React.useMemo(() => new Set(festivita.map(f=>f.data)), [festivita]);
+  const festivitaMap = React.useMemo(() => Object.fromEntries(festivita.map(f=>[f.data,f.nome])), [festivita]);
+
   const isChiusura = (d) => chiusure.includes(d);
   const toggleGiorno = (d) => {
+    if (festivitaSet.has(d)) return; // le festività non si toccano
     const upd = isChiusura(d) ? chiusure.filter(x=>x!==d) : [...chiusure, d];
     onSave({...settings, chiusureAziendali: upd, chiusureLastUpdate: todayStr()});
     setSaved(true); setTimeout(()=>setSaved(false), 1500);
@@ -7336,11 +7378,14 @@ function CalendarioChiusure({ settings, onSave }) {
                   const dow = new Date(anno,m,day).getDay();
                   const isWE = dow===0||dow===6;
                   const isCh = isChiusura(str);
+                  const isFest = festivitaSet.has(str);
+                  const title = isFest ? festivitaMap[str] : undefined;
                   return (
-                    <button key={day} onClick={()=>!isWE&&toggleGiorno(str)}
+                    <button key={day} title={title} onClick={()=>!isWE&&toggleGiorno(str)}
                       className={`text-xs rounded-lg py-1.5 font-medium transition-colors
                         ${isWE ? 'text-slate-300 cursor-default' :
                           isCh ? 'bg-red-500 text-white hover:bg-red-600' :
+                          isFest ? 'bg-amber-400 text-white cursor-default' :
                           'text-slate-600 hover:bg-slate-100'}`}>
                       {day}
                     </button>
@@ -7365,6 +7410,22 @@ function CalendarioChiusure({ settings, onSave }) {
           </div>
         </div>
       )}
+
+      {/* Festività patronali + legenda */}
+      <div className="mt-6 bg-amber-50 rounded-2xl border border-amber-100 p-4">
+        <p className="text-xs font-bold text-amber-800 uppercase tracking-wide mb-1">Festività patronali</p>
+        <p className="text-xs text-amber-700">Trento: San Vigilio (26 giugno) · Monza: San Giovanni Battista (24 giugno) · Udine: Santi Ermacora e Fortunato (12 luglio)</p>
+      </div>
+      <div className="mt-3 flex items-center gap-5 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-4 h-4 rounded bg-red-500"></span>
+          <span className="text-xs text-slate-600">Chiusura aziendale</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-4 h-4 rounded bg-amber-400"></span>
+          <span className="text-xs text-slate-600">Festività nazionale</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -7379,6 +7440,10 @@ function ChiusureView({ settings }) {
   const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
   const DAYS_IT   = ['L','M','M','G','V','S','D'];
   const calMese = (m) => ({ firstDay: new Date(anno,m,1).getDay(), days: new Date(anno,m+1,0).getDate() });
+
+  const festivita = React.useMemo(() => getFestivitaNazionali(anno), [anno]);
+  const festivitaSet = React.useMemo(() => new Set(festivita.map(f=>f.data)), [festivita]);
+  const festivitaMap = React.useMemo(() => Object.fromEntries(festivita.map(f=>[f.data,f.nome])), [festivita]);
 
   const lastUpdate = settings?.chiusureLastUpdate;
   const statusBanner = chiusure.length === 0
@@ -7422,9 +7487,14 @@ function ChiusureView({ settings }) {
                   const dow=new Date(anno,m,day).getDay();
                   const isWE=dow===0||dow===6;
                   const isCh=chiusure.includes(str);
+                  const isFest=festivitaSet.has(str);
                   return (
-                    <div key={day} className={`text-xs rounded-lg py-1.5 font-medium
-                      ${isWE?'text-slate-300':isCh?'bg-red-500 text-white':'text-slate-600'}`}>
+                    <div key={day} title={isFest?festivitaMap[str]:undefined}
+                      className={`text-xs rounded-lg py-1.5 font-medium
+                        ${isWE?'text-slate-300':
+                          isCh?'bg-red-500 text-white':
+                          isFest?'bg-amber-400 text-white':
+                          'text-slate-600'}`}>
                       {day}
                     </div>
                   );
@@ -7433,6 +7503,22 @@ function ChiusureView({ settings }) {
             </div>
           );
         })}
+      </div>
+
+      {/* Festività patronali + legenda */}
+      <div className="mt-6 bg-amber-50 rounded-2xl border border-amber-100 p-4">
+        <p className="text-xs font-bold text-amber-800 uppercase tracking-wide mb-1">Festività patronali</p>
+        <p className="text-xs text-amber-700">Trento: San Vigilio (26 giugno) · Monza: San Giovanni Battista (24 giugno) · Udine: Santi Ermacora e Fortunato (12 luglio)</p>
+      </div>
+      <div className="mt-3 flex items-center gap-5 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-4 h-4 rounded bg-red-500"></span>
+          <span className="text-xs text-slate-600">Chiusura aziendale</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-4 h-4 rounded bg-amber-400"></span>
+          <span className="text-xs text-slate-600">Festività nazionale</span>
+        </div>
       </div>
     </div>
   );
