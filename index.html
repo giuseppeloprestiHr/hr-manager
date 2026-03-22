@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-008';
+const APP_VERSION = '2026-03-22-009';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -7205,7 +7205,7 @@ function NewsEditor({ user, news, setNews, employees, onCreaNotifica }) {
     setNews(upd); saveData('news', upd); DB.sync('news', upd);
     // Notifica a tutti i dipendenti
     const tutti = employees.map(e=>e.id);
-    onCreaNotifica('news', `📢 ${titolo.trim()}`, tutti, user.id);
+    onCreaNotifica('news', titolo.trim(), tutti, user.id);
     setTitolo(''); setTesto('');
     setSent(true); setTimeout(()=>setSent(false), 2500);
   };
