@@ -190,7 +190,7 @@ const _S = {
     tolleranzaMinuti:r.tolleranza_minuti??15,
     centriDiCosto:r.centri_di_costo||[{id:'1',numero:'100',testo:'Sanitario'}],
     autoList:r.auto_list||[],
-    chiusureAziendali:r.chiusure_aziendali||[] }) : {},
+    chiusureAziendali:r.chiusure_aziendali||[], chiusureLastUpdate:r.chiusure_last_update||null }) : {},
   to: s => ({ webhook_url:s.webhookUrl||null, calendar_id:s.calendarId||null,
     calendar_embed_url:s.calendarEmbedUrl||null, calendar_enabled:!!s.calendarEnabled,
     private_webhook_url:s.privateWebhookUrl||null, private_calendar_id:s.privateCalendarId||null,
@@ -200,7 +200,7 @@ const _S = {
     tolleranza_minuti:s.tolleranzaMinuti??15,
     centri_di_costo:s.centriDiCosto||[{id:'1',numero:'100',testo:'Sanitario'}],
     auto_list:s.autoList||[],
-    chiusure_aziendali:s.chiusureAziendali||[] }),
+    chiusure_aziendali:s.chiusureAziendali||[], chiusure_last_update:s.chiusureLastUpdate||null }),
 };
 const _NS = {
   from: r => r ? ({ id:r.id, employeeId:r.employee_id, anno:r.anno, mese:r.mese,
@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-004';
+const APP_VERSION = '2026-03-22-005';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -737,6 +737,11 @@ const CHANGELOG = [
     data: '22/03/2026',
     descrizione: 'Fix permessi responsabile: i permessi orari sono richieste personali. Rimosso il selettore team dalla pagina permessi per il ruolo responsabile. Ferie e malattia erano già personali.'
   },
+  {
+    version: '2026-03-22-005',
+    data: '22/03/2026',
+    descrizione: 'Redesign UI completo: sidebar bianca con icone SVG outline, accordion Manutenzione con 8 sotto-sezioni, login con logo circolare HR, greeting dashboard senza emoji, aggiunto Note Spese e News alle azioni rapide, testi interni più scuri, Comunicazione malattia rinominata e colore navy, banner stato Chiusure aziendali con data ultima modifica, componente Icon con set SVG Lucide-style.'
+  },
 ];
 
 const loadEmployees = () => {
@@ -775,6 +780,48 @@ function DateInput({ label, value, onChange, required, className }) {
 // ============================================================
 // LOGIN
 // ============================================================
+// ── Icone SVG outline (Lucide-style) ───────────────────────
+const ICON_PATHS = {
+  home:         <><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
+  user:         <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+  users:        <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></>,
+  clock:        <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+  calendar:     <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+  clipboard:    <><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></>,
+  plane:        <><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 21 4s-2 0-3.5 1.5L14 9 5.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 3.7c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2"/></>,
+  trending:     <><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></>,
+  phone:        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 .18h3a2 2 0 012 1.72c.127 1.016.329 2.02.6 3a2 2 0 01-.45 2.11L6.91 8a16 16 0 006.72 6.72l1.06-1.06a2 2 0 012.11-.45c.98.27 1.984.473 3 .6a2 2 0 011.72 2"/>,
+  card:         <><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></>,
+  bell:         <><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></>,
+  megaphone:    <><path d="M3 11l19-9-9 19-2-8-8-2z"/></>,
+  building:     <><path d="M6 22V4h12v18"/><path d="M2 22h20"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h6"/></>,
+  chart:        <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
+  settings:     <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1"/></>,
+  tag:          <><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></>,
+  info:         <><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></>,
+  logout:       <><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
+  'chevron-dn': <polyline points="6 9 12 15 18 9"/>,
+  'chevron-up': <polyline points="18 15 12 9 6 15"/>,
+  'chevron-rt': <polyline points="9 18 15 12 9 6"/>,
+  send:         <><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
+  check:        <><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>,
+  'user-check': <><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></>,
+  add:          <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></>,
+  wrench:       <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>,
+  car:          <><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v9a2 2 0 01-2 2h-3"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></>,
+  'bar-chart2': <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
+  receipt:      <><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/></>,
+  person:       <><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></>,
+  newspaper:    <><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6z"/></>,
+};
+const Icon = ({ name, size=16, color='currentColor', className='' }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+    fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    className={className} style={{display:'inline-block',flexShrink:0}}>
+    {ICON_PATHS[name]}
+  </svg>
+);
+
 function PasswordInput({ placeholder, value, onChange, onKeyDown, className, onClearError, autoComplete }) {
   const [show, setShow] = React.useState(false);
   return (
@@ -851,13 +898,16 @@ function Login({ employees, onLogin, forcedLogoutMsg, onClearMsg }) {
          style={{background:'linear-gradient(135deg,#0f1f3d 0%,#1e3a6e 60%,#0f1f3d 100%)'}}>
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-900 text-white text-3xl mb-4">👥</div>
-          <h1 className="text-3xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>HR Manager</h1>
-          <p className="text-slate-400 text-sm mt-2">Accedi con le tue credenziali</p>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-5 shadow-lg"
+            style={{background:'linear-gradient(135deg,#0f1f3d 0%,#1e3a6e 100%)'}}>
+            <span className="text-white font-bold text-2xl tracking-widest" style={{fontFamily:'Syne,sans-serif',letterSpacing:'0.15em'}}>HR</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>HR Manager</h1>
+          <p className="text-slate-500 text-sm mt-1.5">Accedi con le tue credenziali</p>
         </div>
         {forcedLogoutMsg && (
           <div className="mb-4 bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 flex items-start gap-3">
-            <span className="text-xl shrink-0">⚠️</span>
+            <Icon name="info" size={20} color="#b45309" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-amber-800">Sessione terminata</p>
               <p className="text-xs text-amber-700 mt-0.5">{forcedLogoutMsg}</p>
@@ -900,7 +950,7 @@ function Login({ employees, onLogin, forcedLogoutMsg, onClearMsg }) {
             ))
           }
         </div>
-      <p className="text-center text-slate-300 text-xs mt-6" style={{letterSpacing:'0.01em'}}>
+      <p className="text-center text-slate-500 text-xs mt-6 font-medium" style={{letterSpacing:'0.01em'}}>
         v{APP_VERSION} &nbsp;·&nbsp; Created by LPG
       </p>
       </div>
@@ -1500,134 +1550,210 @@ function CreditiLicenzeView({ onBack }) {
   );
 }
 
-function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequests, notifiche, userId, onBell }) {
+function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequests, notifiche, userId, onBell, onSetManSection, manSection }) {
   const r = user.ruolo;
   const isMaster       = canManage(r);
   const isDirettore    = r === RUOLI.DIRETTORE;
   const isResponsabile = r === RUOLI.RESPONSABILE;
   const hasAreaSpecifica = isMaster || isDirettore || isResponsabile;
   const [expanded, setExpanded] = useState(false);
+  const [manExpanded, setManExpanded] = useState(false);
+
+  const iconFor = id => {
+    const map = {
+      dashboard:'home', 'mia-anagrafica':'user', timbratura:'clock', 'mie-presenze':'calendar',
+      malattia:'send', permessi:'clipboard', ferie:'plane', 'miei-straordinari':'trending',
+      'gestioni-tel':'phone', 'note-spese':'card', news:'newspaper', 'chiusure-view':'building',
+      notifiche:'bell', dipendenti:'users', report:'chart', 'note-spese-master':'card',
+      'news-editor':'send', 'approva-permessi':'clipboard', 'approva-ferie':'check',
+      manutenzione:'settings', versione:'tag', 'crediti-licenze':'info',
+      'calendario-team':'calendar', 'calendario-chiusure':'building',
+      reperibilita:'user-check', 'approva-straordinari':'trending',
+    };
+    return map[id] || 'info';
+  };
+
+  const MAN_SECTIONS = [
+    { id:'man-orario',    label:'Orario di lavoro',    show: isMaster || r === RUOLI.AMMINISTRATORE },
+    { id:'man-centri',    label:'Centri di costo',     show: isMaster },
+    { id:'man-auto',      label:'Parco auto',          show: isMaster },
+    { id:'man-valori',    label:'Valori iniziali',     show: isMaster },
+    { id:'man-rilpre',    label:'Esportazione RILPRE', show: isMaster },
+    { id:'man-calendar',  label:'Google Cal. pubbl.',  show: true },
+    { id:'man-cal-priv',  label:'Google Cal. priv.',   show: true },
+    { id:'man-info',      label:'Informazioni sistema',show: true },
+  ].filter(s => s.show);
 
   const dipItems = [
-    { id:'dashboard',       label:'Dashboard',         icon:'🏠' },
-    { id:'mia-anagrafica',  label:'La mia anagrafica', icon:'👤' },
-    { id:'timbratura',      label:'Timbratura',        icon:'🕰️' },
-    { id:'mie-presenze',    label:'Il mio Calendario', icon:'📅' },
-    { id:'malattia',        label:'Malattia',          icon:<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:'1em',height:'1em',display:'inline-block',verticalAlign:'middle'}}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15a6 6 0 0 0 6 6h0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg> },
-    { id:'permessi',        label:'Permessi orari',    icon:'📋' },
-    { id:'ferie',           label:'Ferie',             icon:'✈️' },
-    ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'📈' }] : []),
-    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gestione tel.', icon:'☎️' }] : []),
-    { id:'note-spese',    label:'Note Spese',          icon:'💳' },
-    { id:'news',          label:'News',                icon:'📢' },
-    { id:'chiusure-view', label:'Chiusure aziendali',  icon:'🏢' },
-    ...(!hasAreaSpecifica ? [{ id:'notifiche', label:'Notifiche', icon:'🔔', badge: true }] : []),
+    { id:'dashboard',       label:'Dashboard' },
+    { id:'mia-anagrafica',  label:'La mia anagrafica' },
+    { id:'timbratura',      label:'Timbratura' },
+    { id:'mie-presenze',    label:'Il mio Calendario' },
+    { id:'malattia',        label:'Invia comunicazione' },
+    { id:'permessi',        label:'Permessi orari' },
+    { id:'ferie',           label:'Ferie' },
+    ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari' }] : []),
+    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. tel.' }] : []),
+    { id:'note-spese',    label:'Note Spese' },
+    { id:'news',          label:'News' },
+    { id:'chiusure-view', label:'Chiusure aziendali' },
+    ...(!hasAreaSpecifica ? [{ id:'notifiche', label:'Notifiche', badge:true }] : []),
   ];
 
   const areaItems = canManage(r) ? [
-    { id:'dipendenti',           label:'Dipendenti',          icon:'👥' },
-    { id:'report',               label:'Report presenze',     icon:'📊' },
-    { id:'note-spese-master',    label:'Note Spese',          icon:'💳' },
-    { id:'news-editor',          label:'Invia News',          icon:'📢' },
+    { id:'dipendenti',        label:'Dipendenti' },
+    { id:'report',            label:'Report presenze' },
+    { id:'note-spese-master', label:'Note Spese' },
+    { id:'news-editor',       label:'Invia News' },
     ...(r === RUOLI.AMMINISTRATORE ? [
-      { id:'approva-permessi',   label:'Approva permessi',    icon:'📋' },
-      { id:'approva-ferie',      label:'Approva ferie',       icon:'✈️' },
+      { id:'approva-permessi', label:'Approva permessi' },
+      { id:'approva-ferie',    label:'Approva ferie' },
     ] : []),
-    { id:'notifiche',            label:'Notifiche',           icon:'🔔', badge: true },
-    { id:'manutenzione',         label:'Manutenzione',        icon:'⚙️' },
+    { id:'notifiche',         label:'Notifiche', badge:true },
+    { id:'manutenzione',      label:'Manutenzione', accordion:true },
     ...(r === RUOLI.MASTER ? [
-      { id:'versione',         label:'Versione',          icon:'🏷️' },
-      { id:'crediti-licenze',  label:'Crediti e Licenze', icon:'ℹ️' },
+      { id:'versione',        label:'Versione' },
+      { id:'crediti-licenze', label:'Crediti e Licenze' },
     ] : []),
-  ] : r=== RUOLI.DIRETTORE ? [
-    { id:'dipendenti',           label:'Dipendenti',          icon:'👥' },
-    { id:'report',               label:'Report presenze',     icon:'📊' },
-    { id:'calendario-team',      label:'Calendario',          icon:'📅' },
-    { id:'calendario-chiusure',  label:'Chiusure aziendali',  icon:'🏢' },
-    { id:'approva-permessi',     label:'Approva permessi',    icon:'📋' },
-    { id:'approva-ferie',        label:'Approva ferie',       icon:'✈️' },
-    { id:'approva-straordinari', label:'Approva straordinari',icon:'📈' },
-    { id:'news-editor',          label:'Invia News',          icon:'📢' },
-    { id:'notifiche',            label:'Notifiche',           icon:'🔔', badge: true },
+  ] : r === RUOLI.DIRETTORE ? [
+    { id:'dipendenti',           label:'Dipendenti' },
+    { id:'report',               label:'Report presenze' },
+    { id:'calendario-team',      label:'Calendario' },
+    { id:'calendario-chiusure',  label:'Chiusure aziendali' },
+    { id:'approva-permessi',     label:'Approva permessi' },
+    { id:'approva-ferie',        label:'Approva ferie' },
+    { id:'approva-straordinari', label:'Approva straordinari' },
+    { id:'news-editor',          label:'Invia News' },
+    { id:'notifiche',            label:'Notifiche', badge:true },
   ] : isResponsabile ? [
-    { id:'dipendenti',           label:'Il mio team',         icon:'👥' },
-    { id:'reperibilita',         label:'Reperibilità',        icon:'🙋' },
-    { id:'calendario-team',      label:'Calendario',          icon:'📅' },
-    { id:'approva-permessi',     label:'Approva permessi',    icon:'📋' },
-    { id:'approva-ferie',        label:'Approva ferie',       icon:'✈️' },
-    { id:'approva-straordinari', label:'Approva straordinari',icon:'📈' },
-    { id:'notifiche',            label:'Notifiche',           icon:'🔔', badge: true },
+    { id:'dipendenti',           label:'Il mio team' },
+    { id:'reperibilita',         label:'Reperibilità' },
+    { id:'calendario-team',      label:'Calendario' },
+    { id:'approva-permessi',     label:'Approva permessi' },
+    { id:'approva-ferie',        label:'Approva ferie' },
+    { id:'approva-straordinari', label:'Approva straordinari' },
+    { id:'notifiche',            label:'Notifiche', badge:true },
   ] : [];
 
   const flatItems = [
-    { id:'dashboard',       label:'Dashboard',         icon:'🏠' },
-    { id:'mia-anagrafica',  label:'La mia anagrafica', icon:'👤' },
-    { id:'timbratura',      label:'Timbratura',        icon:'🕰️' },
-    { id:'mie-presenze',    label:'Il mio Calendario', icon:'📅' },
-    { id:'malattia',        label:'Malattia',          icon:<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:'1em',height:'1em',display:'inline-block',verticalAlign:'middle'}}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15a6 6 0 0 0 6 6h0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg> },
-    { id:'permessi',        label:'Permessi orari',    icon:'📋' },
-    { id:'ferie',           label:'Ferie',             icon:'✈️' },
-    ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari', icon:'📈' }] : []),
-    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gestione tel.', icon:'☎️' }] : []),
-    { id:'note-spese',    label:'Note Spese',         icon:'💳' },
-    { id:'news',          label:'News',               icon:'📢' },
-    { id:'chiusure-view', label:'Chiusure aziendali', icon:'🏢' },
-    { id:'notifiche', label:'Notifiche', icon:'🔔', badge: true },
+    { id:'dashboard',      label:'Dashboard' },
+    { id:'mia-anagrafica', label:'La mia anagrafica' },
+    { id:'timbratura',     label:'Timbratura' },
+    { id:'mie-presenze',   label:'Il mio Calendario' },
+    { id:'malattia',       label:'Invia comunicazione' },
+    { id:'permessi',       label:'Permessi orari' },
+    { id:'ferie',          label:'Ferie' },
+    ...(user.straordinario ? [{ id:'miei-straordinari', label:'Straordinari' }] : []),
+    ...(user.reperibile ? [{ id:'gestioni-tel', label:'Reperibilità e Gest. tel.' }] : []),
+    { id:'note-spese',    label:'Note Spese' },
+    { id:'news',          label:'News' },
+    { id:'chiusure-view', label:'Chiusure aziendali' },
+    { id:'notifiche',     label:'Notifiche', badge:true },
   ];
 
   const AREA_LABEL = { master:'Area Master', amministratore:'Area Amministratore', direttore:'Area Direttore', responsabile:'Area Responsabile' };
-  const AREA_COLOR = { master:'text-purple-400', amministratore:'text-red-400', direttore:'text-blue-400', responsabile:'text-emerald-400' };
+  const AREA_BORDER = { master:'#7c3aed', amministratore:'#dc2626', direttore:'#2563eb', responsabile:'#059669' };
 
   const unread = (notifiche||[]).filter(n =>
     (isMaster || n.destinatari.includes(userId)) && !n.lette.includes(userId)
   ).length;
 
-  // Larghezza: 56px collassata, 256px espansa
   const W_COLLAPSED = 56;
-  const W_EXPANDED  = 256;
+  const W_EXPANDED  = 260;
+
+  const isManActive = view === 'manutenzione';
 
   const NavBtn = ({ it }) => {
     const isActive = view === it.id;
-    const showDot  = it.id==='dashboard' && resetRequests>0 && isMaster;
-    const showBadge= it.badge && unread > 0;
+    const showDot   = it.id==='dashboard' && resetRequests>0 && isMaster;
+    const showBadge = it.badge && unread > 0;
+    const iconName  = iconFor(it.id);
+
+    if (it.accordion) {
+      return (
+        <div>
+          <button
+            onClick={() => setManExpanded(v => !v)}
+            title={!expanded ? it.label : undefined}
+            style={{
+              width:'100%', display:'flex', alignItems:'center',
+              gap: expanded ? 10 : 0,
+              padding: expanded ? '9px 10px' : '9px 0',
+              justifyContent: expanded ? 'flex-start' : 'center',
+              borderRadius:10,
+              background: isManActive ? '#1e3a6e' : 'transparent',
+              color: isManActive ? '#fff' : '#374151',
+              border:'none', cursor:'pointer', fontSize:13, fontWeight:500,
+              transition:'background .15s',
+              position:'relative', whiteSpace:'nowrap',
+            }}
+            onMouseEnter={e=>{if(!isManActive)e.currentTarget.style.background='#f1f5f9';}}
+            onMouseLeave={e=>{if(!isManActive)e.currentTarget.style.background='transparent';}}
+          >
+            <Icon name="settings" size={17} color={isManActive?'#fff':'#6b7280'} />
+            <span style={{flex:1,opacity:expanded?1:0,maxWidth:expanded?160:0,overflow:'hidden',transition:'opacity .2s,max-width .25s',textAlign:'left'}}>{it.label}</span>
+            {expanded && <Icon name={manExpanded?'chevron-up':'chevron-dn'} size={13} color={isManActive?'#fff':'#9ca3af'} />}
+          </button>
+          {manExpanded && expanded && (
+            <div style={{marginLeft:6,borderLeft:'2px solid #e2e8f0',paddingLeft:8,marginTop:2,marginBottom:2}}>
+              {MAN_SECTIONS.map(s => {
+                const isSubActive = isManActive && manSection === s.id;
+                return (
+                  <button key={s.id}
+                    onClick={() => { setSelectedEmployee(null); if(onSetManSection) onSetManSection(s.id); setView('manutenzione'); }}
+                    style={{
+                      width:'100%',display:'flex',alignItems:'center',gap:6,
+                      padding:'6px 8px',borderRadius:8,
+                      background: isSubActive ? '#dbeafe':'transparent',
+                      color: isSubActive ? '#1e3a6e':'#4b5563',
+                      border:'none',cursor:'pointer',fontSize:12,
+                      fontWeight: isSubActive?600:400,textAlign:'left',
+                    }}
+                    onMouseEnter={e=>{if(!isSubActive)e.currentTarget.style.background='#f8fafc';}}
+                    onMouseLeave={e=>{if(!isSubActive)e.currentTarget.style.background='transparent';}}
+                  >
+                    <Icon name="chevron-rt" size={11} color={isSubActive?'#1e3a6e':'#9ca3af'} />
+                    <span style={{whiteSpace:'normal',lineHeight:1.3}}>{s.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     return (
       <button
-        onClick={() => { if (it.id==='__bell__') { onBell(); return; } setSelectedEmployee(null); setView(it.id); }}
+        onClick={() => { if(it.id==='__bell__'){onBell();return;} setSelectedEmployee(null); setView(it.id); }}
         title={!expanded ? it.label : undefined}
         style={{
-          width: '100%', display:'flex', alignItems:'center',
-          gap: expanded ? 12 : 0,
-          padding: expanded ? '10px 12px' : '10px 0',
+          width:'100%', display:'flex', alignItems:'center',
+          gap: expanded ? 10 : 0,
+          padding: expanded ? '9px 10px' : '9px 0',
           justifyContent: expanded ? 'flex-start' : 'center',
-          borderRadius: 12,
-          background: isActive ? '#2563eb' : 'transparent',
-          color: isActive ? '#fff' : '#94a3b8',
-          border: 'none', cursor:'pointer',
-          fontSize: 14, fontWeight: 500,
-          transition: 'background .15s, color .15s, padding .25s',
-          position: 'relative', whiteSpace:'nowrap', overflow:'hidden',
+          borderRadius:10,
+          background: isActive ? '#1e3a6e' : 'transparent',
+          color: isActive ? '#fff' : '#374151',
+          border:'none', cursor:'pointer',
+          fontSize:13, fontWeight:500,
+          transition:'background .15s, color .15s, padding .25s',
+          position:'relative', whiteSpace:'nowrap', overflow:'hidden',
         }}
-        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background='#1e3a5f'; if (!isActive) e.currentTarget.style.color='#fff'; }}
-        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background='transparent'; if (!isActive) e.currentTarget.style.color='#94a3b8'; }}
+        onMouseEnter={e=>{if(!isActive){e.currentTarget.style.background='#f1f5f9';}}}
+        onMouseLeave={e=>{if(!isActive){e.currentTarget.style.background='transparent';}}}
       >
-        <span style={{fontSize:22, lineHeight:1, flexShrink:0}}>{it.icon}</span>
-        <span style={{
-          flex:1, opacity: expanded ? 1 : 0,
-          maxWidth: expanded ? 180 : 0,
-          overflow:'hidden',
-          transition: 'opacity .2s, max-width .25s',
-          textAlign:'left',
-        }}>{it.label}</span>
-        {/* Badge notifiche */}
+        <Icon name={iconName} size={17} color={isActive?'#fff':'#6b7280'} />
+        <span style={{flex:1,opacity:expanded?1:0,maxWidth:expanded?180:0,overflow:'hidden',transition:'opacity .2s,max-width .25s',textAlign:'left'}}>{it.label}</span>
         {(showBadge || showDot) && (
           <span style={{
-            background:'#ef4444', color:'#fff', fontSize:10, fontWeight:700,
-            borderRadius:9999, minWidth:18, height:18,
-            display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px',
-            flexShrink:0, marginLeft: expanded ? 0 : -6, marginTop: expanded ? 0 : -12,
-            position: expanded ? 'static' : 'absolute', top: expanded ? 'auto':4, right: expanded ? 'auto':4,
+            background:'#ef4444',color:'#fff',fontSize:10,fontWeight:700,
+            borderRadius:9999,minWidth:18,height:18,
+            display:'flex',alignItems:'center',justifyContent:'center',padding:'0 4px',
+            flexShrink:0,marginLeft:expanded?0:-6,marginTop:expanded?0:-12,
+            position:expanded?'static':'absolute',top:expanded?'auto':4,right:expanded?'auto':4,
           }}>
-            {showDot ? resetRequests : unread > 99 ? '99+' : unread}
+            {showDot ? resetRequests : unread>99?'99+':unread}
           </span>
         )}
       </button>
@@ -1638,118 +1764,109 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     <aside
       className="hidden lg:flex min-h-screen flex-col shrink-0"
       style={{
-        background:'#0f1f3d',
+        background:'#ffffff',
+        borderRight:'1px solid #e2e8f0',
         width: expanded ? W_EXPANDED : W_COLLAPSED,
-        transition: 'width .25s cubic-bezier(.4,0,.2,1)',
-        overflow: 'hidden',
-        zIndex: 30,
-        position: 'sticky', top: 0, alignSelf:'flex-start', maxHeight:'100vh',
+        transition:'width .25s cubic-bezier(.4,0,.2,1)',
+        overflow:'hidden', zIndex:30,
+        position:'sticky', top:0, alignSelf:'flex-start', maxHeight:'100vh',
       }}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
     >
       {/* Logo */}
       <div style={{
-        padding: expanded ? '20px 24px' : '20px 0',
-        borderBottom:'1px solid #334155',
-        display:'flex', alignItems:'center', justifyContent: expanded ? 'flex-start' : 'center',
-        gap:10, minHeight:68, transition:'padding .25s',
+        padding: expanded ? '14px 16px' : '14px 0',
+        borderBottom:'1px solid #f1f5f9',
+        display:'flex', alignItems:'center', justifyContent:expanded?'flex-start':'center',
+        gap:10, minHeight:60, transition:'padding .25s',
         overflow:'hidden', whiteSpace:'nowrap',
       }}>
-        <span style={{fontSize:22, lineHeight:1, flexShrink:0}}>🏢</span>
-        <div style={{opacity: expanded?1:0, maxWidth: expanded?200:0, overflow:'hidden', transition:'opacity .2s, max-width .25s'}}>
-          <span className="text-white text-base font-bold" style={{fontFamily:'Syne,sans-serif', display:'block'}}>HR Manager</span>
-          <span className="text-slate-500" style={{fontSize:11}}>Gestione Risorse Umane</span>
+        <div style={{
+          width:30, height:30, borderRadius:'50%', flexShrink:0,
+          background:'linear-gradient(135deg,#0f1f3d,#1e3a6e)',
+          display:'flex', alignItems:'center', justifyContent:'center',
+        }}>
+          <span style={{color:'#fff',fontSize:10,fontWeight:800,fontFamily:'Syne,sans-serif',letterSpacing:'0.08em'}}>HR</span>
+        </div>
+        <div style={{opacity:expanded?1:0,maxWidth:expanded?200:0,overflow:'hidden',transition:'opacity .2s,max-width .25s'}}>
+          <span className="text-slate-800 text-sm font-bold" style={{fontFamily:'Syne,sans-serif',display:'block'}}>HR Manager</span>
+          <span style={{fontSize:10,color:'#94a3b8'}}>Gestione Risorse Umane</span>
         </div>
       </div>
 
       {/* Avatar utente */}
       <div style={{
-        padding: expanded ? '14px 16px' : '14px 0',
-        borderBottom:'1px solid #334155',
-        display:'flex', alignItems:'center', justifyContent: expanded ? 'flex-start':'center',
+        padding: expanded ? '10px 14px' : '10px 0',
+        borderBottom:'1px solid #f1f5f9',
+        display:'flex', alignItems:'center', justifyContent:expanded?'flex-start':'center',
         gap:10, overflow:'hidden', whiteSpace:'nowrap', transition:'padding .25s',
       }}>
         <div style={{
-          width:36, height:36, borderRadius:'50%', background:'#2563eb',
+          width:32, height:32, borderRadius:'50%', background:'#1e3a6e',
           display:'flex', alignItems:'center', justifyContent:'center',
-          color:'#fff', fontWeight:700, fontSize:13, flexShrink:0,
+          color:'#fff', fontWeight:700, fontSize:12, flexShrink:0,
         }}>
           {user.nome[0]}{user.cognome[0]}
         </div>
-        <div style={{opacity: expanded?1:0, maxWidth: expanded?180:0, overflow:'hidden', transition:'opacity .2s, max-width .25s'}}>
-          <p className="text-white text-sm font-medium" style={{whiteSpace:'nowrap'}}>{user.nome} {user.cognome}</p>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_COLORS[r]}`}>{ROLE_LABELS[r]}</span>
+        <div style={{opacity:expanded?1:0,maxWidth:expanded?180:0,overflow:'hidden',transition:'opacity .2s,max-width .25s'}}>
+          <p className="text-slate-800 text-sm font-medium" style={{whiteSpace:'nowrap'}}>{user.nome} {user.cognome}</p>
+          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[r]}`}>{ROLE_LABELS[r]}</span>
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{flex:1, padding:'12px 8px', overflowY:'auto', overflowX:'hidden'}}>
+      <nav style={{flex:1, padding:'8px 6px', overflowY:'auto', overflowX:'hidden'}}>
         {hasAreaSpecifica ? (
           <>
-            {/* Label area dipendente */}
-            <div style={{
-              padding: expanded ? '0 12px 6px' : '0 0 6px',
-              textAlign: expanded ? 'left' : 'center',
-              overflow:'hidden', whiteSpace:'nowrap',
-            }}>
+            <div style={{padding:expanded?'0 6px 3px':'0 0 3px', overflow:'hidden', whiteSpace:'nowrap'}}>
               <span style={{
-                fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em',
-                color:'#64748b', opacity: expanded ? 1:0,
-                transition:'opacity .2s',
-                display:'block', overflow:'hidden', maxHeight: expanded?20:0,
+                fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.1em',
+                color:'#94a3b8',opacity:expanded?1:0,transition:'opacity .2s',
+                display:'block',overflow:'hidden',maxHeight:expanded?18:0,
               }}>Area Dipendente</span>
-              {!expanded && <span style={{display:'block', height:1, background:'#334155', margin:'0 4px'}}/>}
+              {!expanded && <span style={{display:'block',height:1,background:'#e2e8f0',margin:'0 4px'}}/>}
             </div>
-            <div style={{marginBottom:16}}>
+            <div style={{marginBottom:12}}>
               {dipItems.map(it => <NavBtn key={it.id} it={it} />)}
             </div>
-            {/* Separatore + area specifica */}
-            <div style={{borderTop:'1px solid #334155', paddingTop:12}}>
-              <div style={{
-                padding: expanded ? '0 12px 6px' : '6px 0',
-                overflow:'hidden', whiteSpace:'nowrap',
-              }}>
+            <div style={{borderTop:'1px solid #f1f5f9',paddingTop:8}}>
+              <div style={{padding:expanded?'0 6px 3px':'3px 0',overflow:'hidden',whiteSpace:'nowrap'}}>
                 <span style={{
-                  fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em',
-                  opacity: expanded ? 1:0,
-                  transition:'opacity .2s',
-                  display:'block', overflow:'hidden', maxHeight: expanded?20:0,
-                }} className={AREA_COLOR[r]}>{AREA_LABEL[r]}</span>
+                  fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.1em',
+                  opacity:expanded?1:0,transition:'opacity .2s',
+                  display:'block',overflow:'hidden',maxHeight:expanded?18:0,
+                  color: AREA_BORDER[r] || '#64748b',
+                }}>{AREA_LABEL[r]}</span>
               </div>
               {areaItems.map(it => <NavBtn key={it.id} it={it} />)}
             </div>
           </>
         ) : (
-          <>
-            {flatItems.map(it => <NavBtn key={it.id} it={it} />)}
-          </>
+          flatItems.map(it => <NavBtn key={it.id} it={it} />)
         )}
       </nav>
 
-      {/* Pulsante Esci */}
-      <div style={{padding:'8px 8px 16px', borderTop:'1px solid #334155'}}>
+      {/* Esci */}
+      <div style={{padding:'6px 6px 12px',borderTop:'1px solid #f1f5f9'}}>
         <button
           onClick={onLogout}
           title={!expanded ? 'Esci' : undefined}
           style={{
-            width:'100%', display:'flex', alignItems:'center',
-            gap: expanded ? 12 : 0,
-            padding: expanded ? '10px 12px' : '10px 0',
-            justifyContent: expanded ? 'flex-start' : 'center',
-            borderRadius:12, background:'transparent',
-            color:'#64748b', border:'none', cursor:'pointer',
-            fontSize:14, transition:'background .15s, color .15s, padding .25s',
-            overflow:'hidden', whiteSpace:'nowrap',
+            width:'100%',display:'flex',alignItems:'center',
+            gap:expanded?10:0,
+            padding:expanded?'9px 10px':'9px 0',
+            justifyContent:expanded?'flex-start':'center',
+            borderRadius:10,background:'transparent',
+            color:'#6b7280',border:'none',cursor:'pointer',
+            fontSize:13,transition:'background .15s,color .15s,padding .25s',
+            overflow:'hidden',whiteSpace:'nowrap',
           }}
-          onMouseEnter={e=>{e.currentTarget.style.background='#1e3a5f';e.currentTarget.style.color='#fff';}}
-          onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#64748b';}}
+          onMouseEnter={e=>{e.currentTarget.style.background='#fef2f2';e.currentTarget.style.color='#dc2626';}}
+          onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#6b7280';}}
         >
-          <span style={{fontSize:18, lineHeight:1, flexShrink:0}}>🚪</span>
-          <span style={{
-            opacity: expanded?1:0, maxWidth: expanded?180:0,
-            overflow:'hidden', transition:'opacity .2s, max-width .25s',
-          }}>Esci</span>
+          <Icon name="logout" size={17} color="currentColor" />
+          <span style={{opacity:expanded?1:0,maxWidth:expanded?180:0,overflow:'hidden',transition:'opacity .2s,max-width .25s'}}>Esci</span>
         </button>
       </div>
     </aside>
@@ -1899,10 +2016,10 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     <div className="p-4 lg:p-8">
       {/* Saluto */}
       <div className="mb-5">
-        <h2 className="text-xl lg:text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>
-          Buongiorno, {user.nome}! 👋
+        <h2 className="text-xl lg:text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif',lineHeight:1.3,overflow:'visible'}}>
+          Buongiorno, {user.nome}
         </h2>
-        <p className="text-slate-400 mt-1 text-sm capitalize">
+        <p className="text-slate-600 mt-1 text-sm capitalize">
           {new Date().toLocaleDateString('it-IT',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
         </p>
       </div>
@@ -2139,33 +2256,39 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         <p className="font-semibold text-slate-600 text-sm mb-4">Azioni rapide</p>
         <div className="flex flex-wrap gap-3">
           {!myToday && (
-            <button onClick={() => setView('timbratura')} className="bg-blue-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-800 transition-colors">
-              ⏱️ Timbra entrata
+            <button onClick={() => setView('timbratura')} className="text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors" style={{background:'#1e3a6e'}}>
+              Timbra entrata
             </button>
           )}
           {(canSeeAll(r)||canSeeTeam(r)) && (
             <button onClick={() => { setSelectedEmployee(null); setView('dipendenti'); }} className="bg-slate-100 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
-              👥 Lista dipendenti
+              Lista dipendenti
             </button>
           )}
           {canManage(r) && (
             <button onClick={() => { setSelectedEmployee(null); setView('dipendente-form'); }} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors">
-              ➕ Nuovo dipendente
+              Nuovo dipendente
             </button>
           )}
           {canSeeReport(r) && (
             <button onClick={() => setView('report')} className="bg-slate-100 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
-              📊 Report presenze
+              Report presenze
             </button>
           )}
           <button onClick={() => setView('mie-presenze')} className="bg-slate-100 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
-            📅 Il mio Calendario
+            Il mio Calendario
+          </button>
+          <button onClick={() => setView('note-spese')} className="bg-slate-100 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
+            Note Spese
+          </button>
+          <button onClick={() => setView('news')} className="bg-slate-100 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
+            News
           </button>
         </div>
       </div>
 
       {/* Footer versione */}
-      <p className="text-center text-slate-300 text-xs mt-6 pb-2">
+      <p className="text-center text-slate-500 text-xs mt-6 pb-2 font-medium">
         HR Manager &nbsp;·&nbsp; v{APP_VERSION} &nbsp;·&nbsp; Created by LPG
       </p>
     </div>
@@ -2199,7 +2322,7 @@ function EmployeeList({ user, employees, setView, setSelectedEmployee }) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Dipendenti</h2>
-          <p className="text-slate-400 text-sm mt-1">{list.length} dipendenti</p>
+          <p className="text-slate-600 text-sm mt-1">{list.length} dipendenti</p>
         </div>
         {canManage(r) && (
           <button onClick={() => { setSelectedEmployee(null); setView('dipendente-form'); }}
@@ -2371,7 +2494,7 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
             <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 transition-colors ${emp.gpsObbligatorio ? 'bg-sky-50 border-sky-300' : 'bg-slate-50 border-slate-200'}`}>
               <div>
                 <p className="font-semibold text-slate-700 text-sm">📍 GPS obbligatorio alla timbratura</p>
-                <p className="text-slate-400 text-xs mt-0.5">
+                <p className="text-slate-600 text-xs mt-0.5">
                   {emp.gpsObbligatorio ? 'Timbratura rifiutata senza GPS attivo' : 'GPS opzionale per questo dipendente'}
                 </p>
               </div>
@@ -2404,7 +2527,7 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
             <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 transition-colors ${emp.richiedeNuovaPassword ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
               <div>
                 <p className="font-semibold text-slate-700 text-sm">🔑 Cambio password al primo accesso</p>
-                <p className="text-slate-400 text-xs mt-0.5">
+                <p className="text-slate-600 text-xs mt-0.5">
                   {emp.richiedeNuovaPassword ? "All'accesso verrà richiesto di impostare una nuova password" : 'Nessun cambio password richiesto — accesso diretto con le credenziali impostate'}
                 </p>
               </div>
@@ -2418,7 +2541,7 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
               <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 transition-colors ${emp.straordinario ? 'bg-orange-50 border-orange-300' : 'bg-slate-50 border-slate-200'}`}>
                 <div>
                   <p className="font-semibold text-slate-700 text-sm">⏰ Abilitato agli straordinari</p>
-                  <p className="text-slate-400 text-xs mt-0.5">
+                  <p className="text-slate-600 text-xs mt-0.5">
                     {emp.straordinario ? 'Può registrare straordinari mattina e sera' : 'Non abilitato agli straordinari'}
                   </p>
                 </div>
@@ -2441,7 +2564,7 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
             <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 transition-colors ${emp.reperibile ? 'bg-red-50 border-red-300' : 'bg-slate-50 border-slate-200'}`}>
               <div>
                 <p className="font-semibold text-slate-700 text-sm">🔴 Disponibile a reperibilità</p>
-                <p className="text-slate-400 text-xs mt-0.5">
+                <p className="text-slate-600 text-xs mt-0.5">
                   {emp.reperibile ? 'Abilitato – può essere assegnato a turni di reperibilità' : 'Non abilitato alla reperibilità'}
                 </p>
               </div>
@@ -3186,7 +3309,7 @@ ${monthPresenze.length === 0
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Il mio Calendario</h2>
-          <p className="text-slate-400 text-sm mt-1">{user.nome} {user.cognome}</p>
+          <p className="text-slate-600 text-sm mt-1">{user.nome} {user.cognome}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -3979,8 +4102,8 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
   return (
     <div className="p-4 lg:p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🤒 Comunicazione malattia</h2>
-        <p className="text-slate-400 text-sm mt-1">Inserisci o consulta le comunicazioni di malattia</p>
+        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Invia comunicazione</h2>
+        <p className="text-slate-600 text-sm mt-1">Inserisci o consulta le comunicazioni di malattia</p>
       </div>
 
       {/* Form inserimento */}
@@ -4059,8 +4182,8 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
         {ok  && <p className="text-emerald-600 text-xs mb-3 font-semibold">✅ Comunicazione salvata correttamente.</p>}
 
         <button onClick={handleSalva}
-          className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
-          Salva comunicazione
+          className="w-full text-white font-semibold py-2.5 rounded-xl text-sm transition-colors" style={{background:'#1e3a6e'}}>
+          Invia comunicazione
         </button>
       </div>
 
@@ -4435,7 +4558,7 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
     <div className="p-4 lg:p-8 max-w-3xl">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🕐 Permessi orari</h2>
-        <p className="text-slate-400 text-sm mt-1">Richiedi o visualizza i permessi orari</p>
+        <p className="text-slate-600 text-sm mt-1">Richiedi o visualizza i permessi orari</p>
       </div>
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
@@ -4659,7 +4782,7 @@ function MieiStraordinari({ user, straordinari }) {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>⏰ I miei straordinari</h2>
-          <p className="text-slate-400 text-sm mt-1">{user.nome} {user.cognome}</p>
+          <p className="text-slate-600 text-sm mt-1">{user.nome} {user.cognome}</p>
         </div>
         <div className="flex items-center gap-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <button onClick={()=>{ if(month===1){setMonth(12);setYear(y=>y-1);}else setMonth(m=>m-1); }}
@@ -4689,7 +4812,7 @@ function MieiStraordinari({ user, straordinari }) {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 text-center">
           <p className="text-3xl mb-2">⏰</p>
           <p className="text-slate-500 font-medium">Nessuno straordinario registrato in {MONTHS[month-1]} {year}</p>
-          {allMy.length === 0 && <p className="text-slate-400 text-sm mt-1">Non hai ancora registrato straordinari</p>}
+          {allMy.length === 0 && <p className="text-slate-600 text-sm mt-1">Non hai ancora registrato straordinari</p>}
         </div>
       ) : (
         <div className="space-y-3 max-w-2xl">
@@ -4774,7 +4897,7 @@ function ApprovaStraordinari({ user, employees, straordinari, setStraordinari, o
     <div className="p-4 lg:p-8">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>⏰ Approva straordinari</h2>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="text-slate-600 text-sm mt-1">
           {isResp ? 'Straordinari del tuo team in attesa di approvazione (step 1)' : 'Straordinari in attesa di approvazione definitiva (step 2)'}
         </p>
       </div>
@@ -4914,7 +5037,7 @@ function ApprovaPermessi({ user, employees, permessi, setPermessi, onApprova, on
     <div className="p-4 lg:p-8 max-w-3xl">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>✅ Approva permessi</h2>
-        <p className="text-slate-400 text-sm mt-1">Gestisci le richieste di permesso del tuo team</p>
+        <p className="text-slate-600 text-sm mt-1">Gestisci le richieste di permesso del tuo team</p>
       </div>
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -5779,14 +5902,14 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>
           📅 {titolo}
         </h2>
-        <p className="text-slate-400 text-sm mt-1">{sottotitolo}</p>
+        <p className="text-slate-600 text-sm mt-1">{sottotitolo}</p>
       </div>
 
       {teamEmployees.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-8 py-16 text-center">
           <p className="text-4xl mb-3">👥</p>
           <p className="text-slate-500 font-medium">Nessun dipendente nel team</p>
-          <p className="text-slate-400 text-sm mt-1">I dipendenti assegnati a te appariranno qui.</p>
+          <p className="text-slate-600 text-sm mt-1">I dipendenti assegnati a te appariranno qui.</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -6144,7 +6267,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🔔 Le mie notifiche</h2>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-600 text-sm mt-1">
             {isMaster ? 'Attività di tutti i dipendenti' : `Notifiche per ${ROLE_AREA_LABEL[userRole] || userRole}`}
           </p>
         </div>
@@ -7019,7 +7142,7 @@ function News({ user, news, setNews, employees }) {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>📢 News</h2>
-          <p className="text-slate-400 text-sm mt-1">Comunicazioni interne aziendali</p>
+          <p className="text-slate-600 text-sm mt-1">Comunicazioni interne aziendali</p>
         </div>
         {unread > 0 && <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">{unread} non lette</span>}
       </div>
@@ -7143,7 +7266,7 @@ function CalendarioChiusure({ settings, onSave }) {
   const isChiusura = (d) => chiusure.includes(d);
   const toggleGiorno = (d) => {
     const upd = isChiusura(d) ? chiusure.filter(x=>x!==d) : [...chiusure, d];
-    onSave({...settings, chiusureAziendali: upd});
+    onSave({...settings, chiusureAziendali: upd, chiusureLastUpdate: todayStr()});
     setSaved(true); setTimeout(()=>setSaved(false), 1500);
   };
 
@@ -7158,7 +7281,7 @@ function CalendarioChiusure({ settings, onSave }) {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🏢 Chiusure aziendali</h2>
-          <p className="text-slate-400 text-sm mt-1">Clicca sui giorni per aggiungere/rimuovere chiusure. Si salvano automaticamente.</p>
+          <p className="text-slate-600 text-sm mt-1">Clicca sui giorni per aggiungere/rimuovere chiusure. Si salvano automaticamente.</p>
         </div>
         <div className="flex items-center gap-3">
           {saved && <span className="text-emerald-600 text-sm font-semibold">✅ Salvato!</span>}
@@ -7230,12 +7353,25 @@ function ChiusureView({ settings }) {
   const DAYS_IT   = ['D','L','M','M','G','V','S'];
   const calMese = (m) => ({ firstDay: new Date(anno,m,1).getDay(), days: new Date(anno,m+1,0).getDate() });
 
+  const lastUpdate = settings?.chiusureLastUpdate;
+  const statusBanner = chiusure.length === 0
+    ? { msg:'Nessuna chiusura aziendale programmata', cls:'bg-slate-50 border-slate-200 text-slate-600', icon:'info' }
+    : { msg: lastUpdate
+          ? `Calendario aziendale pubblicato il ${new Date(lastUpdate+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})}`
+          : 'Calendario aziendale pubblicato',
+        cls:'bg-blue-50 border-blue-200 text-blue-800', icon:'calendar' };
+
   return (
     <div className="p-4 lg:p-8">
+      {/* Status banner */}
+      <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 mb-6 ${statusBanner.cls}`}>
+        <Icon name={statusBanner.icon} size={18} />
+        <p className="font-medium text-sm">{statusBanner.msg}</p>
+      </div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🏢 Chiusure aziendali</h2>
-          <p className="text-slate-400 text-sm mt-1">Giorni di chiusura aziendale programmati</p>
+          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Chiusure aziendali</h2>
+          <p className="text-slate-600 text-sm mt-1">Giorni di chiusura aziendale programmati</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={()=>setAnno(a=>a-1)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">‹</button>
@@ -7398,7 +7534,7 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
   return out;
 }
 
-function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, setEmployees, saveData, timbrature, permessi, ferie, malattie }) {
+function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, setEmployees, saveData, timbrature, permessi, ferie, malattie, manSection, onSetManSection }) {
   const isAdmin = currentUserRole === RUOLI.AMMINISTRATORE;
   const isMaster = currentUserRole === RUOLI.MASTER;
   const [form, setForm] = useState({
@@ -7687,20 +7823,58 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
 
   const isValidEmbedUrl = u => u && (u.includes('calendar.google.com') || u.startsWith('https://'));
 
+  // Sezioni disponibili per questo ruolo
+  const MAN_SECTIONS_DEF = [
+    { id:'man-orario',   label:'Orario di lavoro',    icon:'clock',    show: isMaster || isAdmin },
+    { id:'man-centri',   label:'Centri di costo',     icon:'tag',      show: isMaster },
+    { id:'man-auto',     label:'Parco auto',          icon:'car',      show: isMaster },
+    { id:'man-valori',   label:'Valori iniziali',     icon:'bar-chart2',show: isMaster },
+    { id:'man-rilpre',   label:'Esportazione RILPRE', icon:'receipt',  show: isMaster },
+    { id:'man-calendar', label:'Google Cal. pubb.',   icon:'calendar', show: true },
+    { id:'man-cal-priv', label:'Google Cal. priv.',   icon:'calendar', show: true },
+    { id:'man-info',     label:'Informazioni sistema',icon:'info',     show: true },
+  ].filter(s => s.show);
+
+  const activeSection = manSection || (MAN_SECTIONS_DEF.length > 0 ? MAN_SECTIONS_DEF[0].id : null);
+
+  const showSection = id => activeSection === id;
+
   return (
-    <div className="p-4 lg:p-8 max-w-3xl">
-      <div className="flex items-center gap-3 mb-6">
-        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>⚙️ Manutenzione</h2>
+    <div className="p-4 lg:p-8 max-w-4xl">
+      {/* Header con breadcrumb */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Manutenzione</h2>
+        {activeSection && (
+          <p className="text-slate-600 text-sm mt-1">
+            {MAN_SECTIONS_DEF.find(s=>s.id===activeSection)?.label}
+          </p>
+        )}
       </div>
 
-      {/* ── SEZIONE ORARIO DI LAVORO — solo Amministratore ── */}
-      {isAdmin && (
+      {/* Nav sezioni — visibile su desktop se non abbiamo sidebar accordion */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {MAN_SECTIONS_DEF.map(s => (
+          <button key={s.id}
+            onClick={() => onSetManSection && onSetManSection(s.id)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
+              activeSection === s.id
+                ? 'text-white border-transparent'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+            }`}
+            style={activeSection === s.id ? {background:'#1e3a6e', borderColor:'#1e3a6e'} : {}}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── SEZIONE ORARIO DI LAVORO — solo Amministratore/Master ── */}
+      {showSection('man-orario') && (isAdmin || isMaster) && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
           <span className="text-2xl">🕐</span>
           <div>
             <p className="font-bold text-slate-800 text-base">Orario di lavoro ordinario</p>
-            <p className="text-slate-400 text-xs mt-0.5">Definisce il turno base e la tolleranza per il calcolo degli straordinari</p>
+            <p className="text-slate-600 text-xs mt-0.5">Definisce il turno base e la tolleranza per il calcolo degli straordinari</p>
           </div>
         </div>
         <div className="px-6 py-5 space-y-5">
@@ -7754,13 +7928,13 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       )}
 
       {/* ── SEZIONE CENTRI DI COSTO — solo Master ── */}
-      {isMaster && (
+      {showSection('man-centri') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
           <span className="text-2xl">🏷️</span>
           <div>
             <p className="font-bold text-slate-800 text-base">Centri di costo</p>
-            <p className="text-slate-400 text-xs mt-0.5">Definisci i centri di costo da assegnare ai dipendenti</p>
+            <p className="text-slate-600 text-xs mt-0.5">Definisci i centri di costo da assegnare ai dipendenti</p>
           </div>
         </div>
         <div className="px-6 py-5 space-y-4">
@@ -7791,13 +7965,13 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       )}
 
       {/* ── SEZIONE PARCO AUTO — solo Master ── */}
-      {isMaster && (
+      {showSection('man-auto') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
           <span className="text-2xl">🚗</span>
           <div>
             <p className="font-bold text-slate-800 text-base">Parco auto</p>
-            <p className="text-slate-400 text-xs mt-0.5">Definisci i veicoli da assegnare ai dipendenti</p>
+            <p className="text-slate-600 text-xs mt-0.5">Definisci i veicoli da assegnare ai dipendenti</p>
           </div>
         </div>
         <div className="px-6 py-5 space-y-4">
@@ -7843,13 +8017,13 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       )}
 
       {/* ── VALORI INIZIALI DIPENDENTI — solo master ── */}
-      {isMaster && (
+      {showSection('man-valori') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
           <span className="text-2xl">📊</span>
           <div>
             <p className="font-bold text-slate-800 text-base">Valori iniziali per dipendente</p>
-            <p className="text-slate-400 text-xs mt-0.5">Imposta i valori già maturati prima dell'avvio del gestionale (si sommano ai valori calcolati)</p>
+            <p className="text-slate-600 text-xs mt-0.5">Imposta i valori già maturati prima dell'avvio del gestionale (si sommano ai valori calcolati)</p>
           </div>
         </div>
         <div className="px-6 py-5">
@@ -7962,13 +8136,13 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       )}
 
       {/* ── SEZIONE RILPRE — solo Master ── */}
-      {isMaster && (
+      {showSection('man-rilpre') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
           <span className="text-2xl">📋</span>
           <div>
             <p className="font-bold text-slate-800 text-base">Rilevazione Presenze (RILPRE)</p>
-            <p className="text-slate-400 text-xs mt-0.5">Parametri per l'esportazione presenze: codici azienda, filiale e giustificativi</p>
+            <p className="text-slate-600 text-xs mt-0.5">Parametri per l'esportazione presenze: codici azienda, filiale e giustificativi</p>
           </div>
         </div>
         <div className="px-6 py-5 space-y-5">
@@ -8080,13 +8254,13 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       )}
 
       {/* ── SEZIONE GENERA RILPRE — solo Master ── */}
-      {isMaster && (
+      {showSection('man-rilpre') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
           <span className="text-2xl">📥</span>
           <div>
             <p className="font-bold text-slate-800 text-base">Genera file RILPRE</p>
-            <p className="text-slate-400 text-xs mt-0.5">Esporta il file presenze mensile per il gestionale paghe</p>
+            <p className="text-slate-600 text-xs mt-0.5">Esporta il file presenze mensile per il gestionale paghe</p>
           </div>
         </div>
         <div className="px-6 py-5 flex items-end gap-4 flex-wrap">
@@ -8113,13 +8287,13 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       )}
 
       {/* ── SEZIONE RESET DATI ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-red-100 mb-6 overflow-hidden">
+      {showSection('man-info') && <div className="bg-white rounded-2xl shadow-sm border border-red-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🗑️</span>
             <div>
               <p className="font-bold text-slate-800 text-base">Reimposta dati demo</p>
-              <p className="text-slate-400 text-xs mt-0.5">Cancella tutti i dati dal browser e ricarica i dati demo predefiniti</p>
+              <p className="text-slate-600 text-xs mt-0.5">Cancella tutti i dati dal browser e ricarica i dati demo predefiniti</p>
             </div>
           </div>
           {!resetConfirm ? (
@@ -8138,17 +8312,17 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </div>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* ── SEZIONE GOOGLE CALENDAR ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
+      {showSection('man-calendar') && <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         {/* Header sezione */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📅</span>
             <div>
               <p className="font-bold text-slate-800 text-base">Integrazione Google Calendar Pubblico</p>
-              <p className="text-slate-400 text-xs mt-0.5">Via Apps Script — pubblica su un calendario accessibile pubblicamente</p>
+              <p className="text-slate-600 text-xs mt-0.5">Via Apps Script — pubblica su un calendario accessibile pubblicamente</p>
             </div>
           </div>
           {/* Toggle abilitazione */}
@@ -8355,17 +8529,17 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </button>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* ── SEZIONE GOOGLE CALENDAR PRIVATO ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
+      {showSection('man-cal-priv') && <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         {/* Header */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🔒</span>
             <div>
               <p className="font-bold text-slate-800 text-base">Integrazione Google Calendar Privato</p>
-              <p className="text-slate-400 text-xs mt-0.5">Via Apps Script — pubblica su un calendario privato accessibile solo agli autorizzati</p>
+              <p className="text-slate-600 text-xs mt-0.5">Via Apps Script — pubblica su un calendario privato accessibile solo agli autorizzati</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -8548,10 +8722,10 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </button>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* ── INFORMAZIONI SISTEMA ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      {showSection('man-info') && <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100">
           <p className="font-bold text-slate-800">ℹ️ Informazioni sistema</p>
         </div>
@@ -8580,7 +8754,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </p>
           </div>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }
@@ -8675,7 +8849,7 @@ function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestio
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>📞 Gestioni telefoniche</h2>
-          <p className="text-slate-400 text-sm mt-1">Registra le chiamate ricevute durante la reperibilità</p>
+          <p className="text-slate-600 text-sm mt-1">Registra le chiamate ricevute durante la reperibilità</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -8908,7 +9082,7 @@ function Reperibilita({ user, employees, reperibilita, setReperibilita, malattie
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Reperibilità</h2>
-          <p className="text-slate-400 text-sm mt-1">Assegna i turni di reperibilità al tuo team</p>
+          <p className="text-slate-600 text-sm mt-1">Assegna i turni di reperibilità al tuo team</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -9094,6 +9268,7 @@ function App() {
   const [userId, setUserId]         = useState(null);
   const [needsPassChange, setNeedsPassChange] = useState(false);
   const [view, setView]             = useState('dashboard');
+  const [manSection, setManSection] = useState(null);
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [showNotifiche, setShowNotifiche] = useState(false);
   const [settings, setSettings] = useState(() => loadData('hr_settings', { webhookUrl: '', calendarEmbedUrl: '', calendarEnabled: false }));
@@ -9858,7 +10033,7 @@ function App() {
         return <NotifichePage notifiche={notifiche} employees={employees} userId={userId} userRole={r} onMarkRead={handleMarkRead} onMarkAllRead={handleMarkAllRead} />;
       case 'manutenzione':
         if (!canManage(r)) { goTo('dashboard'); return null; }
-        return <Manutenzione settings={settings} onSave={handleSaveSettings} onBack={()=>goTo('dashboard')} currentUserRole={r} employees={employees} setEmployees={setEmployees} saveData={saveData} timbrature={timbrature} permessi={permessi} ferie={ferie} malattie={malattie} />;
+        return <Manutenzione settings={settings} onSave={handleSaveSettings} onBack={()=>goTo('dashboard')} currentUserRole={r} employees={employees} setEmployees={setEmployees} saveData={saveData} timbrature={timbrature} permessi={permessi} ferie={ferie} malattie={malattie} manSection={manSection} onSetManSection={setManSection} />;
       case 'note-spese':
         return <NotaSpese user={user} noteSpese={noteSpese} noteSpeseVoci={noteSpeseVoci}
           setNoteSpese={setNoteSpese} setNoteSpeseVoci={setNoteSpeseVoci}
@@ -9895,7 +10070,8 @@ function App() {
     <div className="flex min-h-screen">
       <Sidebar user={user} view={view} setView={goTo} setSelectedEmployee={setSelectedEmp}
         onLogout={handleLogout} resetRequests={resetRequests}
-        notifiche={notifiche} userId={userId} onBell={()=>setShowNotifiche(p=>!p)}/>
+        notifiche={notifiche} userId={userId} onBell={()=>setShowNotifiche(p=>!p)}
+        manSection={manSection} onSetManSection={setManSection}/>
       <div className="flex-1 flex flex-col min-h-screen">
         <MobileTopBar user={user} view={view} setView={goTo} onLogout={handleLogout}
           resetRequests={resetRequests} notifiche={notifiche} userId={userId} onBell={()=>setShowNotifiche(p=>!p)}/>
