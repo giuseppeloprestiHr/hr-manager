@@ -3726,7 +3726,7 @@ function Ferie({ user, employees, ferie, setFerie, onRichiesta }) {
         {err && <div className="mb-3 px-4 py-2.5 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{err}</div>}
         {ok  && <div className="mb-3 px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">✅ Richiesta inviata correttamente!</div>}
         <button onClick={handleInvia}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors">
+          className="text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors" style={{background:'#1e3a6e'}}>
           Invia richiesta
         </button>
       </div>
@@ -4617,7 +4617,7 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
           {ok  && <p className="text-xs text-emerald-600 font-semibold">✅ Richiesta inviata! Il responsabile riceverà una notifica.</p>}
           <div className="flex justify-end pt-1">
             <button onClick={handleSalva}
-              className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm">
+              className="text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm" style={{background:'#1e3a6e'}}>
               Invia richiesta
             </button>
           </div>
@@ -6272,7 +6272,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
     <div className="p-4 lg:p-8">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>🔔 Le mie notifiche</h2>
+          <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Le mie notifiche</h2>
           <p className="text-slate-600 text-sm mt-1">
             {isMaster ? 'Attività di tutti i dipendenti' : `Notifiche per ${ROLE_AREA_LABEL[userRole] || userRole}`}
           </p>
@@ -6754,7 +6754,7 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
           {label:'Mese / Anno', value:`${MONTHS_IT[mese-1]} ${anno}`},
           {label:'Auto', value: auto ? `${auto.modello} / ${auto.targa}` : '—'},
         ].map(f => (
-          <div key={f.label} className="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
+          <div key={f.label} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
             <p className="text-xs text-slate-400 mb-0.5">{f.label}</p>
             <p className="font-semibold text-slate-700 text-sm">{f.value}</p>
           </div>
