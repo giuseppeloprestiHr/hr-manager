@@ -1582,6 +1582,8 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     { id:'man-calendar',  label:'Google Cal. pubbl.',  show: true },
     { id:'man-cal-priv',  label:'Google Cal. priv.',   show: true },
     { id:'man-info',      label:'Informazioni sistema',show: true },
+    { id:'versione',      label:'Versione',            show: r === RUOLI.MASTER, targetView:'versione' },
+    { id:'crediti-licenze',label:'Crediti e Licenze',  show: r === RUOLI.MASTER, targetView:'crediti-licenze' },
   ].filter(s => s.show);
 
   const dipItems = [
@@ -1611,10 +1613,6 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
     ] : []),
     { id:'notifiche',         label:'Notifiche', badge:true },
     { id:'manutenzione',      label:'Manutenzione', accordion:true },
-    ...(r === RUOLI.MASTER ? [
-      { id:'versione',        label:'Versione' },
-      { id:'crediti-licenze', label:'Crediti e Licenze' },
-    ] : []),
   ] : r === RUOLI.DIRETTORE ? [
     { id:'dipendenti',           label:'Dipendenti' },
     { id:'report',               label:'Report presenze' },
@@ -1661,7 +1659,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
   const W_COLLAPSED = 56;
   const W_EXPANDED  = 260;
 
-  const isManActive = view === 'manutenzione';
+  const isManActive = view === 'manutenzione' || view === 'versione' || view === 'crediti-licenze';
 
   const NavBtn = ({ it }) => {
     const isActive = view === it.id;
@@ -1697,10 +1695,10 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
           {manExpanded && expanded && (
             <div style={{marginLeft:6,borderLeft:'2px solid #e2e8f0',paddingLeft:8,marginTop:2,marginBottom:2}}>
               {MAN_SECTIONS.map(s => {
-                const isSubActive = isManActive && manSection === s.id;
+                const isSubActive = s.targetView ? view === s.targetView : (isManActive && manSection === s.id);
                 return (
                   <button key={s.id}
-                    onClick={() => { setSelectedEmployee(null); if(onSetManSection) onSetManSection(s.id); setView('manutenzione'); }}
+                    onClick={() => { setSelectedEmployee(null); if(s.targetView){ setView(s.targetView); } else { if(onSetManSection) onSetManSection(s.id); setView('manutenzione'); } }}
                     style={{
                       width:'100%',display:'flex',alignItems:'center',gap:6,
                       padding:'6px 8px',borderRadius:8,
