@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-011';
+const APP_VERSION = '2026-03-22-012';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -2148,7 +2148,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
       {(news||[]).filter(n=>!n.lette.includes(user.id)).slice(0,3).map(n=>(
         <div key={n.id} onClick={()=>setView('news')}
           className="mb-3 bg-pink-50 border border-pink-200 rounded-2xl p-4 cursor-pointer hover:bg-pink-100 transition-colors flex items-start gap-3">
-          <span className="text-2xl shrink-0">📢</span>
+          <span className="shrink-0 mt-0.5"><Icon name="newspaper" size={18} color="#db2777" /></span>
           <div className="flex-1 min-w-0">
             <p className="font-bold text-pink-800 text-sm">{n.titolo}</p>
             <p className="text-pink-600 text-xs mt-0.5 line-clamp-1">{n.testo}</p>
