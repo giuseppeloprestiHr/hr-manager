@@ -190,7 +190,7 @@ const _S = {
     tolleranzaMinuti:r.tolleranza_minuti??15,
     centriDiCosto:r.centri_di_costo||[{id:'1',numero:'100',testo:'Sanitario'}],
     autoList:r.auto_list||[],
-    chiusureAziendali:r.chiusure_aziendali||[], chiusureLastUpdate:r.chiusure_last_update||null }) : {},
+    chiusureAziendali:(()=>{ try{ const v=r.chiusure_aziendali; return Array.isArray(v)?v:(v?JSON.parse(v):[]); }catch{return [];} })(), chiusureLastUpdate:r.chiusure_last_update||null }) : {},
   to: s => ({ webhook_url:s.webhookUrl||null, calendar_id:s.calendarId||null,
     calendar_embed_url:s.calendarEmbedUrl||null, calendar_enabled:!!s.calendarEnabled,
     private_webhook_url:s.privateWebhookUrl||null, private_calendar_id:s.privateCalendarId||null,
@@ -200,7 +200,7 @@ const _S = {
     tolleranza_minuti:s.tolleranzaMinuti??15,
     centri_di_costo:s.centriDiCosto||[{id:'1',numero:'100',testo:'Sanitario'}],
     auto_list:s.autoList||[],
-    chiusure_aziendali:s.chiusureAziendali||[], chiusure_last_update:s.chiusureLastUpdate||null }),
+    chiusure_aziendali:JSON.stringify(s.chiusureAziendali||[]), chiusure_last_update:s.chiusureLastUpdate||null }),
 };
 const _NS = {
   from: r => r ? ({ id:r.id, employeeId:r.employee_id, anno:r.anno, mese:r.mese,
@@ -228,7 +228,7 @@ async function _syncTable(table, records, toFn) {
   if (!_supa || !records?.length) return;
   const rows = records.map(toFn).filter(Boolean);
   const { error: uErr } = await _supa.from(table).upsert(rows, { onConflict: 'id' });
-  if (uErr) { console.error('[DB] upsert', table, uErr.message); }
+  if (uErr) { console.error('[DB] upsert', table, uErr.message); throw new Error(uErr.message); }
 }
 
 async function _deleteFromTable(table, id) {
@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-013';
+const APP_VERSION = '2026-03-22-014';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -9380,9 +9380,16 @@ function App() {
     DB.loadAll()
       .then(d => {
         if (d.employees?.length) {
-          setEmployees(d.employees);
+          // Merge: aggiungi dipendenti presenti solo in localStorage (es. sync fallito)
+          const localEmps = (() => { try { const s = localStorage.getItem('hr_employees'); return s ? JSON.parse(s) : []; } catch { return []; } })();
+          const supaIds = new Set(d.employees.map(e => e.id));
+          const localOnly = localEmps.filter(e => !supaIds.has(e.id));
+          const merged = localOnly.length > 0 ? [...d.employees, ...localOnly] : d.employees;
+          setEmployees(merged);
           // Salva in localStorage così loadEmployees() ha sempre dati aggiornati
-          try { localStorage.setItem('hr_employees', JSON.stringify(d.employees)); } catch {}
+          try { localStorage.setItem('hr_employees', JSON.stringify(merged)); } catch {}
+          // Se ci sono dipendenti solo in locale, prova a re-sincronizzarli subito
+          if (localOnly.length > 0) DB.sync('hr_employees', merged).catch(e => console.warn('[DB] re-sync locale:', e?.message));
         }
         if (d.timbrature?.length)           setTimbrature(d.timbrature);
         if (d.malattie?.length)             setMalattie(d.malattie);
@@ -9634,11 +9641,14 @@ function App() {
       const upd = isEdit
         ? employees.map(e => e.id===data.id ? {...e, ...data, password: pwd || e.password} : e)
         : [...employees, {...data, password:pwd, primoAccesso:true, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:data.reperibile||false}];
-      setEmployees(upd); saveData('hr_employees', upd);
-      DB.sync('hr_employees', upd).catch(err => {
-        alert(`⚠️ Il dipendente è stato salvato localmente, ma la sincronizzazione al database è fallita: ${err?.message||'errore sconosciuto'}.\nRiprova a salvare o controlla la connessione.`);
-      });
-      setView('dipendenti');
+      setEmployees(upd);
+      try { localStorage.setItem('hr_employees', JSON.stringify(upd)); } catch {}
+      DB.sync('hr_employees', upd)
+        .then(() => { setView('dipendenti'); })
+        .catch(err => {
+          alert(`⚠️ Attenzione: il dipendente è stato salvato localmente ma NON sincronizzato al database (${err?.message||'errore sconosciuto'}).\nL'accesso potrebbe non funzionare dopo il ricaricamento della pagina. Riprova a modificare e salvare nuovamente.`);
+          setView('dipendenti');
+        });
     };
     if (!isEdit && data.password) {
       hashPassword(data.password).then(hash => doSave(hash));
