@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-009';
+const APP_VERSION = '2026-03-22-010';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -1939,13 +1939,13 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
 
   // Riquadri statistici (in cima)
   const statCards = [
-    { label:'La tua entrata oggi', value: myToday ? myToday.ora : '—', sub: myToday ? 'Registrata ✅' : 'Non ancora timbrato', icon:'⏱️', accent: myToday?'text-emerald-600':'text-slate-400', link:'timbratura' },
+    { label:'La tua entrata oggi', value: myToday ? myToday.ora : '—', sub: myToday ? 'Registrata' : 'Non ancora timbrato', icon:'clock', accent: myToday?'text-emerald-600':'text-slate-400', link:'timbratura' },
     ...(canSeeAll(r) ? [
-      { label:'Dipendenti totali', value: employees.length, sub:'in azienda', icon:'👥', accent:'text-blue-700', link:'dipendenti' },
-      { label:'Presenze oggi',     value: todayAll.length,  sub:'timbrature', icon:'✅', accent:'text-emerald-600', link:'report' },
+      { label:'Dipendenti totali', value: employees.length, sub:'in azienda', icon:'users', accent:'text-blue-700', link:'dipendenti' },
+      { label:'Presenze oggi',     value: todayAll.length,  sub:'timbrature', icon:'check', accent:'text-emerald-600', link:'report' },
     ] : []),
     ...(canSeeTeam(r) ? [
-      { label:'Il mio team', value: teamSize, sub:'dipendenti', icon:'👥', accent:'text-blue-700', link:'dipendenti' },
+      { label:'Il mio team', value: teamSize, sub:'dipendenti', icon:'users', accent:'text-blue-700', link:'dipendenti' },
     ] : []),
   ];
 
@@ -2206,7 +2206,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
             className="bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 text-left hover:shadow-md hover:border-blue-200 transition-all group">
             <div className="flex items-start justify-between">
               <p className="text-slate-400 text-xs lg:text-sm font-medium leading-tight">{c.label}</p>
-              <span className="text-xl lg:text-2xl group-hover:scale-110 transition-transform">{c.icon}</span>
+              <span className="group-hover:scale-110 transition-transform"><Icon name={c.icon} size={22} color="#94a3b8" /></span>
             </div>
             <p className={`text-2xl lg:text-3xl font-bold mt-2 ${c.accent}`} style={{fontFamily:'Syne,sans-serif'}}>{c.value}</p>
             <p className="text-slate-400 text-xs mt-1">{c.sub}</p>
@@ -2993,7 +2993,7 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
             <div className="w-full space-y-3">
               <button onClick={handleTimbra} disabled={gpsStatus==='loading'}
                 className="w-full bg-blue-900 hover:bg-blue-800 disabled:bg-slate-300 text-white text-base font-bold px-12 py-4 rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-lg">
-                {gpsStatus==='loading' ? '📡 Rilevamento GPS…' : '⏱️  Timbra entrata'}
+                {gpsStatus==='loading' ? 'Rilevamento GPS…' : 'Timbra entrata'}
               </button>
               <p className="text-slate-400 text-xs">
                 {gpsRequired ? '⚠️ Il GPS è obbligatorio per la tua timbratura' : 'La posizione GPS verrà rilevata automaticamente'}
@@ -3389,7 +3389,7 @@ ${monthPresenze.length === 0
 
             {/* Presenze */}
             <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🟢 Presenze</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="check" size={13} color="#10b981" /> Presenze</p>
               {statBox('Giorni lavorativi mese', giorniLav, 'text-slate-700')}
               {statBox('Presenze mese', monthPresenze.length, 'text-emerald-600')}
               {statBox('Assenze mese', assenze, 'text-red-500')}
@@ -3413,7 +3413,7 @@ ${monthPresenze.length === 0
               const totAnno = TIPS.reduce((s,t)=>s+tipAnno(t)+Number(ini[t.keyIni]||0)*60,0);
               return (
                 <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-sm sm:col-span-2 xl:col-span-2">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🕐 Permessi</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="clipboard" size={13} color="#8b5cf6" /> Permessi</p>
                   <table className="w-full text-xs mb-3">
                     <thead>
                       <tr>
@@ -3448,7 +3448,7 @@ ${monthPresenze.length === 0
 
             {/* Ferie */}
             <div className="bg-white rounded-2xl p-4 border border-sky-100 shadow-sm">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">🏖 Ferie</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="plane" size={13} color="#0ea5e9" /> Ferie</p>
               {statBox('Ferie mese (gg)', (ferie||[]).filter(f=>f.employeeId===user.id&&f.status===SF.APPROVATO&&f.dataInizio.startsWith(mStrFull)).reduce((s,f)=>s+f.giorniLavorativi,0)+' gg', 'text-sky-500')}
               {statBox('Ferie anno (gg)', (ferieGiorniAnno + iniFerieAnno)+' gg', 'text-sky-600')}
               <p className="text-xs text-slate-400 italic leading-relaxed mt-3">Attenzione, le ferie riportate non tengono conto delle ferie maturate ogni mese ma solo di quelle effettivamente prese nel mese e nell&apos;anno.</p>
@@ -3456,7 +3456,7 @@ ${monthPresenze.length === 0
 
             {/* Straordinari */}
             <div className={`rounded-2xl p-4 shadow-sm border ${user.straordinario ? 'bg-white border-orange-100' : 'bg-slate-100 border-slate-200'}`}>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">⌚ Straordinari</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="trending" size={13} color="#f97316" /> Straordinari</p>
               {user.straordinario ? (<>
                 {statBox('Straordinari mese', straMinMese>0?fmtMin(straMinMese):'—', 'text-orange-600')}
                 {statBox('Straordinari anno', (straMinAnno+iniStraAnno)>0?fmtMin(straMinAnno+iniStraAnno):'—', 'text-orange-700')}
@@ -3467,7 +3467,7 @@ ${monthPresenze.length === 0
 
             {/* Reperibilità */}
             <div className={`rounded-2xl p-4 shadow-sm border sm:col-span-2 xl:col-span-4 ${user.reperibile ? 'bg-white border-purple-100' : 'bg-slate-100 border-slate-200'}`}>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">📡 Reperibilità</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="phone" size={13} color="#a855f7" /> Reperibilità</p>
               {user.reperibile ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {statBox('Giorni rep. mese', repMeseCount, 'text-purple-600')}
@@ -3540,10 +3540,10 @@ ${monthPresenze.length === 0
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-400 inline-block"></span>Malattia</span>
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-200 inline-block"></span>Assente</span>
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-slate-100 inline-block"></span>Weekend / Futuro</span>
-          <span className="flex items-center gap-1.5">🕐 Permesso orario</span>
-          <span className="flex items-center gap-1.5"><span className="w-3 h-1 bg-purple-500 inline-block rounded"></span>📡 Reperibilità tua</span>
+          <span className="flex items-center gap-1.5"><Icon name="clipboard" size={12} color="#8b5cf6" /> Permesso orario</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-1 bg-purple-500 inline-block rounded"></span>Reperibilità tua</span>
           <span className="flex items-center gap-1.5"><span className="w-3 h-1 bg-slate-400 inline-block rounded"></span>Reperibilità collega</span>
-          {user.reperibile && <span className="flex items-center gap-1.5">📞 Gestione telefonica</span>}
+          {user.reperibile && <span className="flex items-center gap-1.5"><Icon name="phone" size={12} color="#6366f1" /> Gestione telefonica</span>}
           {user.straordinario && <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-orange-500 inline-block"></span>S Straordinario</span>}
         </div>
       </div>
@@ -7416,24 +7416,6 @@ function ChiusureView({ settings }) {
           );
         })}
       </div>
-      {chiusure.length === 0 && (
-        <div className="mt-6 bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400">
-          <p className="text-3xl mb-2">📅</p>
-          <p>Nessuna chiusura aziendale programmata</p>
-        </div>
-      )}
-      {chiusure.filter(d=>d.startsWith(String(anno))).length > 0 && (
-        <div className="mt-6 bg-white rounded-2xl border border-slate-100 p-4">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Chiusure {anno}</p>
-          <div className="flex flex-wrap gap-2">
-            {chiusure.filter(d=>d.startsWith(String(anno))).sort().map(d=>(
-              <span key={d} className="bg-red-100 text-red-700 text-xs font-medium px-3 py-1 rounded-full">
-                {new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short'})}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
