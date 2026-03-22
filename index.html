@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-21-006';
+const APP_VERSION = '2026-03-22-001';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -716,6 +716,11 @@ const CHANGELOG = [
     version: '2026-03-21-006',
     data: '21/03/2026',
     descrizione: 'Fix critico login: rimosso session_id dal mapper _E (from/to). Il campo non deve transitare nel sync generale degli employees ma solo nelle chiamate dirette Supabase del sistema di sessione. Questo causava errori silenziosi che bloccavano il login prima di eseguire il SQL su Supabase.'
+  },
+  {
+    version: '2026-03-22-001',
+    data: '22/03/2026',
+    descrizione: 'Fix login definitivo: handleLogin ora usa gli employees già in memoria (da Supabase) invece di ricaricarli da localStorage. Il localStorage poteva contenere solo INITIAL_EMPLOYEES se il browser era stato ripulito, impedendo il riconoscimento dell\'utente reale dopo il login. Aggiunto salvataggio automatico degli employees in localStorage dopo DB.loadAll().'
   },
 ];
 
@@ -9089,7 +9094,11 @@ function App() {
   React.useEffect(() => {
     DB.loadAll()
       .then(d => {
-        if (d.employees?.length)            setEmployees(d.employees);
+        if (d.employees?.length) {
+          setEmployees(d.employees);
+          // Salva in localStorage così loadEmployees() ha sempre dati aggiornati
+          try { localStorage.setItem('hr_employees', JSON.stringify(d.employees)); } catch {}
+        }
         if (d.timbrature?.length)           setTimbrature(d.timbrature);
         if (d.malattie?.length)             setMalattie(d.malattie);
         if (d.permessi?.length)             setPermessi(d.permessi);
@@ -9306,12 +9315,9 @@ function App() {
     const sessionId = generateSessionId();
     localStorage.setItem('hr_session_id', sessionId);
     if (_supa) _supa.from('employees').update({ session_id: sessionId }).eq('id', id).catch(() => {});
-    // Ricarica employees e notifiche freschi dal localStorage
-    const freshEmployees = loadEmployees();
-    setEmployees(freshEmployees);
-    const freshNotifiche = loadData('notifiche', []);
-    setNotifiche(freshNotifiche);
-    const emp = freshEmployees.find(e => e.id === id);
+    // Usa gli employees già in memoria (caricati da Supabase) — NON ricaricare da localStorage
+    // che potrebbe contenere solo INITIAL_EMPLOYEES se il browser è stato ripulito
+    const emp = employees.find(e => e.id === id);
     setUserId(id);
     setNeedsPassChange(emp?.primoAccesso === true && emp?.richiedeNuovaPassword === true);
     setView('dashboard');
