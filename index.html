@@ -44,7 +44,7 @@ const { useState, useEffect } = React;
 const ROLE_LABELS = { amministratore: 'Amministratore', master: 'Master', direttore: 'Direttore', responsabile: 'Responsabile', dipendente: 'Dipendente' };
 const NATURE_NS = ['vitto','alloggio','rappresentanza','carburante','pedaggio','parcheggio','altri acquisti'];
 const NATURA_LABELS_NS = { vitto:'Vitto', alloggio:'Alloggio', rappresentanza:'Rappresentanza', carburante:'Carburante', pedaggio:'Pedaggio', parcheggio:'Parcheggio', 'altri acquisti':'Altri acquisti' };
-const NATURA_ICONS_NS = { vitto:'🍽️', alloggio:'🏨', rappresentanza:'🤝', carburante:'⛽', pedaggio:'🛣️', parcheggio:'🅿️', 'altri acquisti':'🛍️' };
+const NATURA_ICONS_NS = { vitto:'utensils', alloggio:'building', rappresentanza:'users', carburante:'car', pedaggio:'receipt', parcheggio:'parking', 'altri acquisti':'card' };
 const TIPOLOGIE_AUTO = ['Auto uso promiscuo dipendenti','Auto uso promiscuo amministratori','Furgone'];
 const PROVENIENZA_AUTO = ['Noleggio','Proprietà'];
 const ROLE_COLORS = {
@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-014';
+const APP_VERSION = '2026-03-22-015';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -825,6 +825,9 @@ const ICON_PATHS = {
   'eye-off':    <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></>,
   shield:       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
   trash:        <><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></>,
+  utensils:     <><line x1="9" y1="2" x2="9" y2="22"/><path d="M6 2v6a3 3 0 006 0V2"/><line x1="15" y1="2" x2="15" y2="22"/></>,
+  'map-pin':    <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></>,
+  parking:      <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 010 6H9"/></>,
 };
 const Icon = ({ name, size=16, color='currentColor', className='' }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
@@ -6543,7 +6546,7 @@ function NotaSpeseForm({ onSave, onCancel }) {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
       <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md shadow-2xl" style={{maxHeight:'92vh', overflowY:'auto'}}>
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100 sticky top-0 bg-white z-10 rounded-t-3xl sm:rounded-t-3xl">
-          <h3 className="font-bold text-slate-800 text-lg" style={{fontFamily:'Syne,sans-serif'}}>💳 Nuova spesa</h3>
+          <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2" style={{fontFamily:'Syne,sans-serif'}}><Icon name="card" size={18} color="#1e3a6e"/> Nuova spesa</h3>
           <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 text-3xl font-light leading-none w-8 h-8 flex items-center justify-center">×</button>
         </div>
         <div className="px-6 py-5 space-y-5">
@@ -6559,12 +6562,14 @@ function NotaSpeseForm({ onSave, onCancel }) {
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Luogo</label>
             <div className="flex gap-3 mb-3">
               <button onClick={() => setForm(f => ({...f, luogoTipo:'sede'}))}
-                className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-colors ${form.luogoTipo==='sede' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
-                🏢 In sede
+                className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-colors flex items-center justify-center gap-2 ${form.luogoTipo==='sede' ? 'text-white border-transparent' : 'bg-slate-50 text-slate-600 border-slate-200'}`}
+                style={form.luogoTipo==='sede' ? {background:'#1e3a6e',borderColor:'#1e3a6e'} : {}}>
+                <Icon name="building" size={15} color={form.luogoTipo==='sede'?'white':'#64748b'}/> In sede
               </button>
               <button onClick={() => setForm(f => ({...f, luogoTipo:'altra'}))}
-                className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-colors ${form.luogoTipo==='altra' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
-                📍 Altra città
+                className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-colors flex items-center justify-center gap-2 ${form.luogoTipo==='altra' ? 'text-white border-transparent' : 'bg-slate-50 text-slate-600 border-slate-200'}`}
+                style={form.luogoTipo==='altra' ? {background:'#1e3a6e',borderColor:'#1e3a6e'} : {}}>
+                <Icon name="map-pin" size={15} color={form.luogoTipo==='altra'?'white':'#64748b'}/> Altra città
               </button>
             </div>
             {form.luogoTipo === 'altra' && (
@@ -6580,8 +6585,9 @@ function NotaSpeseForm({ onSave, onCancel }) {
             <div className="grid grid-cols-2 gap-2">
               {NATURE_NS.map(n => (
                 <button key={n} onClick={() => setForm(f => ({...f, natura:n}))}
-                  className={`py-3 px-3 rounded-xl text-sm font-medium border-2 transition-colors text-left ${form.natura===n ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-blue-300'}`}>
-                  {NATURA_ICONS_NS[n]} {NATURA_LABELS_NS[n]}
+                  className={`py-3 px-3 rounded-xl text-sm font-medium border-2 transition-colors text-left flex items-center gap-2 ${form.natura===n ? 'text-white border-transparent' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300'}`}
+                  style={form.natura===n ? {background:'#1e3a6e',borderColor:'#1e3a6e'} : {}}>
+                  <Icon name={NATURA_ICONS_NS[n]} size={14} color={form.natura===n?'white':'#64748b'}/> {NATURA_LABELS_NS[n]}
                 </button>
               ))}
             </div>
@@ -6610,7 +6616,7 @@ function NotaSpeseForm({ onSave, onCancel }) {
         </div>
         <div className="px-6 pb-8 flex gap-3">
           <button onClick={onCancel} className="flex-1 py-3.5 rounded-xl border-2 border-slate-200 text-slate-600 text-sm font-semibold">Annulla</button>
-          <button onClick={handleSave} className="flex-1 py-3.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700">+ Aggiungi</button>
+          <button onClick={handleSave} className="flex-1 py-3.5 rounded-xl text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2" style={{background:'#1e3a6e'}}><Icon name="add" size={15} color="white"/> Aggiungi</button>
         </div>
       </div>
     </div>
@@ -6840,7 +6846,7 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
                         <div className="space-y-1.5">
                           {voci.map(v => (
                             <div key={v.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 text-xs border border-slate-100">
-                              <span className="text-base">{NATURA_ICONS_NS[v.natura]}</span>
+                              <span className="shrink-0"><Icon name={NATURA_ICONS_NS[v.natura]||'card'} size={14} color="#64748b"/></span>
                               <span className="font-medium text-slate-700 w-24 shrink-0">{NATURA_LABELS_NS[v.natura]}</span>
                               <span className="text-slate-500 flex-1">{v.luogo}{v.note ? ` — ${v.note}` : ''}</span>
                               <span className="font-bold text-slate-700 w-20 text-right">€{v.importo.toFixed(2)}</span>
