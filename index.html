@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-018';
+const APP_VERSION = '2026-03-22-019';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -7834,18 +7834,18 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
 
   // Sezioni disponibili per questo ruolo
   const MAN_SECTIONS_DEF = [
-    { id:'man-orario',   label:'Orario di lavoro',    icon:'clock',    show: isMaster || isAdmin },
-    { id:'man-centri',   label:'Centri di costo',     icon:'tag',      show: isMaster },
-    { id:'man-auto',     label:'Parco auto',          icon:'car',      show: isMaster },
-    { id:'man-valori',   label:'Valori iniziali',     icon:'bar-chart2',show: isMaster },
-    { id:'man-rilpre',   label:'Esportazione RILPRE', icon:'receipt',  show: isMaster },
-    { id:'man-calendar', label:'Google Cal. pubb.',   icon:'calendar', show: true },
-    { id:'man-cal-priv', label:'Google Cal. priv.',   icon:'calendar', show: true },
-    { id:'man-reset-pwd', label:'Reset password',          icon:'lock',   show: isMaster || isAdmin },
-    { id:'man-ops',       label:'Operazioni critiche',     icon:'shield', show: isMaster || isAdmin },
-    { id:'man-info',     label:'Informazioni/Reset sistema',icon:'info',  show: true },
-    { id:'versione',     label:'Versione',            icon:'tag',      show: isMaster, targetView:'versione' },
-    { id:'crediti-licenze',label:'Licenze',           icon:'info',     show: isMaster, targetView:'crediti-licenze' },
+    { id:'man-orario',    label:'Orario di lavoro',         icon:'clock',      show: isMaster || isAdmin },
+    { id:'man-centri',    label:'Centri di costo',          icon:'tag',        show: isMaster || isAdmin },
+    { id:'man-auto',      label:'Parco auto',               icon:'car',        show: isMaster || isAdmin },
+    { id:'man-valori',    label:'Valori iniziali',          icon:'bar-chart2', show: isMaster || isAdmin },
+    { id:'man-rilpre',    label:'Esportazione RILPRE',      icon:'receipt',    show: isMaster || isAdmin },
+    { id:'man-calendar',  label:'Google Cal. pubb.',        icon:'calendar',   show: true },
+    { id:'man-cal-priv',  label:'Google Cal. priv.',        icon:'calendar',   show: true },
+    { id:'man-reset-pwd', label:'Reset password',           icon:'lock',       show: isMaster || isAdmin },
+    { id:'man-ops',       label:'Operazioni critiche',      icon:'shield',     show: isMaster || isAdmin },
+    { id:'man-info',      label:'Informazioni/Reset sistema',icon:'info',      show: true },
+    { id:'versione',      label:'Versione',                 icon:'tag',        show: isMaster || isAdmin, targetView:'versione' },
+    { id:'crediti-licenze',label:'Licenze',                 icon:'info',       show: isMaster || isAdmin, targetView:'crediti-licenze' },
   ].filter(s => s.show);
 
   const activeSection = manSection || (MAN_SECTIONS_DEF.length > 0 ? MAN_SECTIONS_DEF[0].id : null);
