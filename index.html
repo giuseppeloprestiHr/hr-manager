@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-23-021';
+const APP_VERSION = '2026-03-23-022';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -685,6 +685,27 @@ const CREDITS = [
     descrizione: 'Rilevamento GPS per timbratura',
     badge: { label:'W3C Standard', href:'https://www.w3.org/TR/geolocation/', colore:'w3c' },
   },
+  {
+    nome: 'Nominatim (OpenStreetMap)',
+    versione: 'API REST pubblica',
+    copyright: '© OpenStreetMap contributors',
+    descrizione: 'Geocodifica inversa: converte coordinate GPS in indirizzo leggibile durante la timbratura',
+    badge: { label:'ODbL 1.0', href:'https://www.openstreetmap.org/copyright', colore:'w3c' },
+  },
+  {
+    nome: 'Notifications API',
+    versione: 'Browser nativo',
+    copyright: '© W3C',
+    descrizione: 'Notifiche push al browser/dispositivo per reminder timbratura e aggiornamenti',
+    badge: { label:'W3C Standard', href:'https://www.w3.org/TR/notifications/', colore:'w3c' },
+  },
+  {
+    nome: 'BroadcastChannel API',
+    versione: 'Browser nativo',
+    copyright: '© W3C / WHATWG',
+    descrizione: 'Comunicazione tra schede del browser per rilevamento sessioni concorrenti',
+    badge: { label:'WHATWG Standard', href:'https://html.spec.whatwg.org/multipage/web-messaging.html', colore:'w3c' },
+  },
 ];
 const CHANGELOG = [
   {
@@ -751,6 +772,11 @@ const CHANGELOG = [
     version: '2026-03-23-021',
     data: '23/03/2026',
     descrizione: 'Fix mobile (9 correzioni): notifiche browser solo al destinatario (non a tutti); date in formato gg/mm/aa; malattia date impilate su mobile come ferie; bottoni Nota Spese (Aggiungi spesa, Conferma nota) allineati a sinistra su mobile; modali Inserisci spesa e Conferma nota posizionati in alto a sinistra su mobile e ridimensionati; tile Notifiche aggiunta per dipendenti su mobile (navTiles e navTilesDip).'
+  },
+  {
+    version: '2026-03-23-022',
+    data: '23/03/2026',
+    descrizione: 'Aggiornamento pagina Licenze: aggiunte 3 voci mancanti — Nominatim (OpenStreetMap, ODbL 1.0) usato per reverse geocoding GPS in timbratura; Notifications API (W3C) per push browser; BroadcastChannel API (WHATWG) per rilevamento sessioni concorrenti. Aggiornata nota dipendenze esterne.'
   },
 ];
 
@@ -1475,7 +1501,7 @@ function CreditiLicenzeView({ onBack }) {
     {
       titolo: 'Dipendenza CDN esterni',
       stato: 'rischio',
-      problema: 'L\'app dipende da 3 CDN di terze parti (cdnjs, jsDelivr, Google Fonts). Se uno va down, l\'app non carica.',
+      problema: 'L\'app dipende da 3 CDN di terze parti (cdnjs, jsDelivr, Google Fonts) e dall\'API Nominatim (OpenStreetMap) per il reverse geocoding. Se uno va down, la funzione relativa non è disponibile.',
       soluzione: 'In produzione: includere le librerie nel bundle o usare un CDN con SLA garantito.',
     },
     {
