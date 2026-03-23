@@ -549,7 +549,7 @@ const INITIAL_EMPLOYEES = [
 // HELPERS
 // ============================================================
 const todayStr     = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-const fmtData      = d => d ? new Date(d+'T00:00:00').toLocaleDateString('it-IT') : '—';
+const fmtData      = d => { if (!d) return '—'; const [y,m,g] = d.split('-'); return `${g}/${m}/${String(y).slice(2)}`; };
 const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const fmtDurata = h => {
   if (!h) return '0 min';
@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-22-020';
+const APP_VERSION = '2026-03-23-021';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -746,6 +746,11 @@ const CHANGELOG = [
     version: '2026-03-22-006',
     data: '22/03/2026',
     descrizione: 'Fix e miglioramenti: voce menu Malattia (era "Invia comunicazione"), titolo pagina malattia aggiornato, malattia solo personale (rimosso selettore dipendente per master), sfondo applicazione più scuro, data duplicata in blu rimossa dal DateInput, emoji rimosse dai titoli pagina e dalle tile mobile (sostituite con icone SVG), documento permesso: rimosso "Luogo e Data" e aggiunta sezione "richiesto elettronicamente da", report stampato: aggiunto Rep./Gest.Tel./Straordinari al riepilogo mensile con riga totali, riepilogo mensile on-screen: aggiunta riga totali (master, direttore, responsabile), Manutenzione: aggiunto bottone Versione e Licenze nella barra pill, calendario chiusure aziendali: settimana da Lunedì a Domenica.'
+  },
+  {
+    version: '2026-03-23-021',
+    data: '23/03/2026',
+    descrizione: 'Fix mobile (9 correzioni): notifiche browser solo al destinatario (non a tutti); date in formato gg/mm/aa; malattia date impilate su mobile come ferie; bottoni Nota Spese (Aggiungi spesa, Conferma nota) allineati a sinistra su mobile; modali Inserisci spesa e Conferma nota posizionati in alto a sinistra su mobile e ridimensionati; tile Notifiche aggiunta per dipendenti su mobile (navTiles e navTilesDip).'
   },
 ];
 
@@ -1971,6 +1976,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     { id:'news',              label:'News',                icon:'newspaper', color:'bg-pink-600' },
     { id:'chiusure-view',     label:'Chiusure aziendali',  icon:'building', color:'bg-slate-500' },
     { id:'mia-anagrafica',    label:'La mia anagrafica',   icon:'user',     color:'bg-slate-600' },
+    { id:'notifiche',         label:'Notifiche',           icon:'bell',     color:'bg-blue-700' },
   ];
   const navTilesMaster = [
     { id:'dipendenti',           label:'Dipendenti',          icon:'users',    color:'bg-emerald-600' },
@@ -2022,6 +2028,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     { id:'news',           label:'News',              icon:'newspaper', color:'bg-pink-600' },
     { id:'chiusure-view',  label:'Chiusure aziendali',icon:'building',  color:'bg-slate-500' },
     { id:'mia-anagrafica', label:'La mia anagrafica', icon:'user',      color:'bg-slate-600' },
+    { id:'notifiche',      label:'Notifiche',         icon:'bell',      color:'bg-blue-700' },
   ];
 
   const AREA_MOBILE_LABEL = { master:'Area Master', amministratore:'Area Amministratore', direttore:'Area Direttore', responsabile:'Area Responsabile' };
@@ -4134,7 +4141,7 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
         <h3 className="font-bold text-slate-700 mb-4 text-sm uppercase tracking-wide">Nuova comunicazione</h3>
 
 
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
           <DateInput label="Data inizio" value={dataInizio}
             onChange={e=>{setDataInizio(e.target.value);setErr('');}} required />
           <div>
@@ -6546,13 +6553,13 @@ function NotaSpeseForm({ onSave, onCancel }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md shadow-2xl" style={{maxHeight:'92vh', overflowY:'auto'}}>
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100 sticky top-0 bg-white z-10 rounded-t-3xl sm:rounded-t-3xl">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start sm:items-center sm:justify-center p-2 sm:p-4">
+      <div className="bg-white rounded-2xl w-full sm:max-w-md shadow-2xl" style={{maxHeight:'95vh', overflowY:'auto'}}>
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-slate-100 sticky top-0 bg-white z-10 rounded-t-2xl">
           <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2" style={{fontFamily:'Syne,sans-serif'}}><Icon name="card" size={18} color="#1e3a6e"/> Nuova spesa</h3>
           <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 text-3xl font-light leading-none w-8 h-8 flex items-center justify-center">×</button>
         </div>
-        <div className="px-6 py-5 space-y-5">
+        <div className="px-4 py-4 space-y-4">
           {/* Data */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Data spesa</label>
@@ -6617,9 +6624,9 @@ function NotaSpeseForm({ onSave, onCancel }) {
               className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
           </div>
         </div>
-        <div className="px-6 pb-8 flex gap-3">
-          <button onClick={onCancel} className="flex-1 py-3.5 rounded-xl border-2 border-slate-200 text-slate-600 text-sm font-semibold">Annulla</button>
-          <button onClick={handleSave} className="flex-1 py-3.5 rounded-xl text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2" style={{background:'#1e3a6e'}}><Icon name="add" size={15} color="white"/> Aggiungi</button>
+        <div className="px-4 pb-5 flex gap-3">
+          <button onClick={onCancel} className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 text-sm font-semibold">Annulla</button>
+          <button onClick={handleSave} className="flex-1 py-3 rounded-xl text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2" style={{background:'#1e3a6e'}}><Icon name="add" size={15} color="white"/> Aggiungi</button>
         </div>
       </div>
     </div>
@@ -6741,7 +6748,7 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
 
   return (
     <div className="p-4 lg:p-6">
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-3">
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Note Spese</h2>
         <div className="flex items-center gap-2 flex-wrap">
           {isConfermata ? (
@@ -6903,8 +6910,8 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
 
       {/* Dialog conferma */}
       {confirmDialog && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start sm:items-center sm:justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl">
             <h3 className="font-bold text-slate-800 text-lg mb-2">✅ Confermare la nota spese?</h3>
             <p className="text-slate-500 text-sm mb-4">Una volta confermata non potrai più modificarla. Il master riceverà una notifica.</p>
             <div className="bg-blue-50 rounded-xl p-3 mb-5 text-center">
@@ -9549,14 +9556,15 @@ function App() {
       return upd;
     });
     try {
-      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted'
+          && (!destinatari || !destinatari.length || destinatari.includes(userId))) {
         new Notification(`HR Manager – ${tipo.charAt(0).toUpperCase()+tipo.slice(1)}`, {
           body: testo,
           icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="%230f1f3d"/><text y="22" x="6" font-size="18">%F0%9F%91%94</text></svg>'
         });
       }
     } catch(e) { /* notifiche non supportate su questo dispositivo */ }
-  }, []);
+  }, [userId]);
 
   // ── Controllo sessione concorrente ─────────────────────────────────────────
   // Previene due accessi simultanei con lo stesso login.
