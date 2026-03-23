@@ -592,7 +592,7 @@ const DATA_VERSION = 6;
 // Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
 // ad ogni nuova release/modifica significativa
 // ============================================================
-const APP_VERSION = '2026-03-23-022';
+const APP_VERSION = '2026-03-23-023';
 
 // ============================================================
 // CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
@@ -777,6 +777,11 @@ const CHANGELOG = [
     version: '2026-03-23-022',
     data: '23/03/2026',
     descrizione: 'Aggiornamento pagina Licenze: aggiunte 3 voci mancanti — Nominatim (OpenStreetMap, ODbL 1.0) usato per reverse geocoding GPS in timbratura; Notifications API (W3C) per push browser; BroadcastChannel API (WHATWG) per rilevamento sessioni concorrenti. Aggiornata nota dipendenze esterne.'
+  },
+  {
+    version: '2026-03-23-023',
+    data: '23/03/2026',
+    descrizione: 'Fix sidebar Manutenzione: aggiunte voci mancanti Reset password e Operazioni critiche per master/amministratore; allineate show conditions di tutte le voci. Fix bug man-info sticky: la voce non rimane più selezionata dopo aver cliccato altra sezione. Versione e Licenze ora embedded dentro Manutenzione con navigazione pill uniforme invece di pagine separate.'
   },
 ];
 
@@ -1155,7 +1160,7 @@ function MobileBottomNav() { return null; }
 // ============================================================
 // VERSIONE VIEW — documentazione funzionalità + changelog
 // ============================================================
-function VersioneView({ onBack }) {
+function VersioneView({ onBack, embedded }) {
   const sezioni = [
     {
       titolo: '👥 Gestione dipendenti',
@@ -1380,17 +1385,18 @@ function VersioneView({ onBack }) {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button onClick={onBack} className="text-slate-400 hover:text-slate-600 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Versione &amp; Funzionalità</h1>
-          <p className="text-slate-400 text-sm mt-0.5">Documentazione e giornale degli aggiornamenti</p>
+    <div className={embedded ? '' : 'max-w-4xl mx-auto px-4 py-8'}>
+      {!embedded && (
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={onBack} className="text-slate-400 hover:text-slate-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Versione &amp; Funzionalità</h1>
+            <p className="text-slate-400 text-sm mt-0.5">Documentazione e giornale degli aggiornamenti</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Badge versione corrente */}
       <div className="bg-gradient-to-r from-blue-900 to-indigo-800 rounded-2xl p-6 mb-8 text-white shadow-lg">
@@ -1447,7 +1453,7 @@ function VersioneView({ onBack }) {
 // ============================================================
 // CREDITI E LICENZE VIEW
 // ============================================================
-function CreditiLicenzeView({ onBack }) {
+function CreditiLicenzeView({ onBack, embedded }) {
   const BadgeLicenza = ({ label, href, colore }) => {
     const palette = {
       mit:    { bg:'#dbeafe', text:'#1d4ed8', border:'#bfdbfe' },
@@ -1520,19 +1526,20 @@ function CreditiLicenzeView({ onBack }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button onClick={onBack} className="text-slate-400 hover:text-slate-600 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>
-            ℹ️ Crediti e Licenze Open Source
-          </h1>
-          <p className="text-slate-400 text-sm mt-0.5">Librerie, font e servizi utilizzati · Analisi compatibilità commerciale</p>
+    <div className={embedded ? '' : 'max-w-4xl mx-auto px-4 py-8'}>
+      {!embedded && (
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={onBack} className="text-slate-400 hover:text-slate-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>
+              Crediti e Licenze Open Source
+            </h1>
+            <p className="text-slate-400 text-sm mt-0.5">Librerie, font e servizi utilizzati · Analisi compatibilità commerciale</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Griglia librerie */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
@@ -1620,16 +1627,18 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
   };
 
   const MAN_SECTIONS = [
-    { id:'man-orario',    label:'Orario di lavoro',    show: isMaster || r === RUOLI.AMMINISTRATORE },
-    { id:'man-centri',    label:'Centri di costo',     show: isMaster },
-    { id:'man-auto',      label:'Parco auto',          show: isMaster },
-    { id:'man-valori',    label:'Valori iniziali',     show: isMaster },
-    { id:'man-rilpre',    label:'Esportazione RILPRE', show: isMaster },
-    { id:'man-calendar',  label:'Google Cal. pubbl.',  show: true },
-    { id:'man-cal-priv',  label:'Google Cal. priv.',   show: true },
-    { id:'man-info',      label:'Informazioni sistema',show: true },
-    { id:'versione',      label:'Versione',            show: r === RUOLI.MASTER, targetView:'versione' },
-    { id:'crediti-licenze',label:'Crediti e Licenze',  show: r === RUOLI.MASTER, targetView:'crediti-licenze' },
+    { id:'man-orario',     label:'Orario di lavoro',          show: isMaster || isAdmin },
+    { id:'man-centri',     label:'Centri di costo',           show: isMaster || isAdmin },
+    { id:'man-auto',       label:'Parco auto',                show: isMaster || isAdmin },
+    { id:'man-valori',     label:'Valori iniziali',           show: isMaster || isAdmin },
+    { id:'man-rilpre',     label:'Esportazione RILPRE',       show: isMaster || isAdmin },
+    { id:'man-calendar',   label:'Google Cal. pubbl.',        show: true },
+    { id:'man-cal-priv',   label:'Google Cal. priv.',         show: true },
+    { id:'man-reset-pwd',  label:'Reset password',            show: isMaster || isAdmin },
+    { id:'man-ops',        label:'Operazioni critiche',       show: isMaster || isAdmin },
+    { id:'man-info',       label:'Informazioni/Reset sistema',show: true },
+    { id:'versione',       label:'Versione',                  show: isMaster || isAdmin },
+    { id:'crediti-licenze',label:'Licenze',                   show: isMaster || isAdmin },
   ].filter(s => s.show);
 
   const dipItems = [
@@ -1706,7 +1715,8 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
   const W_COLLAPSED = 56;
   const W_EXPANDED  = 260;
 
-  const isManActive = view === 'manutenzione' || view === 'versione' || view === 'crediti-licenze';
+  const isAdmin     = r === RUOLI.AMMINISTRATORE;
+  const isManActive = view === 'manutenzione';
 
   const NavBtn = ({ it }) => {
     const isActive = view === it.id;
@@ -1742,7 +1752,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
           {manExpanded && expanded && (
             <div style={{marginLeft:6,borderLeft:'2px solid #e2e8f0',paddingLeft:8,marginTop:2,marginBottom:2}}>
               {MAN_SECTIONS.map(s => {
-                const isSubActive = s.targetView ? view === s.targetView : (isManActive && manSection === s.id);
+                const isSubActive = isManActive && manSection === s.id;
                 return (
                   <button key={s.id}
                     onClick={() => { setSelectedEmployee(null); if(s.targetView){ setView(s.targetView); } else { if(onSetManSection) onSetManSection(s.id); setView('manutenzione'); } }}
@@ -7963,8 +7973,8 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     { id:'man-reset-pwd', label:'Reset password',           icon:'lock',       show: isMaster || isAdmin },
     { id:'man-ops',       label:'Operazioni critiche',      icon:'shield',     show: isMaster || isAdmin },
     { id:'man-info',      label:'Informazioni/Reset sistema',icon:'info',      show: true },
-    { id:'versione',      label:'Versione',                 icon:'tag',        show: isMaster || isAdmin, targetView:'versione' },
-    { id:'crediti-licenze',label:'Licenze',                 icon:'info',       show: isMaster || isAdmin, targetView:'crediti-licenze' },
+    { id:'versione',       label:'Versione',                 icon:'tag',        show: isMaster || isAdmin },
+    { id:'crediti-licenze',label:'Licenze',                 icon:'info',       show: isMaster || isAdmin },
   ].filter(s => s.show);
 
   const activeSection = manSection || (MAN_SECTIONS_DEF.length > 0 ? MAN_SECTIONS_DEF[0].id : null);
@@ -7988,7 +7998,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       <div className="flex flex-wrap gap-2 mb-6">
         {MAN_SECTIONS_DEF.map(s => (
           <button key={s.id}
-            onClick={() => s.targetView ? (setView && setView(s.targetView)) : (onSetManSection && onSetManSection(s.id))}
+            onClick={() => onSetManSection && onSetManSection(s.id)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
               activeSection === s.id
                 ? 'text-white border-transparent'
@@ -8946,6 +8956,9 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       </div>}
 
       {/* ── INFORMAZIONI SISTEMA ── */}
+      {showSection('versione') && <VersioneView embedded />}
+      {showSection('crediti-licenze') && <CreditiLicenzeView embedded />}
+
       {showSection('man-info') && <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100">
           <p className="font-bold text-slate-800">Informazioni/Reset sistema</p>
@@ -10325,11 +10338,11 @@ function App() {
         if (!canManage(r) || !selectedEmp) { goTo('dashboard'); return null; }
         return <ResetApprova emp={selectedEmp} onApprova={handleResetApprova} onBack={()=>goTo('dashboard')} />;
       case 'versione':
-        if (r !== RUOLI.MASTER) { goTo('dashboard'); return null; }
-        return <VersioneView onBack={()=>goTo('dashboard')} />;
+        if (!canManage(r)) { goTo('dashboard'); return null; }
+        setManSection('versione'); goTo('manutenzione'); return null;
       case 'crediti-licenze':
-        if (r !== RUOLI.MASTER) { goTo('dashboard'); return null; }
-        return <CreditiLicenzeView onBack={()=>goTo('dashboard')} />;
+        if (!canManage(r)) { goTo('dashboard'); return null; }
+        setManSection('crediti-licenze'); goTo('manutenzione'); return null;
       default:
         return <Dashboard user={user} employees={employees} timbrature={timbrature} permessi={permessi} ferie={ferie} straordinari={straordinari} setView={goTo} setSelectedEmployee={setSelectedEmp} news={news} settings={settings}/>;
     }
