@@ -1,37 +1,19 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HR Manager</title>
-  <!-- Preconnect: avvia la connessione ai CDN prima che il parser li incontri -->
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-  <link rel="preconnect" href="https://cdn.tailwindcss.com">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="dns-prefetch" href="https://supabase.co">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f1f3d">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="HR Manager">
-  <style>
+<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>HR Manager</title><link rel="preconnect" href="https://cdnjs.cloudflare.com"><link rel="preconnect" href="https://cdn.tailwindcss.com"><link rel="preconnect" href="https://cdn.jsdelivr.net"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="dns-prefetch" href="https://supabase.co">
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+ <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+ <script src="https://cdn.tailwindcss.com"></script>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+ <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0f1f3d"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="HR Manager">
+ <style>
     body { font-family: 'DM Sans', sans-serif; background: #e2e8f0; }
     .font-display { font-family: 'Syne', sans-serif; }
     ::-webkit-scrollbar { width: 6px; } 
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
   </style>
-  <script>
-    // Intercetta errori JS catastrofici (CDN non caricato, crash pre-React ecc.)
+ <script>
     window.onerror = function(msg, src, line) {
       var el = document.getElementById('root');
       if (el && !el.innerHTML.trim()) {
@@ -39,15 +21,10 @@
       }
     };
   </script>
-</head>
-<body>
-<div id="root"></div>
+</head><body><div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect } = React;
 
-// ============================================================
-// CONSTANTS
-// ============================================================
 const ROLE_LABELS = { amministratore: 'Amministratore', master: 'Master', direttore: 'Direttore', responsabile: 'Responsabile', dipendente: 'Dipendente' };
 const NATURE_NS = ['vitto','alloggio','rappresentanza','carburante','pedaggio','parcheggio','altri acquisti'];
 const NATURA_LABELS_NS = { vitto:'Vitto', alloggio:'Alloggio', rappresentanza:'Rappresentanza', carburante:'Carburante', pedaggio:'Pedaggio', parcheggio:'Parcheggio', 'altri acquisti':'Altri acquisti' };
@@ -67,16 +44,8 @@ const canSeeAll       = r => [RUOLI.MASTER, RUOLI.AMMINISTRATORE, RUOLI.DIRETTOR
 const canSeeReport    = r => [RUOLI.MASTER, RUOLI.AMMINISTRATORE, RUOLI.DIRETTORE].includes(r);
 const canSeeTeam      = r => r === RUOLI.RESPONSABILE;
 const canSeeNotifiche = r => [RUOLI.MASTER, RUOLI.AMMINISTRATORE, RUOLI.DIRETTORE, RUOLI.RESPONSABILE, RUOLI.DIPENDENTE].includes(r);
-// Solo l'amministratore può disabilitare/abilitare un master
 const canDisableMaster = r => r === RUOLI.AMMINISTRATORE;
 
-// ============================================================
-// COSTANTI RUOLI — usare sempre queste, mai stringhe letterali
-// ============================================================
-
-// ============================================================
-// DB — Livello di astrazione Supabase
-// ============================================================
 const SUPABASE_URL = 'https://lapjxzyhtygjlimnufdt.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_BQNAdPteU7qSgWuoeYDKgA_N_NFEc4J';
 const _supa = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -305,15 +274,12 @@ const DB = {
   },
 };
 
-
-// ── hashPassword: SHA-256 via Web Crypto (async) ────────────
 async function hashPassword(plain) {
   const enc = new TextEncoder().encode(plain);
   const buf = await crypto.subtle.digest('SHA-256', enc);
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-// Genera un ID di sessione univoco per il controllo accessi concorrenti
 const generateSessionId = () => `${Date.now()}-${Math.random().toString(36).slice(2,9)}`;
 
 const RUOLI = {
@@ -324,9 +290,6 @@ const RUOLI = {
   DIPENDENTE:     'dipendente',
 };
 
-// ============================================================
-// STATUS FERIE (SF) e STATUS PERMESSI (SP)
-// ============================================================
 const SF = {
   PENDING_RESP: 'pending_resp',
   PENDING_DIR:  'pending_dir',
@@ -348,116 +311,6 @@ const SS = {
   RIFIUTATO:    'rifiutato',
 };
 
-// ============================================================
-// TYPEDEFS — documentazione strutture dati
-// ============================================================
-/**
- * @typedef {Object} Employee
- * @property {string}  id
- * @property {string}  nome
- * @property {string}  cognome
- * @property {string}  registro
- * @property {string}  dataInizio          - YYYY-MM-DD
- * @property {string}  cf
- * @property {string}  telefono
- * @property {string}  email
- * @property {string|null} responsabileId
- * @property {'master'|'amministratore'|'direttore'|'responsabile'|'dipendente'} ruolo
- * @property {string}  login
- * @property {string}  password
- * @property {boolean} primoAccesso
- * @property {boolean} [richiedeNuovaPassword]
- * @property {boolean} accessoDisabilitato
- * @property {boolean} richiestaReset
- * @property {boolean} [gpsObbligatorio]
- * @property {boolean} [reperibile]
- */
-/**
- * @typedef {Object} Ferie
- * @property {string}  id
- * @property {string}  employeeId
- * @property {string}  dataInizio          - YYYY-MM-DD
- * @property {string}  dataFine            - YYYY-MM-DD
- * @property {number}  giorniLavorativi
- * @property {string}  motivo
- * @property {'pending_resp'|'pending_dir'|'approvato'|'rifiutato'|'annullata'} status
- * @property {string|null} approvatoRespId
- * @property {number|null} approvatoRespTimestamp
- * @property {string|null} approvatoDirId
- * @property {number|null} approvatoDirTimestamp
- * @property {string|null} rifiutatoDaId
- * @property {string|null} noteRifiuto
- * @property {string|null} annullataDaId
- * @property {string|null} noteAnnullamento
- * @property {number}  timestamp
- */
-/**
- * @typedef {Object} Permesso
- * @property {string}  id
- * @property {string}  employeeId
- * @property {string}  data                - YYYY-MM-DD
- * @property {string}  oraInizio           - HH:MM
- * @property {string}  oraFine             - HH:MM
- * @property {number}  orePermesso
- * @property {string}  motivo
- * @property {string|null} tipologia
- * @property {'pending'|'approvato'|'rifiutato'|'annullato'} status
- * @property {string|null} noteRifiuto
- * @property {string|null} approvatoDa
- * @property {number|null} approvatoTimestamp
- * @property {string|null} annullatoDa
- * @property {string|null} noteAnnullamento
- * @property {number}  timestamp
- */
-/**
- * @typedef {Object} Timbratura
- * @property {string} id
- * @property {string} employeeId
- * @property {string} data                 - YYYY-MM-DD
- * @property {string} ora                  - HH:MM
- * @property {number} timestamp
- * @property {{lat:number,lon:number,accuracy:number,address:string}|null} gps
- */
-/**
- * @typedef {Object} Notifica
- * @property {string}   id
- * @property {string}   tipo
- * @property {string}   testo
- * @property {string[]} destinatari
- * @property {string|null} empId
- * @property {number}   timestamp
- * @property {string[]} lette
- */
-/**
- * @typedef {Object} GestioneTelefonica
- * @property {string}  id
- * @property {string}  employeeId
- * @property {string}  data           - YYYY-MM-DD
- * @property {string}  ora            - HH:MM
- * @property {string}  cliente
- * @property {string}  [note]
- * @property {number}  timestamp
- */
-/**
- * @typedef {Object} Reperibilita
- * @property {string}  id
- * @property {string}  employeeId
- * @property {string}  data           - YYYY-MM-DD
- * @property {string}  responsabileId
- * @property {boolean} pubblicata     - true dopo che il mese è stato pubblicato
- * @property {number}  timestamp
- */
-
-// ============================================================
-// BUSINESS LOGIC FERIE — UNICO punto di verità per le regole
-// ============================================================
-
-/**
- * Status iniziale di una richiesta ferie in base al ruolo.
- * Cambiare SOLO qui se le regole di approvazione cambiano.
- * @param {string} ruolo
- * @returns {'approvato'|'pending_dir'|'pending_resp'}
- */
 const ferieStepIniziale = (ruolo) => {
   if (ruolo === RUOLI.AMMINISTRATORE) return SF.APPROVATO;   // comunica direttamente
   if (ruolo === RUOLI.DIRETTORE)      return SF.PENDING_DIR;  // 1 step verso admin
@@ -465,15 +318,6 @@ const ferieStepIniziale = (ruolo) => {
   return SF.PENDING_RESP; // dipendenti: 2 step (resp → direttore)
 };
 
-/**
- * Restituisce true se l'utente può approvare la feria allo stato corrente.
- * Cambiare SOLO qui se la catena di approvazione cambia.
- * @param {Ferie}      feria
- * @param {string}     approvatoreId
- * @param {string}     approvatoreRuolo
- * @param {Employee[]} employees
- * @returns {boolean}
- */
 const puoApprovare = (feria, approvatoreId, approvatoreRuolo, employees) => {
   if (feria.employeeId === approvatoreId) return false;
   const emp = employees.find(e => e.id === feria.employeeId);
@@ -486,21 +330,11 @@ const puoApprovare = (feria, approvatoreId, approvatoreRuolo, employees) => {
     return false;
   }
   if (feria.status === SF.PENDING_DIR) {
-    // Direttore approva tutti i pending_dir (incluse ferie dei Responsabili)
     return approvatoreRuolo === RUOLI.DIRETTORE || approvatoreRuolo === RUOLI.AMMINISTRATORE;
   }
   return false;
 };
 
-/**
- * Restituisce true se la feria deve comparire nello storico dell'utente.
- * Cambiare SOLO qui se la visibilità dello storico cambia.
- * @param {Ferie}      feria
- * @param {string}     userId
- * @param {string}     userRuolo
- * @param {Employee[]} employees
- * @returns {boolean}
- */
 const feriaInStorico = (feria, userId, userRuolo, employees) => {
   const emp = employees.find(e => e.id === feria.employeeId);
   if (!emp) return false;
@@ -520,29 +354,13 @@ const feriaInStorico = (feria, userId, userRuolo, employees) => {
   return false;
 };
 
-// ============================================================
-// BUSINESS LOGIC PERMESSI — UNICO punto di verità
-// ============================================================
-
-/**
- * Status iniziale di un permesso in base al ruolo.
- * @param {string} ruolo
- * @returns {'approvato'|'pending'}
- */
 const permessoStepIniziale = (ruolo) => {
-  // Amministratore: già approvato
-  // Responsabile: salta step1 (il suo permesso va diretto al Direttore per approvazione)
-  // Direttore: già approvato
   if (ruolo === RUOLI.AMMINISTRATORE) return SP.APPROVATO;
   if (ruolo === RUOLI.DIRETTORE)      return SP.APPROVATO;
   if (ruolo === RUOLI.RESPONSABILE)   return SP.PENDING_DIR; // step1 saltato
   return SP.PENDING; // dipendenti normali
 };
 
-
-// ============================================================
-// INITIAL DEMO DATA
-// ============================================================
 const INITIAL_EMPLOYEES = [
   { id:'1', nome:'Marco',   cognome:'Bianchi',  registro:'EMP001', dataInizio:'2020-01-15', cf:'BNCMRC80A01H501Z', telefono:'333-1234567', email:'marco.bianchi@azienda.it',   responsabileId:'3',  ruolo:'master',          login:'marco.bianchi',    password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5',  primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
   { id:'6', nome:'Anna',    cognome:'Marino',   registro:'EMP006', dataInizio:'2018-05-01', cf:'MRNNNA75L41L219X', telefono:'339-9876543', email:'anna.marino@azienda.it',     responsabileId:null, ruolo:'amministratore',  login:'anna.marino',      password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5',   primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
@@ -552,9 +370,6 @@ const INITIAL_EMPLOYEES = [
   { id:'5', nome:'Luca',    cognome:'Conti',    registro:'EMP005', dataInizio:'2023-02-20', cf:'CNTLCU98H20H501V', telefono:'337-5678901', email:'luca.conti@azienda.it',      responsabileId:'3',  ruolo:'dipendente',      login:'luca.conti',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5',   primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
 ];
 
-// ============================================================
-// HELPERS
-// ============================================================
 const todayStr     = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 const fmtData      = d => { if (!d) return '—'; const [y,m,g] = d.split('-'); return `${g}/${m}/${String(y).slice(2)}`; };
 const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -575,7 +390,6 @@ const formatDate = d => {
 };
 
 const loadData  = (key, fallback) => { try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : fallback; } catch { return fallback; } };
-// Conta i giorni lavorativi (lun-ven) tra due date incluse
 const calcGiorniLavorativi = (dataInizio, dataFine) => {
   let count = 0;
   let cur = new Date(dataInizio + 'T00:00:00');
@@ -590,23 +404,10 @@ const calcGiorniLavorativi = (dataInizio, dataFine) => {
 
 const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stringify(data)); } catch {} if (typeof DB !== 'undefined' && DB.ready) DB.sync(key, data).catch(e => console.warn('[DB]', key, e?.message)); };
 
-// Versione dati: incrementare ogni volta che cambia la struttura degli employee
-// Questo forza un reset pulito del localStorage se la versione non corrisponde
 const DATA_VERSION = 6;
 
-// ============================================================
-// VERSIONE APP — formato ANNO-MESE-GIORNO-PROGRESSIVO
-// Aggiornare APP_VERSION e aggiungere una voce in CHANGELOG
-// ad ogni nuova release/modifica significativa
-// ============================================================
 const APP_VERSION = '2026-03-23-023';
 
-// ============================================================
-// CREDITS — aggiungere qui ogni nuova libreria/servizio esterno
-// usato nell'applicativo. Il componente CreditiLicenzeView legge
-// direttamente questo array. Colori badge: mit, ofl, w3c, isc,
-// agpl, bsd, odbl, google, free
-// ============================================================
 const CREDITS = [
   {
     nome: 'React & ReactDOM',
@@ -795,7 +596,6 @@ const CHANGELOG = [
 const loadEmployees = () => {
   const storedVersion = loadData('hr_data_version', 0);
   if (storedVersion !== DATA_VERSION) {
-    // Reset completo: nuova struttura dati
     saveData('hr_employees', INITIAL_EMPLOYEES);
     saveData('hr_data_version', DATA_VERSION);
     return INITIAL_EMPLOYEES;
@@ -804,9 +604,6 @@ const loadEmployees = () => {
   return saved;
 };
 
-// ============================================================
-// DATE INPUT — mostra sempre GG/MM/AAAA indipendentemente dal browser
-// ============================================================
 function DateInput({ label, value, onChange, required, className }) {
   const formatted = value ? new Date(value + 'T00:00:00').toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'numeric' }) : '';
   return (
@@ -825,10 +622,6 @@ function DateInput({ label, value, onChange, required, className }) {
   );
 }
 
-// ============================================================
-// LOGIN
-// ============================================================
-// ── Icone SVG outline (Lucide-style) ───────────────────────
 const ICON_PATHS = {
   home:         <><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
   user:         <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
@@ -1016,20 +809,16 @@ function Login({ employees, onLogin, forcedLogoutMsg, onClearMsg }) {
   );
 }
 
-// Componente helper per il reset
 function ResetRequestButton({ resetLogin, setResetMsg }) {
   return (
     <button onClick={() => {
-      // Legge sempre dati freschi dal localStorage
       const employees = (() => { try { const s = localStorage.getItem('hr_employees'); return s ? JSON.parse(s) : []; } catch { return []; } })();
       const emp = employees.find(e => e.login === resetLogin.trim());
       if (!emp) { setResetMsg('Utente non trovato.'); return; }
       if (emp.richiestaReset) { setResetMsg('Richiesta già inviata. Attendi l\'approvazione del Master.'); return; }
-      // Salva richiestaReset: true
       const updEmp = employees.map(e => e.id===emp.id ? {...e, richiestaReset:true} : e);
       try { localStorage.setItem('hr_employees', JSON.stringify(updEmp)); } catch {}
       if (typeof DB !== 'undefined') DB.sync('hr_employees', updEmp).catch(()=>{});
-      // Crea notifica per tutti i master nel localStorage
       const masterIds = updEmp.filter(e=>[RUOLI.MASTER, RUOLI.AMMINISTRATORE].includes(e.ruolo)).map(e=>e.id);
       if (masterIds.length > 0) {
         const notifiche = (() => { try { const s = localStorage.getItem('notifiche'); return s ? JSON.parse(s) : []; } catch { return []; } })();
@@ -1054,9 +843,6 @@ function ResetRequestButton({ resetLogin, setResetMsg }) {
   );
 }
 
-// ============================================================
-// CAMBIO PASSWORD (primo accesso o dopo reset)
-// ============================================================
 function ChangePassword({ user, onSave, isFirstAccess }) {
   const [p1, setP1] = useState('');
   const [p2, setP2] = useState('');
@@ -1117,9 +903,6 @@ function ChangePassword({ user, onSave, isFirstAccess }) {
   );
 }
 
-// ============================================================
-// MOBILE TOP BAR (solo mobile)
-// ============================================================
 function MobileTopBar({ user, view, setView, onLogout, resetRequests, notifiche, userId, onBell }) {
   const r = user.ruolo;
   const isDashboard = view === 'dashboard';
@@ -1155,18 +938,8 @@ function MobileTopBar({ user, view, setView, onLogout, resetRequests, notifiche,
   );
 }
 
-
-// ============================================================
-// MOBILE BOTTOM NAV
-// ============================================================
 function MobileBottomNav() { return null; }
 
-// ============================================================
-// SIDEBAR (solo desktop)
-// ============================================================
-// ============================================================
-// VERSIONE VIEW — documentazione funzionalità + changelog
-// ============================================================
 function VersioneView({ onBack, embedded }) {
   const sezioni = [
     {
@@ -1405,14 +1178,14 @@ function VersioneView({ onBack, embedded }) {
         </div>
       )}
 
-      {/* Badge versione corrente */}
+      {}
       <div className="bg-gradient-to-r from-blue-900 to-indigo-800 rounded-2xl p-6 mb-8 text-white shadow-lg">
         <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">Versione corrente</p>
         <p className="text-3xl font-bold" style={{fontFamily:'Syne,sans-serif',letterSpacing:'0.04em'}}>{APP_VERSION}</p>
         <p className="text-blue-200 text-sm mt-2">HR Manager — Sistema di gestione risorse umane</p>
       </div>
 
-      {/* Changelog */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-8 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
           <h2 className="font-bold text-slate-700" style={{fontFamily:'Syne,sans-serif'}}>📋 Giornale degli aggiornamenti</h2>
@@ -1431,7 +1204,7 @@ function VersioneView({ onBack, embedded }) {
         </div>
       </div>
 
-      {/* Funzionalità per sezione */}
+      {}
       <h2 className="font-bold text-slate-700 text-lg mb-5" style={{fontFamily:'Syne,sans-serif'}}>🗂️ Funzionalità sviluppate</h2>
       <div className="space-y-4">
         {sezioni.map((sez, i) => (
@@ -1451,15 +1224,12 @@ function VersioneView({ onBack, embedded }) {
         ))}
       </div>
 
-      {/* Footer */}
+      {}
       <p className="text-center text-slate-300 text-xs mt-10">HR Manager · Created by LPG · v{APP_VERSION}</p>
     </div>
   );
 }
 
-// ============================================================
-// CREDITI E LICENZE VIEW
-// ============================================================
 function CreditiLicenzeView({ onBack, embedded }) {
   const BadgeLicenza = ({ label, href, colore }) => {
     const palette = {
@@ -1548,7 +1318,7 @@ function CreditiLicenzeView({ onBack, embedded }) {
         </div>
       )}
 
-      {/* Griglia librerie */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
         {librerie.map((lib, i) => (
           <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col gap-2">
@@ -1565,7 +1335,7 @@ function CreditiLicenzeView({ onBack, embedded }) {
         ))}
       </div>
 
-      {/* Note legali */}
+      {}
       <div className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 mb-10">
         <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Note legali</p>
         <p className="text-xs text-slate-500 leading-relaxed">
@@ -1579,7 +1349,7 @@ function CreditiLicenzeView({ onBack, embedded }) {
         </p>
       </div>
 
-      {/* Considerazioni commerciali */}
+      {}
       <h2 className="font-bold text-slate-700 text-lg mb-2" style={{fontFamily:'Syne,sans-serif'}}>
         ⚠️ Considerazioni per uso commerciale
       </h2>
@@ -1604,7 +1374,7 @@ function CreditiLicenzeView({ onBack, embedded }) {
         })}
       </div>
 
-      {/* Footer */}
+      {}
       <p className="text-center text-slate-300 text-xs mt-4">HR Manager · Created by LPG · v{APP_VERSION}</p>
     </div>
   );
@@ -1836,7 +1606,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
     >
-      {/* Logo */}
+      {}
       <div style={{
         padding: expanded ? '14px 16px' : '14px 0',
         borderBottom:'1px solid #f1f5f9',
@@ -1857,7 +1627,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
         </div>
       </div>
 
-      {/* Avatar utente */}
+      {}
       <div style={{
         padding: expanded ? '10px 14px' : '10px 0',
         borderBottom:'1px solid #f1f5f9',
@@ -1877,7 +1647,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
         </div>
       </div>
 
-      {/* Nav */}
+      {}
       <nav style={{flex:1, padding:'8px 6px', overflowY:'auto', overflowX:'hidden'}}>
         {hasAreaSpecifica ? (
           <>
@@ -1909,7 +1679,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
         )}
       </nav>
 
-      {/* Esci */}
+      {}
       <div style={{padding:'6px 6px 12px',borderTop:'1px solid #f1f5f9'}}>
         <button
           onClick={onLogout}
@@ -1935,9 +1705,6 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
   );
 }
 
-// ============================================================
-// DASHBOARD
-// ============================================================
 function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari, setView, setSelectedEmployee, news, settings }) {
   const r = user.ruolo;
   const td = todayStr();
@@ -1945,12 +1712,10 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
   const todayAll = timbrature.filter(t => t.data===td);
   const teamSize = employees.filter(e => e.responsabileId===user.id).length;
   const resetList = canManage(r) ? employees.filter(e=>e.richiestaReset) : [];
-  // Alert dipendenti senza responsabile — solo per master
   const dipSenzaResp = r === RUOLI.MASTER
     ? employees.filter(e => e.ruolo === RUOLI.DIPENDENTE && !e.responsabileId && !e.accessoDisabilitato)
     : [];
 
-  // Permessi del team in attesa — solo per responsabile
   const permessiPending = r === RUOLI.RESPONSABILE
     ? (permessi||[]).filter(p =>
         p.status === SP.PENDING &&
@@ -1965,7 +1730,6 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
       )
     : [];
 
-  // Ferie pending step1 — solo responsabile vede pending_resp del proprio team
   const feriePendingStep1 = r === RUOLI.RESPONSABILE
     ? (ferie||[]).filter(f =>
         f.status === SF.PENDING_RESP &&
@@ -1974,12 +1738,10 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
       )
     : [];
 
-  // Ferie pending step2 — direttore e admin vedono pending_dir (incluse quelle dei responsabili)
   const feriePendingStep2 = (r === RUOLI.DIRETTORE || r === RUOLI.AMMINISTRATORE)
     ? (ferie||[]).filter(f => f.status === SF.PENDING_DIR && f.employeeId !== user.id)
     : [];
 
-  // Straordinari pending step1 — responsabile vede pending_resp del suo team
   const straPendingStep1 = r=== RUOLI.RESPONSABILE
     ? (straordinari||[]).filter(s =>
         s.status=== SS.PENDING_RESP &&
@@ -1988,13 +1750,11 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
       )
     : [];
 
-  // Straordinari pending step2 — direttore e amministratore (fallback) vedono pending_dir
   const hasDirettore = employees.some(e => e.ruolo === RUOLI.DIRETTORE && !e.accessoDisabilitato);
   const straPendingStep2 = (r === RUOLI.DIRETTORE || (r === RUOLI.AMMINISTRATORE && !hasDirettore))
     ? (straordinari||[]).filter(s => s.status === SS.PENDING_DIR && s.employeeId !== user.id)
     : [];
 
-  // Riquadri statistici (in cima)
   const statCards = [
     { label:'La tua entrata oggi', value: myToday ? myToday.ora : '—', sub: myToday ? 'Registrata' : 'Non ancora timbrato', icon:'clock', accent: myToday?'text-emerald-600':'text-slate-400', link:'timbratura' },
     ...(canSeeAll(r) ? [
@@ -2006,7 +1766,6 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
     ] : []),
   ];
 
-  // Riquadri navigazione mobile — Area Dipendente (comune a tutti)
   const navTilesDip = [
     { id:'timbratura',        label:'Timbratura',          icon:'clock',    color:'bg-blue-900' },
     { id:'mie-presenze',      label:'Il mio Calendario',   icon:'calendar', color:'bg-indigo-600' },
@@ -2080,7 +1839,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
 
   return (
     <div className="p-4 lg:p-8">
-      {/* Saluto */}
+      {}
       <div className="mb-5">
         <h2 className="text-xl lg:text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif',lineHeight:1.3,overflow:'visible'}}>
           Buongiorno, {user.nome}
@@ -2090,7 +1849,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </p>
       </div>
 
-      {/* Banner permessi in attesa — solo responsabile */}
+      {}
       {permessiPending.length > 0 && (
         <button onClick={()=>setView('approva-permessi')}
           className="w-full mb-5 bg-violet-50 border border-violet-200 rounded-2xl p-4 text-left hover:bg-violet-100 hover:border-violet-400 transition-all group">
@@ -2112,7 +1871,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </button>
       )}
 
-      {/* Banner ferie step1 in attesa — responsabile */}
+      {}
       {feriePendingStep1.length > 0 && (
         <button onClick={()=>setView('approva-ferie')}
           className="w-full mb-5 bg-sky-50 border border-sky-200 rounded-2xl p-4 text-left hover:bg-sky-100 hover:border-sky-400 transition-all group">
@@ -2134,7 +1893,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </button>
       )}
 
-      {/* Banner ferie step2 in attesa — direttore / admin */}
+      {}
       {feriePendingStep2.length > 0 && (
         <button onClick={()=>setView('approva-ferie')}
           className="w-full mb-5 bg-sky-50 border border-sky-200 rounded-2xl p-4 text-left hover:bg-sky-100 hover:border-sky-400 transition-all group">
@@ -2156,7 +1915,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </button>
       )}
 
-      {/* Banner straordinari step1 — responsabile */}
+      {}
       {straPendingStep1.length > 0 && (
         <button onClick={()=>setView('approva-straordinari')}
           className="w-full mb-5 bg-orange-50 border border-orange-200 rounded-2xl p-4 text-left hover:bg-orange-100 hover:border-orange-400 transition-all group">
@@ -2180,7 +1939,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </button>
       )}
 
-      {/* Banner straordinari step2 — solo direttore */}
+      {}
       {straPendingStep2.length > 0 && (
         <button onClick={()=>setView('approva-straordinari')}
           className="w-full mb-5 bg-orange-50 border border-orange-200 rounded-2xl p-4 text-left hover:bg-orange-100 hover:border-orange-400 transition-all group">
@@ -2204,7 +1963,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </button>
       )}
 
-      {/* Banner News non lette */}
+      {}
       {(news||[]).filter(n=>!n.lette.includes(user.id)).slice(0,3).map(n=>(
         <div key={n.id} onClick={()=>setView('news')}
           className="mb-3 bg-pink-50 border border-pink-200 rounded-2xl p-4 cursor-pointer hover:bg-pink-100 transition-colors flex items-start gap-3">
@@ -2217,7 +1976,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </div>
       ))}
 
-      {/* Reset requests notification for master */}
+      {}
       {resetList.length > 0 && (
         <div className="mb-5 bg-red-50 border border-red-200 rounded-2xl p-4">
           <p className="font-semibold text-red-700 text-sm mb-3">🔑 Richieste di reset password ({resetList.length})</p>
@@ -2238,7 +1997,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </div>
       )}
 
-      {/* Alert dipendenti senza responsabile — solo master */}
+      {}
       {dipSenzaResp.length > 0 && (
         <div className="mb-5 bg-amber-50 border border-amber-300 rounded-2xl p-4">
           <p className="font-semibold text-amber-800 text-sm mb-2">⚠️ Dipendenti senza responsabile assegnato ({dipSenzaResp.length})</p>
@@ -2259,7 +2018,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </div>
       )}
 
-      {/* Riquadri statistici */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-5 mb-5">
         {statCards.map((c,i) => (
           <button key={i} onClick={()=>setView(c.link)}
@@ -2274,11 +2033,11 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         ))}
       </div>
 
-      {/* Riquadri navigazione — visibili solo su mobile */}
+      {}
       <div className="lg:hidden">
         {areaTiles ? (
           <>
-            {/* Area Dipendente */}
+            {}
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Area Dipendente</p>
             <div className="grid grid-cols-2 gap-3 mb-5">
               {navTilesDip.map(t => (
@@ -2289,7 +2048,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
                 </button>
               ))}
             </div>
-            {/* Area specifica ruolo */}
+            {}
             <p className={`text-xs font-semibold uppercase tracking-wider mb-3 ${AREA_MOBILE_COLOR[r]}`}>{AREA_MOBILE_LABEL[r]}</p>
             <div className="grid grid-cols-2 gap-3">
               {areaTiles.map(t => (
@@ -2317,7 +2076,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         )}
       </div>
 
-      {/* Azioni rapide — solo desktop */}
+      {}
       <div className="hidden lg:block bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
         <p className="font-semibold text-slate-600 text-sm mb-4">Azioni rapide</p>
         <div className="flex flex-wrap gap-3">
@@ -2353,7 +2112,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         </div>
       </div>
 
-      {/* Footer versione */}
+      {}
       <p className="text-center text-slate-500 text-xs mt-6 pb-2 font-medium">
         HR Manager &nbsp;·&nbsp; v{APP_VERSION} &nbsp;·&nbsp; Created by LPG
       </p>
@@ -2361,9 +2120,6 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
   );
 }
 
-// ============================================================
-// EMPLOYEE LIST
-// ============================================================
 function EmployeeList({ user, employees, setView, setSelectedEmployee }) {
   const r = user.ruolo;
   const showAdminCols = canManage(r);
@@ -2499,9 +2255,6 @@ function EmployeeList({ user, employees, setView, setSelectedEmployee }) {
   );
 }
 
-// ============================================================
-// EMPLOYEE DETAIL
-// ============================================================
 function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole, reperibilita, onEdit, onDelete, onBack, onToggleGps, onToggleAccesso, onToggleReperibile, onToggleNuovaPassword, onToggleStraordinario, settings }) {
   const getName = id => { const e = employees.find(x=>x.id===id); return e ? `${e.nome} ${e.cognome}` : 'Nessuno'; };
   const canToggleThisAccesso = canEdit && !isOwnProfile && (
@@ -2553,10 +2306,10 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
             </div>
           ))}
         </div>
-        {/* Gestione accesso — solo master/amministratore su profili altrui */}
+        {}
         {canEdit && !isOwnProfile && (
           <div className="px-6 pb-6 space-y-3">
-            {/* GPS obbligatorio */}
+            {}
             <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 transition-colors ${emp.gpsObbligatorio ? 'bg-sky-50 border-sky-300' : 'bg-slate-50 border-slate-200'}`}>
               <div>
                 <p className="font-semibold text-slate-700 text-sm">📍 GPS obbligatorio alla timbratura</p>
@@ -2569,7 +2322,7 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
                 <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${emp.gpsObbligatorio ? 'translate-x-6' : 'translate-x-1'}`}/>
               </button>
             </div>
-            {/* Disabilita accesso */}
+            {}
             {canToggleThisAccesso ? (
               <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 transition-colors ${emp.accessoDisabilitato ? 'bg-red-50 border-red-300' : 'bg-slate-50 border-slate-200'}`}>
                 <div>
@@ -2589,7 +2342,7 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
                 <p className="text-xs text-slate-400 mt-0.5">Solo l'Amministratore può disabilitare l'accesso di un Master.</p>
               </div>
             ) : null}
-            {/* Cambio password al primo accesso */}
+            {}
             <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 transition-colors ${emp.richiedeNuovaPassword ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
               <div>
                 <p className="font-semibold text-slate-700 text-sm">🔑 Cambio password al primo accesso</p>
@@ -2602,7 +2355,7 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
                 <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${emp.richiedeNuovaPassword ? 'translate-x-6' : 'translate-x-1'}`}/>
               </button>
             </div>
-            {/* Straordinario — solo Direttore e Amministratore */}
+            {}
             {(currentUserRole === RUOLI.DIRETTORE || currentUserRole === RUOLI.AMMINISTRATORE || currentUserRole === RUOLI.MASTER) && (
               <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 transition-colors ${emp.straordinario ? 'bg-orange-50 border-orange-300' : 'bg-slate-50 border-slate-200'}`}>
                 <div>
@@ -2617,14 +2370,14 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
                 </button>
               </div>
             )}
-            {/* Credenziali */}
+            {}
             <div className="bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4">
               <p className="font-semibold text-slate-700 text-sm mb-1">👤 Credenziali accesso</p>
               <p className="text-slate-500 text-xs">Username: <strong>{emp.login || '—'}</strong></p>
             </div>
           </div>
         )}
-        {/* Reperibilità — toggle per responsabile */}
+        {}
         {currentUserRole === RUOLI.RESPONSABILE && !isOwnProfile && (
           <div className="px-6 pb-6">
             <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 transition-colors ${emp.reperibile ? 'bg-red-50 border-red-300' : 'bg-slate-50 border-slate-200'}`}>
@@ -2641,7 +2394,7 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
             </div>
           </div>
         )}
-        {/* Reperibilità — lettura per il dipendente sulla propria anagrafica */}
+        {}
         {isOwnProfile && (
           <div className="px-6 pb-6 space-y-3">
             <div className={`flex items-center justify-between rounded-2xl px-5 py-4 border-2 ${emp.reperibile ? 'bg-purple-50 border-purple-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -2673,11 +2426,6 @@ function EmployeeDetail({ emp, employees, isOwnProfile, canEdit, currentUserRole
   );
 }
 
-// ============================================================
-// EMPLOYEE FORM
-// ============================================================
-// Componente campo definito FUORI da EmployeeForm per evitare il bug
-// di unmount/remount ad ogni keystroke (React ricrea il componente se definito dentro)
 function EmpField({ label, name, type='text', placeholder='', form, setForm, errors, autoComplete }) {
   return (
     <div>
@@ -2711,7 +2459,6 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
     if (!form.login.trim())    e.login    = 'Obbligatorio';
     if (!isEdit && !form.password.trim()) e.password = 'Obbligatorio per nuovo dipendente';
     if (!isEdit && form.password && form.password.length < 6) e.password = 'Min. 6 caratteri';
-    // Check login univoco
     const dup = employees.find(e => e.login===form.login.trim() && e.id!==emp?.id);
     if (dup) e.login = 'Username già in uso';
     return e;
@@ -2735,7 +2482,7 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
           {isEdit ? '✏️ Modifica dipendente' : '➕ Nuovo dipendente'}
         </h2>
 
-        {/* Dati anagrafici */}
+        {}
         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Dati anagrafici</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <EmpField label="Nome *"             name="nome"      form={form} setForm={setForm} errors={errors} />
@@ -2786,7 +2533,7 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
           </div>
         </div>
 
-        {/* Credenziali accesso */}
+        {}
         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Credenziali di accesso</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-slate-50 rounded-2xl p-4 border border-slate-200" autoComplete="off">
           <EmpField label="Username *" name="login" placeholder="es. mario.rossi" form={form} setForm={setForm} errors={errors} autoComplete="username" />
@@ -2819,9 +2566,6 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
   );
 }
 
-// ============================================================
-// TIMBRATURA
-// ============================================================
 function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordinario, settings, straordinari }) {
   const [now, setNow]         = useState(new Date());
   const [gpsStatus, setGps]   = useState('idle');
@@ -2838,15 +2582,12 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
   const gpsRequired = !!user.gpsObbligatorio;
   const canStraord  = !!user.straordinario;
 
-  // Orari dal settings
   const inizioTurno = settings?.inizioTurno || '08:30';
   const fineTurno   = settings?.fineTurno   || '17:00';
   const tolleranza  = settings?.tolleranzaMinuti ?? 15;
 
-  // Converte "HH:MM" → minuti dall'inizio giornata (robusto: ignora AM/PM e caratteri extra)
   const toMin = (hhmm) => {
     if (!hhmm) return 0;
-    // Estrae solo i numeri HH e MM ignorando AM/PM e altri caratteri
     const match = String(hhmm).match(/(\d{1,2})[:\.](\d{2})/);
     if (!match) return 0;
     const h = parseInt(match[1], 10);
@@ -2854,7 +2595,6 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
     return h * 60 + m;
   };
 
-  // Formatta l'ora corrente in HH:MM sempre in 24h
   const getOraStr = () => {
     const t = new Date();
     return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
@@ -2863,7 +2603,6 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
   const inizioMin = toMin(inizioTurno);
   const fineMin   = toMin(fineTurno);
 
-  // Calcola minuti di straordinario per una timbratura
   const calcolaStraMattina = (oraHHMM) => {
     const min = toMin(oraHHMM);
     const soglia = inizioMin - tolleranza;
@@ -2885,7 +2624,6 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
     } catch { return null; }
   };
 
-  // Salva la timbratura di entrata
   const saveEntrata = (gps) => {
     const oraStr = getOraStr();
     const entry = {
@@ -2896,7 +2634,6 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
     const upd = [...timbrature, entry];
     setTimbrature(upd); saveData('timbrature', upd);
     if (onTimbratura) onTimbratura(user, oraStr, gps || null);
-    // Straordinario mattina?
     if (canStraord) {
       const strMin = calcolaStraMattina(oraStr);
       if (strMin > 0) {
@@ -2907,16 +2644,13 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
     }
   };
 
-  // Salva la timbratura di uscita (aggiorna oraUscita sul record esistente)
   const saveUscita = (gps) => {
     const oraStr = getOraStr();
     if (!canStraord) {
-      // Salva uscita semplice
       const upd = timbrature.map(t => t.id===myToday.id ? {...t, oraUscita: oraStr} : t);
       setTimbrature(upd); saveData('timbrature', upd);
       return;
     }
-    // Calcola straordinari — skip mattina se già registrato oggi (es. già creato al clock-in)
     const straMattinaGiaRegistrata = (straordinari||[]).some(s => s.employeeId===user.id && s.data===td && s.tipo==='mattina');
     const straMattina = straMattinaGiaRegistrata ? 0 : calcolaStraMattina(myToday.ora);
     const straSera    = calcolaStraFine(oraStr);
@@ -2934,17 +2668,14 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
   const handleConfermaNota = () => {
     if (!pendingExit) return;
     const { tipo, oraStr, gps, straMattinaMin, straSeraMin } = pendingExit;
-    // Valida note obbligatorie
     if ((tipo==='mattina' || tipo==='mattina_uscita' || tipo==='entrambi') && straMattinaMin>0 && !notaStr.mattina.trim()) return;
     if ((tipo==='sera' || tipo==='entrambi') && straSeraMin>0 && !notaStr.sera.trim()) return;
 
-    // Salva uscita se è un'uscita
     if (tipo !== 'mattina') {
       const upd = timbrature.map(t => t.id===myToday.id ? {...t, oraUscita: oraStr} : t);
       setTimbrature(upd); saveData('timbrature', upd);
     }
 
-    // Crea record straordinari
     if (straMattinaMin > 0 && (tipo==='mattina' || tipo==='mattina_uscita' || tipo==='entrambi')) {
       if (onStraordinario) onStraordinario(user, td, 'mattina', straMattinaMin, notaStr.mattina.trim());
     }
@@ -2989,7 +2720,7 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
     <div className="p-4 lg:p-8">
       <h2 className="text-2xl font-bold text-slate-800 mb-6" style={{fontFamily:'Syne,sans-serif'}}>Timbratura</h2>
 
-      {/* Modal nota straordinario */}
+      {}
       {showNoteModal && pendingExit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
@@ -3039,7 +2770,7 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Orologio */}
+        {}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 flex flex-col items-center text-center">
           <p className="text-slate-400 text-sm capitalize mb-2">
             {now.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
@@ -3049,7 +2780,7 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
           </p>
           <p className="text-slate-300 text-2xl mb-6">:{String(now.getSeconds()).padStart(2,'0')}</p>
 
-          {/* Orario di riferimento per dipendenti con straordinari */}
+          {}
           {canStraord && (
             <div className="w-full mb-4 bg-orange-50 border border-orange-200 rounded-xl px-4 py-2 text-xs text-orange-700 text-left">
               ⏰ Turno base: <strong>{inizioTurno}</strong> — Pausa pranzo 30 minuti — Fine turno base: <strong>{fineTurno}</strong> · Tolleranza: <strong>{tolleranza} min</strong>
@@ -3116,7 +2847,7 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
           )}
         </div>
 
-        {/* Storico */}
+        {}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
           <h3 className="font-semibold text-slate-600 text-sm mb-4">Storico timbrature</h3>
           {myHistory.length===0
@@ -3152,9 +2883,6 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
   );
 }
 
-// ============================================================
-// LE MIE PRESENZE (calendario personale per tutti i ruoli)
-// ============================================================
 function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita, employees, gestioniTelefoniche, straordinari }) {
   const n = new Date();
   const [month, setMonth] = useState(n.getMonth()+1);
@@ -3180,7 +2908,6 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
   const giorniLav = days.filter(d=>!d.isWeekend).length;
   const assenze   = days.filter(d=>!d.isWeekend&&!d.isFuture&&!presenceMap[d.str]).length;
 
-  // Mappa malattia personale (include giorni futuri)
   const malattiaMap = {};
   (malattie||[]).filter(m=>m.employeeId===user.id).forEach(m => {
     const fine = m.dataFine || m.dataInizio;
@@ -3192,14 +2919,12 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
     }
   });
 
-  // Mappa permessi personali
   const permessiMap = {};
   (permessi||[]).filter(p=>p.employeeId===user.id).forEach(p => {
     if (!permessiMap[p.data]) permessiMap[p.data] = [];
     permessiMap[p.data].push(p);
   });
 
-  // Mappa ferie personali approvate
   const ferieMap = {};
   (ferie||[]).filter(f=>f.employeeId===user.id&&f.status=== SF.APPROVATO).forEach(f => {
     let cur = new Date(f.dataInizio+'T00:00:00');
@@ -3210,11 +2935,9 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
     }
   });
 
-  // Mappa reperibilità propria
   const repOwnMap = {};
   (reperibilita||[]).filter(r=>r.employeeId===user.id && r.pubblicata).forEach(r => { repOwnMap[r.data] = true; });
 
-  // Mappa reperibilità colleghi (stesso team: stessa responsabileId)
   const repOthersMap = {};
   (reperibilita||[]).filter(r=>r.employeeId!==user.id && r.pubblicata).forEach(r => {
     const emp = (employees||[]).find(e=>e.id===r.employeeId);
@@ -3224,7 +2947,6 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
     if (sameTeam || isMyTeam || isMyBoss) repOthersMap[r.data] = (repOthersMap[r.data]||[]).concat(emp);
   });
 
-  // Mappa gestioni telefoniche proprie: data → array
   const gestMap = {};
   (gestioniTelefoniche||[]).filter(g=>g.employeeId===user.id).forEach(g => {
     if (!gestMap[g.data]) gestMap[g.data] = [];
@@ -3242,17 +2964,14 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
   const permTipAnno = tip => permApprAnno.filter(p=>p.tipologia===tip).reduce((s,p)=>s+p.orePermesso,0);
   const ferieGiorniAnno = (ferie||[]).filter(f=>f.employeeId===user.id&&f.status=== SF.APPROVATO&&f.dataInizio.startsWith(annoStr)).reduce((s,f)=>s+f.giorniLavorativi,0);
 
-  // Straordinari approvati
   const fmtMin = m => m>=60 ? `${Math.floor(m/60)}h ${m%60}min` : `${m}min`;
   const straMinMese = (straordinari||[]).filter(s=>s.employeeId===user.id&&s.status===SS.APPROVATO&&s.data.startsWith(mStrFull)).reduce((a,s)=>a+s.minuti,0);
   const straMinAnno = (straordinari||[]).filter(s=>s.employeeId===user.id&&s.status===SS.APPROVATO&&s.data.startsWith(annoStr)).reduce((a,s)=>a+s.minuti,0);
-  // Mappa straordinari approvati per giorno (per badge nel calendario)
   const straMapMie = {};
   (straordinari||[]).filter(s=>s.employeeId===user.id&&s.status===SS.APPROVATO).forEach(s=>{ straMapMie[s.data] = true; });
   const meseStr   = mStrFull;
 
   const handleScaricaPDF = () => {
-    // Costruisce tabella calendario per il PDF
     const firstDow = new Date(year, month-1, 1).getDay();
     const allCells = [...Array(firstDow).fill(null), ...days];
     const weeks = [];
@@ -3273,7 +2992,6 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
       return `<tr>${celle}</tr>`;
     }).join('');
 
-    // Lista dettaglio timbrature del mese
     const righeDettaglio = monthPresenze
       .sort((a,b) => a.data.localeCompare(b.data))
       .map(t => {
@@ -3366,7 +3084,6 @@ ${monthPresenze.length === 0
 
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const url  = URL.createObjectURL(blob);
-    // Su Android Chrome da file://, window.open è bloccato: usa sempre link download
     const a = document.createElement('a');
     a.href = url;
     a.download = `presenze-${user.cognome.toLowerCase()}-${year}-${String(month).padStart(2,'0')}.html`;
@@ -3399,7 +3116,7 @@ ${monthPresenze.length === 0
         </div>
       </div>
 
-      {/* Stats — rettangoli raggruppati */}
+      {}
       {(() => {
         const ini = user.valoriIniziali || {};
         const iniFerieAnno   = Number(ini.ferieGiorniAnno    || 0);
@@ -3408,12 +3125,10 @@ ${monthPresenze.length === 0
         const iniGestTelAnno = Number(ini.gestioniTelefoniche || 0);
         const iniAssenzeAnno = Number(ini.assenze             || 0);
 
-        // Reperibilità mese/anno
         const repMeseCount = (reperibilita||[]).filter(r=>r.employeeId===user.id && r.pubblicata && r.data.startsWith(mStrFull)).length;
         const repAnnoCount = (reperibilita||[]).filter(r=>r.employeeId===user.id && r.pubblicata && r.data.startsWith(annoStr)).length;
         const gestAnnoCount = (gestioniTelefoniche||[]).filter(g=>g.employeeId===user.id&&g.data.startsWith(annoStr)).length;
 
-        // Assenze anno (giorni feriali non presenti, non in ferie, non in malattia, non futuri)
         const oggi = todayStr();
         let assenzeAnno = 0;
         const daysInYear = [];
@@ -3454,7 +3169,7 @@ ${monthPresenze.length === 0
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
 
-            {/* Presenze */}
+            {}
             <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="check" size={13} color="#10b981" /> Presenze</p>
               {statBox('Giorni lavorativi mese', giorniLav, 'text-slate-700')}
@@ -3463,7 +3178,7 @@ ${monthPresenze.length === 0
               {statBox('Assenze anno', assenzeAnno + iniAssenzeAnno, 'text-red-400')}
             </div>
 
-            {/* Permessi */}
+            {}
             {(() => {
               const ini = user.valoriIniziali || {};
               const TIPS = [
@@ -3513,7 +3228,7 @@ ${monthPresenze.length === 0
               );
             })()}
 
-            {/* Ferie */}
+            {}
             <div className="bg-white rounded-2xl p-4 border border-sky-100 shadow-sm">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="plane" size={13} color="#0ea5e9" /> Ferie</p>
               {statBox('Ferie mese (gg)', (ferie||[]).filter(f=>f.employeeId===user.id&&f.status===SF.APPROVATO&&f.dataInizio.startsWith(mStrFull)).reduce((s,f)=>s+f.giorniLavorativi,0)+' gg', 'text-sky-500')}
@@ -3521,7 +3236,7 @@ ${monthPresenze.length === 0
               <p className="text-xs text-slate-400 italic leading-relaxed mt-3">Attenzione, le ferie riportate non tengono conto delle ferie maturate ogni mese ma solo di quelle effettivamente prese nel mese e nell&apos;anno.</p>
             </div>
 
-            {/* Straordinari */}
+            {}
             <div className={`rounded-2xl p-4 shadow-sm border ${user.straordinario ? 'bg-white border-orange-100' : 'bg-slate-100 border-slate-200'}`}>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="trending" size={13} color="#f97316" /> Straordinari</p>
               {user.straordinario ? (<>
@@ -3532,7 +3247,7 @@ ${monthPresenze.length === 0
               )}
             </div>
 
-            {/* Reperibilità */}
+            {}
             <div className={`rounded-2xl p-4 shadow-sm border sm:col-span-2 xl:col-span-4 ${user.reperibile ? 'bg-white border-purple-100' : 'bg-slate-100 border-slate-200'}`}>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="phone" size={13} color="#a855f7" /> Reperibilità</p>
               {user.reperibile ? (
@@ -3551,7 +3266,7 @@ ${monthPresenze.length === 0
         );
       })()}
 
-      {/* Calendario a griglia */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
         <div className="grid grid-cols-7 gap-1 mb-2">
           {DAYS_LONG.map(d => (
@@ -3618,9 +3333,6 @@ ${monthPresenze.length === 0
   );
 }
 
-// ============================================================
-// FERIE
-// ============================================================
 function generaDocumentoFerie(f, emp, respEmp, dirEmp) {
   const html = `<!DOCTYPE html>
 <html lang="it">
@@ -3770,7 +3482,7 @@ function Ferie({ user, employees, ferie, setFerie, onRichiesta }) {
       <h2 className="text-2xl font-bold text-slate-800 mb-1" style={{fontFamily:'Syne,sans-serif'}}>Ferie</h2>
       <p className="text-slate-400 text-sm mb-6">{user.nome} {user.cognome} · Ferie approvate {annoCorr}: <strong className="text-emerald-600">{giorniAnno} {giorniAnno===1?'giorno':'giorni'}</strong></p>
 
-      {/* Form nuova richiesta */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
         <h3 className="font-bold text-slate-700 mb-4 text-base">Nuova richiesta</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -3801,7 +3513,7 @@ function Ferie({ user, employees, ferie, setFerie, onRichiesta }) {
         </button>
       </div>
 
-      {/* Storico */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
         <h3 className="font-bold text-slate-700 mb-4 text-base">Storico</h3>
         {mioStorico.length === 0
@@ -3851,9 +3563,6 @@ function Ferie({ user, employees, ferie, setFerie, onRichiesta }) {
   );
 }
 
-// ============================================================
-// APPROVA FERIE
-// ============================================================
 function ApprovaFerie({ user, employees, ferie, setFerie, onApprovaResp, onApprovaDir, onRifiuta }) {
   const r  = user.ruolo;
   const uid= user.id;
@@ -3865,11 +3574,9 @@ function ApprovaFerie({ user, employees, ferie, setFerie, onApprovaResp, onAppro
   const [rifiutoId,   setRifiutoId]   = useState(null);
   const [noteErr,     setNoteErr]     = useState('');
 
-  // Determina quali richieste può gestire l'utente — logica centralizzata in puoApprovare()
   const gestibili = (ferie||[]).filter(f => puoApprovare(f, uid, r, employees));
 
   const pending  = gestibili.filter(f => f.status === SF.PENDING_RESP || f.status === SF.PENDING_DIR);
-  // Storico — logica centralizzata in feriaInStorico()
   const storico = (ferie||[])
     .filter(f => feriaInStorico(f, uid, r, employees))
     .sort((a,b) => b.timestamp - a.timestamp)
@@ -3883,7 +3590,6 @@ function ApprovaFerie({ user, employees, ferie, setFerie, onApprovaResp, onAppro
     annullata:    { label:'Annullata', cls:'bg-slate-100 text-slate-500' },
   };
 
-  // Cancellazione ferie — solo direttore/master/admin, solo su approvato
   const [cancelFerieId,   setCancelFerieId]   = useState(null);
   const [cancelFerieNote, setCancelFerieNote] = useState('');
   const [cancelFerieErr,  setCancelFerieErr]  = useState('');
@@ -3946,7 +3652,7 @@ function ApprovaFerie({ user, employees, ferie, setFerie, onApprovaResp, onAppro
         {isAmministratore ? 'Tutte le richieste in attesa' : isDirettore ? 'Step 2 – approvazione finale' : 'Il tuo team – step 1'}
       </p>
 
-      {/* Pending */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
         <h3 className="font-bold text-slate-700 mb-4 text-base">
           🕐 Richieste da gestire
@@ -4021,7 +3727,7 @@ function ApprovaFerie({ user, employees, ferie, setFerie, onApprovaResp, onAppro
         }
       </div>
 
-      {/* Storico gestite */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
         <h3 className="font-bold text-slate-700 mb-4 text-base">📂 Storico richieste gestite</h3>
         {storico.length === 0
@@ -4067,7 +3773,7 @@ function ApprovaFerie({ user, employees, ferie, setFerie, onApprovaResp, onAppro
                             🖨️
                           </button>
                         )}
-                        {/* Annulla ferie — solo direttore/master/admin su ferie approvate */}
+                        {}
                         {f.status=== SF.APPROVATO && (isAmministratore || isDirettore) && (
                           <button onClick={()=>{ setCancelFerieId(f.id); setCancelFerieNote(''); setCancelFerieErr(''); }}
                             className="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded-lg font-medium transition-colors border border-red-200">
@@ -4084,7 +3790,7 @@ function ApprovaFerie({ user, employees, ferie, setFerie, onApprovaResp, onAppro
         }
       </div>
 
-      {/* Modale cancellazione ferie */}
+      {}
       {cancelFerieId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4">
@@ -4112,9 +3818,6 @@ function ApprovaFerie({ user, employees, ferie, setFerie, onApprovaResp, onAppro
   );
 }
 
-// ============================================================
-// MALATTIA
-// ============================================================
 function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
   const isMaster = user.ruolo === RUOLI.MASTER;
   const [empId,        setEmpId]        = useState(user.id);
@@ -4164,13 +3867,11 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
     saveData('malattie', upd);
   };
 
-  // Malattie visibili: dipendente vede le proprie, master vede tutte
   const visibili = isMaster
     ? [...malattie].sort((a,b) => b.timestamp - a.timestamp)
     : malattie.filter(m => m.employeeId === user.id).sort((a,b) => b.timestamp - a.timestamp);
 
   const empName = id => { const e = employees.find(x=>x.id===id); return e ? `${e.nome} ${e.cognome}` : id; };
-
 
   return (
     <div className="p-4 lg:p-8">
@@ -4179,10 +3880,9 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
         <p className="text-slate-600 text-sm mt-1">Inserisci o consulta le comunicazioni di malattia</p>
       </div>
 
-      {/* Form inserimento */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 max-w-xl">
         <h3 className="font-bold text-slate-700 mb-4 text-sm uppercase tracking-wide">Nuova comunicazione</h3>
-
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
           <DateInput label="Data inizio" value={dataInizio}
@@ -4194,7 +3894,7 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
           </div>
         </div>
 
-        {/* Checkbox malattia figlio */}
+        {}
         <div className="mb-3">
           <label className="flex items-center gap-3 cursor-pointer select-none group">
             <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors shrink-0
@@ -4248,7 +3948,7 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
         </button>
       </div>
 
-      {/* Storico */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 max-w-3xl">
         <h3 className="font-bold text-slate-700 mb-4 text-sm uppercase tracking-wide">
           Storico
@@ -4293,7 +3993,6 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
     </div>
   );
 }
-
 
 function ResetApprova({ emp, onApprova, onBack }) {
   const [tempPass, setTempPass] = useState('');
@@ -4372,10 +4071,6 @@ function ResetApprova({ emp, onApprova, onBack }) {
     </div>
   );
 }
-
-// ============================================================
-// PERMESSI ORARI — richiesta e visualizzazione propri permessi
-// ============================================================
 
 const TIPOLOGIE_PERMESSO = [
   { id: 'rol',                label: 'Permesso Orario - ROL' },
@@ -4484,7 +4179,6 @@ function PermessiOrari({ user, employees, permessi, setPermessi, onRichiesta, on
   const [tipologia,  setTipologia]  = useState('');
   const [err,        setErr]        = useState('');
   const [ok,         setOk]         = useState(false);
-  // Cancellazione permesso
   const [cancelId,   setCancelId]   = useState(null);
   const [cancelNote, setCancelNote] = useState('');
   const [cancelErr,  setCancelErr]  = useState('');
@@ -4611,7 +4305,6 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
   };
   const STATUS_LABEL = { pending:'In attesa', approvato:'Approvato', rifiutato:'Rifiutato', annullato:'Annullato' };
 
-  // Permessi, ferie e malattie sono richieste personali — il responsabile può inserire solo per se stesso
   const selectableEmps = [user];
 
   return (
@@ -4667,7 +4360,7 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
               rows={3}
               className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none"/>
           </div>
-          {/* Tipologie di permesso */}
+          {}
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-2">Tipologia di permesso <span className="text-red-400">*</span></label>
             <div className="space-y-2">
@@ -4719,7 +4412,7 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
                         <strong>Motivazione rifiuto:</strong> {p.noteRifiuto}
                       </p>
                     )}
-                    {/* Azioni documento — solo per permessi approvati */}
+                    {}
                     {p.status === SF.APPROVATO && empDati && (
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <button onClick={()=>handleScaricaDoc(p)}
@@ -4734,7 +4427,7 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
                         ) : (
                           <span className="text-xs text-slate-400">Nessuna email in anagrafica</span>
                         )}
-                        {/* Cancella permesso approvato — solo il dipendente stesso */}
+                        {}
                         {p.employeeId === user.id && (
                           <button onClick={()=>{ setCancelId(p.id); setCancelNote(''); setCancelErr(''); }}
                             className="flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-white hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg transition-colors"
@@ -4744,7 +4437,7 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
                         )}
                       </div>
                     )}
-                    {/* Nota annullamento */}
+                    {}
                     {p.status === SP.ANNULLATO && p.noteAnnullamento && (
                       <p className="text-xs text-slate-500 mt-1.5 rounded-lg px-2 py-1">
                         <strong>Annullato:</strong> {p.noteAnnullamento}
@@ -4761,7 +4454,7 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
         )}
       </div>
 
-      {/* Modale cancellazione permesso */}
+      {}
       {cancelId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4">
@@ -4789,15 +4482,6 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
   );
 }
 
-// ============================================================
-// APPROVA PERMESSI — per responsabile / master / amministratore
-// ============================================================
-// ============================================================
-// APPROVA STRAORDINARI
-// ============================================================
-// ============================================================
-// I MIEI STRAORDINARI (vista dipendente)
-// ============================================================
 function MieiStraordinari({ user, straordinari }) {
   const n = new Date();
   const [month, setMonth] = useState(n.getMonth()+1);
@@ -4839,7 +4523,7 @@ function MieiStraordinari({ user, straordinari }) {
         </div>
       </div>
 
-      {/* Riepilogo mese */}
+      {}
       {myStr.length > 0 && (
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-white rounded-2xl p-5 border border-orange-100 shadow-sm">
@@ -4853,7 +4537,7 @@ function MieiStraordinari({ user, straordinari }) {
         </div>
       )}
 
-      {/* Lista del mese */}
+      {}
       {myStr.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 text-center">
           <p className="text-3xl mb-2">⏰</p>
@@ -4903,7 +4587,6 @@ function ApprovaStraordinari({ user, employees, straordinari, setStraordinari, o
   const fmtMin = (m) => m >= 60 ? `${Math.floor(m/60)}h ${m%60}min` : `${m} min`;
   const empName = id => { const e = employees.find(x=>x.id===id); return e ? `${e.nome} ${e.cognome}` : id; };
 
-  // Filtra straordinari visibili per ruolo
   const visibili = (straordinari||[]).filter(s => {
     if (isDir || isAdmin) return s.status === SS.PENDING_DIR;
     if (isResp) {
@@ -4913,7 +4596,6 @@ function ApprovaStraordinari({ user, employees, straordinari, setStraordinari, o
     return false;
   }).sort((a,b) => b.timestamp - a.timestamp);
 
-  // Storico richieste già gestite
   const storico = (straordinari||[]).filter(s => {
     if (isDir || isAdmin) return s.status === SS.APPROVATO || (s.status === SS.RIFIUTATO && s.approvatoRespId != null);
     if (isResp) {
@@ -5228,7 +4910,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       presenceMap[`${t.employeeId}_${t.data}`] = t;
   });
 
-  // Mappa malattia: "employeeId_data" per ogni giorno coperto da una comunicazione
   const malattiaMap = {};
   (malattie||[]).forEach(m => {
     const fine = m.dataFine || m.dataInizio;
@@ -5241,7 +4922,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     }
   });
 
-  // Mappa permessi approvati: "employeeId_data" → array permessi di quel giorno
   const permessiMap = {};
   (permessi||[]).filter(p=>p.status=== SF.APPROVATO).forEach(p => {
     const k = `${p.employeeId}_${p.data}`;
@@ -5249,7 +4929,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     permessiMap[k].push(p);
   });
 
-  // Mappa ferie approvate: "employeeId_data"
   const ferieMap = {};
   (ferie||[]).filter(f=>f.status=== SF.APPROVATO).forEach(f => {
     let cur = new Date(f.dataInizio+'T00:00:00');
@@ -5261,9 +4940,7 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     }
   });
 
-  // Totale ore permesso per dipendente nel mese
   const mStr = `${year}-${String(month).padStart(2,'0')}`;
-  // Mappa reperibilità: "empId_data" → true
   const repMap = {};
   (reperibilita||[]).filter(r=>r.pubblicata).forEach(r => { repMap[`${r.employeeId}_${r.data}`] = true; });
 
@@ -5274,7 +4951,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     gestMap[k].push(g);
   });
 
-  // Mappa straordinari approvati per cella calendario
   const straMap = {};
   (straordinari||[]).filter(s=>s.status===SS.APPROVATO).forEach(s => {
     const k = `${s.employeeId}_${s.data}`;
@@ -5287,7 +4963,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     orePermessiMese[p.employeeId] = (orePermessiMese[p.employeeId]||0) + p.orePermesso;
   });
 
-  // Totale giorni ferie per dipendente nel mese
   const ferieMese = {};
   (ferie||[]).filter(f=>f.status=== SF.APPROVATO).forEach(f=>{
     days.forEach(d=>{
@@ -5297,7 +4972,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     });
   });
 
-  // Totale minuti straordinari approvati per dipendente nel mese (solo per Master/Admin/Direttore)
   const straMese = {};
   if (canSeeAll(userRole)) {
     (straordinari||[]).filter(s=>s.status===SS.APPROVATO&&s.data.startsWith(mStr)).forEach(s=>{
@@ -5325,16 +4999,13 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     setTooltip({ t, empName:`${emp.nome} ${emp.cognome}`, x: rect.left + rect.width/2, y: rect.top });
   };
 
-  // ---- STAMPA/DOWNLOAD B&N ----
   const handleStampa = () => {
-    // Legge dati freschi dal localStorage
     const allTimbrature = (() => { try { const s = localStorage.getItem('timbrature'); return s ? JSON.parse(s) : []; } catch { return []; } })();
     const allMalattie   = (() => { try { const s = localStorage.getItem('malattie');   return s ? JSON.parse(s) : []; } catch { return []; } })();
     const allPermessi   = (() => { try { const s = localStorage.getItem('permessi');   return s ? JSON.parse(s) : []; } catch { return []; } })();
     const allFerie      = (() => { try { const s = localStorage.getItem('ferie');      return s ? JSON.parse(s) : []; } catch { return []; } })();
     const mStr0 = String(month).padStart(2,'0');
 
-    // Mappa presenze
     const freshMap = {};
     allTimbrature.forEach(t => {
       const k = `${String(t.employeeId)}_${String(t.data)}`;
@@ -5342,7 +5013,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
         freshMap[k] = t;
     });
 
-    // Mappa malattia
     const freshMalattiaMap = {};
     allMalattie.forEach(m => {
       const fine = m.dataFine || m.dataInizio;
@@ -5355,7 +5025,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       }
     });
 
-    // Mappa ferie approvate per il PDF
     const freshFerieMap = {};
     allFerie.filter(f => f.status === SF.APPROVATO).forEach(f => {
       let cur = new Date(f.dataInizio + 'T00:00:00');
@@ -5367,7 +5036,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       }
     });
 
-    // Mappa permessi approvati per il PDF
     const freshPermessiMap = {};
     const mStrPdf = `${year}-${String(month).padStart(2,'0')}`;
     allPermessi.filter(p=>p.status=== SF.APPROVATO&&p.data.startsWith(mStrPdf)).forEach(p=>{
@@ -5380,7 +5048,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       orePermessiEmp[p.employeeId] = (orePermessiEmp[p.employeeId]||0)+p.orePermesso;
     });
 
-    // Reperibilità, gestioni tel., straordinari per il PDF
     const allReperibilita      = (() => { try { const s = localStorage.getItem('reperibilita');         return s ? JSON.parse(s) : []; } catch { return []; } })();
     const allGestioniTel       = (() => { try { const s = localStorage.getItem('gestioni_telefoniche'); return s ? JSON.parse(s) : []; } catch { return []; } })();
     const allStraordinariPdf   = (() => { try { const s = localStorage.getItem('straordinari');         return s ? JSON.parse(s) : []; } catch { return []; } })();
@@ -5400,15 +5067,12 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     const giorniLavorativi = printDays.filter(d => !d.isWeekend && !d.isFuture).length;
     const GIORNI_HEADER = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 
-    // Formatta ora da "08:31" a "H. 8,31"
     const fmtOra = ora => {
       if (!ora) return '';
       const [h, m] = ora.split(':');
       return `H. ${parseInt(h)},${m}`;
     };
 
-    // Organizza i giorni in settimane lun-dom
-    // Trova il primo lunedì che precede o coincide con il 1° del mese
     const firstDay = new Date(year, month-1, 1);
     const firstDow = firstDay.getDay(); // 0=dom, 1=lun...
     const offsetToMonday = firstDow === 0 ? -6 : 1 - firstDow;
@@ -5425,32 +5089,26 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
         const dStr = String(d.getDate()).padStart(2,'0');
         const mStr = String(d.getMonth()+1).padStart(2,'0');
         const str  = `${d.getFullYear()}-${mStr}-${dStr}`;
-        // isFuture è rilevante solo per il mese corrente; per mesi passati o futuri si mostra tutto
         week.push({ num: d.getDate(), str, dow: d.getDay(), isWeekend: d.getDay()===0||d.getDay()===6, isFuture: isCurrentMonthPrint && str>printToday, inMonth: d.getMonth()+1===month && d.getFullYear()===year });
       }
       weeks.push(week);
       cur.setDate(cur.getDate() + 7);
-      // Esci se la settimana è completamente nel mese successivo
       if (week.every(d => !d.inMonth)) break;
     }
 
-    // Genera i blocchi HTML settimanali
     const blocchi = weeks.filter(w => w.some(d => d.inMonth)).map(week => {
-      // Riga intestazione giorni
       const thGiorni = GIORNI_HEADER.map((g, i) => {
         const d = week[i];
         const cls = d.isWeekend ? 'th-we' : 'th-lav';
         return `<th class="${cls}">${g}</th>`;
       }).join('');
 
-      // Riga numeri giorni
       const thNumeri = week.map(d => {
         const cls = d.isWeekend ? 'th-we' : 'th-lav';
         const txt = d.inMonth ? d.num : '';
         return `<th class="${cls}" style="font-size:11px">${txt}</th>`;
       }).join('');
 
-      // Righe dipendenti
       const righe = employees.map(emp => {
         const celle = week.map(d => {
           if (!d.inMonth) return `<td class="fuori">&nbsp;</td>`;
@@ -5480,7 +5138,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
 <div style="height:14px"></div>`;
     }).join('');
 
-    // Totali per dipendente
     const righe_totali = employees.map(emp => {
       const count    = printDays.filter(d => !d.isFuture && freshMap[`${emp.id}_${d.str}`]).length;
       const malCount = printDays.filter(d => !d.isFuture && !freshMap[`${emp.id}_${d.str}`] && freshMalattiaMap[`${emp.id}_${d.str}`]).length;
@@ -5494,7 +5151,6 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       return `<tr><td class="nome">${emp.cognome} ${emp.nome}</td><td class="tot-num">${count}</td><td class="tot-num mal-num">${malCount||'—'}</td><td class="tot-num" style="background:#e0f2fe;color:#075985">${ferCount||'—'}</td><td class="tot-num">${assenze||'—'}</td><td class="tot-num" style="color:#7c3aed;font-weight:bold">${oreP > 0 ? fmtDurata(oreP) : '—'}</td><td class="tot-num" style="color:#7e22ce">${repC||'—'}</td><td class="tot-num" style="color:#4338ca">${gestC||'—'}</td><td class="tot-num" style="color:#c2410c">${fmtStra(straMin)}</td><td class="tot-num">${giorniLavorativi > 0 ? Math.round(count/giorniLavorativi*100) : 0}%</td></tr>`;
     }).join('');
 
-    // Riga totali
     const totPres  = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&freshMap[`${emp.id}_${d.str}`]).length,0);
     const totMal   = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&freshMalattiaMap[`${emp.id}_${d.str}`]).length,0);
     const totFer   = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&freshFerieMap[`${emp.id}_${d.str}`]).length,0);
@@ -5582,7 +5238,6 @@ ${blocchi}
 
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const url  = URL.createObjectURL(blob);
-    // Usa link download invece di window.open (compatibile con Android Chrome da file://)
     const a = document.createElement('a');
     a.href = url;
     a.download = `report-presenze-${year}-${String(month).padStart(2,'0')}.html`;
@@ -5594,7 +5249,7 @@ ${blocchi}
 
   return (
     <div className="p-6">
-      {/* Tooltip */}
+      {}
       {tooltip && (
         <div className="fixed z-50 pointer-events-none"
           style={{left: Math.min(tooltip.x, window.innerWidth-220), top: tooltip.y - 10, transform:'translateY(-100%)'}}>
@@ -5615,7 +5270,7 @@ ${blocchi}
       )}
 
       <div onClick={()=>setTooltip(null)}>
-        {/* Header */}
+        {}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Report Presenze</h2>
           <div className="flex items-center gap-3 flex-wrap">
@@ -5644,12 +5299,12 @@ ${blocchi}
           </div>
         </div>
 
-        {/* Tabella calendario */}
+        {}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse" style={{minWidth: `${Math.max(600, 160 + daysInMonth*38)}px`}}>
               <thead>
-                {/* Riga giorni della settimana */}
+                {}
                 <tr className="bg-slate-50">
                   <th className="sticky left-0 bg-slate-50 z-10 px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide border-b border-r border-slate-100 min-w-[140px]">
                     Dipendente
@@ -5674,7 +5329,7 @@ ${blocchi}
                   const total = empTotals.find(e=>e.emp.id===emp.id)?.count || 0;
                   return (
                     <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
-                      {/* Nome dipendente */}
+                      {}
                       <td className="sticky left-0 bg-white z-10 px-4 py-2 border-r border-slate-100">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
@@ -5686,7 +5341,7 @@ ${blocchi}
                           </div>
                         </div>
                       </td>
-                      {/* Celle giorni */}
+                      {}
                       {days.map(d => {
                         const t    = presenceMap[`${emp.id}_${d.str}`];
                         const isM  = !t && malattiaMap[`${emp.id}_${d.str}`];
@@ -5712,20 +5367,20 @@ ${blocchi}
                               {!isF && t  && <span className="text-white text-xs font-bold leading-none" style={{fontSize:9}}>{t.ora}</span>}
                               {!isF && isM && <span className="text-white text-xs font-bold leading-none" style={{fontSize:10}}>M</span>}
                               {!isF && !t && !isM && d.isFuture && null}
-                              {/* Pallino viola permesso */}
+                              {}
                               {!isF && pArr && (
                                 <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-violet-500 border-2 border-white flex items-center justify-center" style={{fontSize:7, color:'white', fontWeight:'bold'}}>P</span>
                               )}
-                              {/* Badge arancione straordinario */}
+                              {}
                               {straArr && (
                                 <span className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-orange-500 border border-white flex items-center justify-center" style={{fontSize:6, color:'white', fontWeight:'bold'}}>S</span>
                               )}
-                              {/* Badge indigo gestioni telefoniche */}
+                              {}
                               {gestArr && (
                                 <span className="absolute -top-1 -left-1 w-3 h-3 rounded-full bg-indigo-600 border border-white flex items-center justify-center" style={{fontSize:6, color:'white', fontWeight:'bold'}}>{gestArr.length}</span>
                               )}
                             </div>
-                            {/* Label orario permesso sotto la cella */}
+                            {}
                             {!isF && pArr && (
                               <div className="mt-0.5">
                                 {pArr.map((p,i) => (
@@ -5746,7 +5401,7 @@ ${blocchi}
             </table>
           </div>
 
-          {/* Tabella riepilogo dipendenti — visibile a schermo */}
+          {}
           <div className="px-5 py-5 border-t border-slate-100">
             <p className="font-bold text-slate-800 text-sm mb-3">📊 Riepilogo mensile dipendenti — {MONTHS[month-1]} {year}</p>
             <div className="overflow-x-auto rounded-xl border border-slate-200">
@@ -5817,7 +5472,7 @@ ${blocchi}
             </div>
           </div>
 
-          {/* Footer riepilogo */}
+          {}
           <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center gap-6 text-xs text-slate-500 flex-wrap">
             <span>📅 {MONTHS[month-1]} {year} · {daysInMonth} giorni</span>
             <span>👥 {employees.length} dipendenti</span>
@@ -5832,9 +5487,6 @@ ${blocchi}
   );
 }
 
-// ============================================================
-// CALENDARIO TEAM — responsabile (solo team) / direttore (tutti)
-// ============================================================
 function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie, reperibilita, gestioniTelefoniche, straordinari }) {
   const r = user.ruolo;
   const n = new Date();
@@ -5846,7 +5498,6 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
   const DAYS_SHORT = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
   const today      = todayStr();
 
-  // Filtra dipendenti in base al ruolo
   const teamEmployees = r === RUOLI.DIRETTORE
     ? employees
     : [user, ...employees.filter(e => e.responsabileId === user.id && e.id !== user.id)];
@@ -5901,7 +5552,6 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
     }
   });
 
-  // Ferie in attesa step1 (pending_resp) — lampeggianti nel calendario
   const feriePendingRespMap = {};
   (ferie||[]).filter(f=>f.status=== SF.PENDING_RESP).forEach(f => {
     let cur = new Date(f.dataInizio+'T00:00:00');
@@ -5913,7 +5563,6 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
     }
   });
 
-  // Ferie in attesa step2 (pending_dir) — evidenziate ma senza lampeggio
   const feriePendingDirMap = {};
   (ferie||[]).filter(f=>f.status=== SF.PENDING_DIR).forEach(f => {
     let cur = new Date(f.dataInizio+'T00:00:00');
@@ -5925,7 +5574,6 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
     }
   });
 
-  // Mappa reperibilità: "empId_data" → true
   const repMap = {};
   (reperibilita||[]).filter(r=>r.pubblicata).forEach(r => { repMap[`${r.employeeId}_${r.data}`] = true; });
 
@@ -5957,7 +5605,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
 
   return (
     <div className="p-4 lg:p-8" onClick={() => setTooltip(null)}>
-      {/* Header */}
+      {}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>
           📅 {titolo}
@@ -5973,7 +5621,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          {/* Navigazione mese */}
+          {}
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <button onClick={prevMonth}
               className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold transition-colors text-lg">
@@ -5991,7 +5639,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
             </button>
           </div>
 
-          {/* Griglia calendario */}
+          {}
           <div className="overflow-x-auto">
             <table className="border-collapse" style={{minWidth: Math.max(teamEmployees.length > 0 ? 900 : 400, 200)}}>
               <thead>
@@ -6020,7 +5668,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
                   const oreP  = orePermessiMese[emp.id]||0;
                   return (
                     <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
-                      {/* Nome */}
+                      {}
                       <td className="sticky left-0 bg-white z-10 px-4 py-2 border-r border-slate-100">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0">
@@ -6032,7 +5680,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
                           </div>
                         </div>
                       </td>
-                      {/* Celle giorni */}
+                      {}
                       {days.map(d => {
                         const t         = presenceMap[`${emp.id}_${d.str}`];
                         const isM       = !t && malattiaMap[`${emp.id}_${d.str}`];
@@ -6094,7 +5742,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
             </table>
           </div>
 
-          {/* Footer legenda */}
+          {}
           <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center gap-5 text-xs text-slate-500 flex-wrap">
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-500 inline-block"></span>Presente</span>
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-sky-500 inline-block"></span>Ferie approvate (F)</span>
@@ -6108,7 +5756,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
         </div>
       )}
 
-      {/* Riepilogo mensile dipendenti */}
+      {}
         {teamEmployees.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mt-6 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100">
@@ -6182,7 +5830,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
           </div>
         )}
 
-      {/* Tooltip GPS timbratura */}
+      {}
       {tooltip && (
         <div className="fixed z-50 bg-slate-900 text-white text-xs rounded-xl px-4 py-3 shadow-xl pointer-events-none"
           style={{left: Math.min(tooltip.x - 100, window.innerWidth - 220), top: tooltip.y - 90, maxWidth:220}}>
@@ -6197,9 +5845,6 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
   );
 }
 
-// ============================================================
-// BELL / NOTIFICHE PANEL
-// ============================================================
 function BellButton({ notifiche, userId, userRole, onOpen }) {
   const unread = notifiche.filter(n =>
     (isMaster || n.destinatari.includes(userId)) && !n.lette.includes(userId)
@@ -6214,9 +5859,7 @@ function BellButton({ notifiche, userId, userRole, onOpen }) {
   );
 }
 
-// Helper: renderizza il testo di una notifica con link Maps cliccabile
 function NotifTesto({ testo, className }) {
-  // Divide su " | " e renderizza ogni parte; se contiene http lo trasforma in link
   const parti = testo.split(' | ');
   return (
     <span className={className}>
@@ -6266,7 +5909,7 @@ function NotifichePanel({ notifiche, userId, userRole, employees, onMarkRead, on
     <div className="fixed inset-0 z-50" onClick={onClose}>
       <div className="absolute right-2 top-14 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
         onClick={e=>e.stopPropagation()}>
-        {/* Header */}
+        {}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
           <span className="font-bold text-slate-800 text-sm">Notifiche {unread>0 && <span className="ml-1 bg-red-100 text-red-600 text-xs font-bold px-1.5 py-0.5 rounded-full">{unread}</span>}</span>
           <div className="flex items-center gap-2">
@@ -6274,7 +5917,7 @@ function NotifichePanel({ notifiche, userId, userRole, employees, onMarkRead, on
             {isMaster && <button onClick={()=>{setView('notifiche');onClose();}} className="text-xs text-slate-400 hover:text-slate-600">Vedi tutte →</button>}
           </div>
         </div>
-        {/* Lista */}
+        {}
         <div className="max-h-96 overflow-y-auto divide-y divide-slate-50">
           {visibili.length === 0 ? (
             <div className="px-4 py-8 text-center text-slate-400 text-sm">Nessuna notifica</div>
@@ -6302,7 +5945,6 @@ function NotifichePanel({ notifiche, userId, userRole, employees, onMarkRead, on
   );
 }
 
-// Pagina notifiche (master, direttore, responsabile)
 function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onMarkAllRead }) {
   const ICONE = { timbratura:'clock', malattia:'send', reminder:'bell', reset:'lock', permesso:'clipboard', ferie:'plane', reperibilita:'user-check', gestione_tel:'phone', straordinario:'trending', 'nota-spese':'card', news:'newspaper' };
   const TIPI  = { timbratura:'Timbratura', malattia:'Malattia', reminder:'Reminder', reset:'Reset password', permesso:'Permesso orario', ferie:'Ferie', reperibilita:'Reperibilità', gestione_tel:'Gestione telefonica', straordinario:'Straordinario', 'nota-spese':'Note Spese', news:'News' };
@@ -6316,8 +5958,6 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
   const empName = id => { const e = employees.find(x=>x.id===id); return e ? `${e.nome} ${e.cognome}` : id; };
   const fmtTs = ts => new Date(ts).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 
-  // Visibilità notifiche per ruolo:
-  // master → tutte; direttore → destinatarie a lui; responsabile → destinatarie a lui
   const tutti = [...notifiche]
     .filter(n => isMaster || n.destinatari.includes(userId))
     .sort((a,b)=>b.timestamp-a.timestamp);
@@ -6352,7 +5992,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
         )}
       </div>
 
-      {/* Barra di ricerca */}
+      {}
       <div className="relative mb-4">
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Icon name="search" size={14} color="#94a3b8" /></span>
         <input
@@ -6371,7 +6011,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
         )}
       </div>
 
-      {/* Filtri tipo */}
+      {}
       <div className="flex gap-2 mb-4 flex-wrap">
         {['tutte','timbratura','reminder','malattia','reset','permesso','ferie','reperibilita','gestione_tel','straordinario','nota-spese','news'].map(f=>(
           <button key={f} onClick={()=>setFiltro(f)}
@@ -6381,9 +6021,9 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
         ))}
       </div>
 
-      {/* Filtri per colonna */}
+      {}
       <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Colonna: Dipendente */}
+        {}
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">👤 Dipendente</label>
           <select value={filtroDip} onChange={e=>setFiltroDip(e.target.value)}
@@ -6392,19 +6032,19 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
             {empInNotifiche.map(e=><option key={e.id} value={e.id}>{e.nome}</option>)}
           </select>
         </div>
-        {/* Colonna: Data da */}
+        {}
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">📅 Data da</label>
           <input type="date" value={filtroDataDa} onChange={e=>setFiltroDataDa(e.target.value)}
             className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
-        {/* Colonna: Data a */}
+        {}
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">📅 Data a</label>
           <input type="date" value={filtroDataA} onChange={e=>setFiltroDataA(e.target.value)}
             className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
-        {/* Colonna: Stato lettura */}
+        {}
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">🔵 Stato</label>
           <select value={filtroStato} onChange={e=>setFiltroStato(e.target.value)}
@@ -6414,7 +6054,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
             <option value="lette">Lette</option>
           </select>
         </div>
-        {/* Pulsante reset filtri colonna */}
+        {}
         {(filtroDip || filtroDataDa || filtroDataA || filtroStato !== 'tutte') && (
           <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
             <button onClick={()=>{setFiltroDip('');setFiltroDataDa('');setFiltroDataA('');setFiltroStato('tutte');}}
@@ -6425,7 +6065,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
         )}
       </div>
 
-      {/* Risultati */}
+      {}
       {(ricerca.trim() || filtroDip || filtroDataDa || filtroDataA || filtroStato !== 'tutte') && (
         <p className="text-xs text-slate-400 mb-3">
           {visibili.length === 0 ? 'Nessun risultato' : `${visibili.length} risultat${visibili.length===1?'o':'i'} trovati`}
@@ -6474,27 +6114,8 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
   );
 }
 
-// ============================================================
-// MANUTENZIONE
-// ============================================================
 const APPS_SCRIPT_CODE = `// ============================================================
-// HR Manager – Google Calendar Webhook  (versione JSONP)
-// Istruzioni:
-//  1. Vai su https://script.google.com → Nuovo progetto
-//  2. Sostituisci tutto il contenuto con questo codice
-//  3. Salva (non serve modificare nulla: l'ID calendario si passa dall'app)
-//  4. PRIMA DEL DEPLOY: nel menu a tendina vicino a ▶ Esegui,
-//     seleziona la funzione "autorizza" e clicca Esegui.
-//     Segui il dialogo → Avanzate → Vai al progetto → Consenti
-//  5. Distribuisci → Nuova distribuzione
-//     - Tipo: Applicazione web
-//     - Esegui come: Me
-//     - Chi ha accesso: Chiunque
-//  6. Copia l'URL della Web App e incollalo in HR Manager
-//  IMPORTANTE: dopo ogni modifica al codice crea sempre una NUOVA versione
-// ============================================================
 
-// Esegui questa funzione manualmente per autorizzare l'accesso a Calendar
 function autorizza() {
   var cal = CalendarApp.getDefaultCalendar();
   Logger.log('Autorizzazione OK. Calendario: ' + cal.getName());
@@ -6566,9 +6187,6 @@ function doPost(e) {
   }
 }`;
 
-// ============================================================
-// NOTA SPESE — Form aggiunta spesa (mobile-first)
-// ============================================================
 function NotaSpeseForm({ onSave, onCancel }) {
   const today = todayStr();
   const [form, setForm] = useState({ data: today, luogoTipo: 'sede', luogoTesto: '', natura: '', importo: '', note: '' });
@@ -6603,14 +6221,14 @@ function NotaSpeseForm({ onSave, onCancel }) {
           <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 text-3xl font-light leading-none w-8 h-8 flex items-center justify-center">×</button>
         </div>
         <div className="px-4 py-4 space-y-4">
-          {/* Data */}
+          {}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Data spesa</label>
             <DateInput value={form.data} onChange={e => setForm(f => ({...f, data:e.target.value}))}
               className={`w-full border rounded-xl px-4 py-3 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 ${err.data?'border-red-400':'border-slate-200'}`} />
             {err.data && <p className="text-red-400 text-xs mt-1">{err.data}</p>}
           </div>
-          {/* Luogo */}
+          {}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Luogo</label>
             <div className="flex gap-3 mb-3">
@@ -6632,7 +6250,7 @@ function NotaSpeseForm({ onSave, onCancel }) {
             )}
             {err.luogo && <p className="text-red-400 text-xs mt-1">{err.luogo}</p>}
           </div>
-          {/* Natura */}
+          {}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Natura di spesa</label>
             <div className="grid grid-cols-2 gap-2">
@@ -6646,7 +6264,7 @@ function NotaSpeseForm({ onSave, onCancel }) {
             </div>
             {err.natura && <p className="text-red-400 text-xs mt-1">{err.natura}</p>}
           </div>
-          {/* Importo */}
+          {}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Importo (€)</label>
             <div className="relative">
@@ -6657,7 +6275,7 @@ function NotaSpeseForm({ onSave, onCancel }) {
             </div>
             {err.importo && <p className="text-red-400 text-xs mt-1">{err.importo}</p>}
           </div>
-          {/* Note */}
+          {}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
               Note <span className="text-slate-300 font-normal normal-case">(facoltative)</span>
@@ -6676,9 +6294,6 @@ function NotaSpeseForm({ onSave, onCancel }) {
   );
 }
 
-// ============================================================
-// NOTA SPESE — Vista dipendente
-// ============================================================
 function NotaSpese({ user, noteSpese, noteSpeseVoci, setNoteSpese, setNoteSpeseVoci, settings, onConferma }) {
   const now = new Date();
   const [anno, setAnno] = useState(now.getFullYear());
@@ -6810,14 +6425,14 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
         </div>
       </div>
 
-      {/* Navigazione mese */}
+      {}
       <div className="flex items-center gap-4 mb-5">
         <button onClick={prevMese} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-lg">‹</button>
         <span className="font-bold text-slate-700 text-base min-w-[160px] text-center">{MONTHS_IT[mese-1]} {anno}</span>
         <button onClick={nextMese} disabled={isCurrentMonth} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-lg disabled:opacity-30">›</button>
       </div>
 
-      {/* Intestazione verde */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           {label:'Dipendente', value:`${user.nome} ${user.cognome}`},
@@ -6832,7 +6447,7 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
         ))}
       </div>
 
-      {/* Tabella */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto mb-4">
         <table className="w-full text-xs" style={{minWidth:700}}>
           <thead>
@@ -6939,7 +6554,7 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
         </table>
       </div>
 
-      {/* Footer firma */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex gap-3 flex-wrap">
         <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5">
           <p className="text-xs text-slate-400">Città di lavoro</p>
@@ -6951,7 +6566,7 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
         </div>
       </div>
 
-      {/* Dialog conferma */}
+      {}
       {confirmDialog && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start sm:items-center sm:justify-center p-2 sm:p-4">
           <div className="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl">
@@ -6973,14 +6588,10 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
   );
 }
 
-// ============================================================
-// NOTA SPESE — Vista Master
-// ============================================================
 function NotaSpeseListaMaster({ user, employees, noteSpese, noteSpeseVoci, settings, onSblocca }) {
   const now = new Date();
   const [anno, setAnno] = useState(now.getFullYear());
   const [mese, setMese] = useState(now.getMonth() + 1);
-  // expandedNS rimosso: contabilità sempre visibile
 
   const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
   const mStr = `${anno}-${String(mese).padStart(2,'0')}`;
@@ -7017,7 +6628,6 @@ function NotaSpeseListaMaster({ user, employees, noteSpese, noteSpeseVoci, setti
     const totVg = totCol('carburante')+totCol('pedaggio')+totCol('parcheggio')+totCol('altri acquisti');
     const totGen = totVA+totVg;
 
-    // Calcolo contabilità
     const vAS = voci.filter(v=>(v.natura==='vitto'||v.natura==='alloggio')&&v.luogo==='In sede').reduce((s,v)=>s+v.importo,0);
     const vAF = (totCol('vitto')+totCol('alloggio')) - vAS;
     const fN = v => v.toFixed(2);
@@ -7092,14 +6702,14 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Note Spese — Vista Master</h2>
       </div>
 
-      {/* Navigazione mese */}
+      {}
       <div className="flex items-center gap-4 mb-5">
         <button onClick={prevMese} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-lg">‹</button>
         <span className="font-bold text-slate-700 text-base min-w-[160px] text-center">{MONTHS_IT[mese-1]} {anno}</span>
         <button onClick={nextMese} disabled={isCurrentMonth} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-lg disabled:opacity-30">›</button>
       </div>
 
-      {/* Riepilogo aperte / chiuse */}
+      {}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-4">
           <span className="text-3xl">📝</span>
@@ -7137,7 +6747,7 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
             const fN = v => `€ ${v.toFixed(2)}`;
             return (
               <div key={ns.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                {/* Riga principale */}
+                {}
                 <div className="flex items-center gap-4 px-5 py-4 flex-wrap">
                   <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center shrink-0">
                     {emp.nome[0]}{emp.cognome[0]}
@@ -7153,9 +6763,9 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
                   </div>
                 </div>
 
-                {/* Riquadro contabilità sempre visibile */}
+                {}
                 <div className="border-t border-slate-100 bg-slate-700 text-white px-5 py-4 text-sm">
-                    {/* Header contabilità */}
+                    {}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 pb-3 border-b border-slate-500">
                       <div>
                         <p className="text-slate-400 text-xs mb-0.5">Contabilità</p>
@@ -7174,7 +6784,7 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
                         <p className="font-semibold text-xs">—</p>
                       </div>
                     </div>
-                    {/* Codici contabili — 2 colonne */}
+                    {}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 text-xs mb-3">
                       <div className="flex justify-between py-1 border-b border-slate-600"><span className="text-slate-300">41244 — Vitto e alloggio fuori dal comune</span><span className="font-bold text-white">{fN(vAF)}</span></div>
                       <div className="flex justify-between py-1 border-b border-slate-600"><span className="text-slate-300">41211 / 41210 / 41219 — Carburante F/D/A</span><span className="font-bold text-white">{fN(totCol('carburante'))}</span></div>
@@ -7196,9 +6806,6 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
   );
 }
 
-// ============================================================
-// NEWS — Storico comunicazioni (tutti i dipendenti)
-// ============================================================
 function News({ user, news, setNews, employees }) {
   const userId = user.id;
   const fmtTs = ts => { const d=new Date(ts); return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); };
@@ -7255,9 +6862,6 @@ function News({ user, news, setNews, employees }) {
   );
 }
 
-// ============================================================
-// NEWS EDITOR — Crea e invia comunicazioni (master/dir/amm)
-// ============================================================
 function NewsEditor({ user, news, setNews, employees, onCreaNotifica }) {
   const [titolo, setTitolo] = useState('');
   const [testo, setTesto] = useState('');
@@ -7271,7 +6875,6 @@ function NewsEditor({ user, news, setNews, employees, onCreaNotifica }) {
     const newItem = { id: String(Date.now()), titolo: titolo.trim(), testo: testo.trim(), authorId: user.id, lette: [], timestamp: Date.now() };
     const upd = [newItem, ...news];
     setNews(upd); saveData('news', upd); DB.sync('news', upd);
-    // Notifica a tutti i dipendenti
     const tutti = employees.map(e=>e.id);
     onCreaNotifica('news', titolo.trim(), tutti, user.id);
     setTitolo(''); setTesto('');
@@ -7287,7 +6890,7 @@ function NewsEditor({ user, news, setNews, employees, onCreaNotifica }) {
   return (
     <div className="p-4 lg:p-8">
       <h2 className="text-2xl font-bold text-slate-800 mb-6" style={{fontFamily:'Syne,sans-serif'}}>📢 Invia comunicazione</h2>
-      {/* Form invio */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
         <div className="mb-4">
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Titolo *</label>
@@ -7306,7 +6909,7 @@ function NewsEditor({ user, news, setNews, employees, onCreaNotifica }) {
           </button>
         </div>
       </div>
-      {/* Storico */}
+      {}
       <h3 className="text-base font-bold text-slate-700 mb-3">Comunicazioni inviate</h3>
       {sorted.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400">Nessuna comunicazione inviata</div>
@@ -7328,11 +6931,7 @@ function NewsEditor({ user, news, setNews, employees, onCreaNotifica }) {
   );
 }
 
-// ============================================================
-// FESTIVITÀ NAZIONALI ITALIANE
-// ============================================================
 function calcolaEaster(y) {
-  // Algoritmo di Gauss
   const a = y % 19, b = Math.floor(y/100), c = y % 100;
   const d = Math.floor(b/4), e = b % 4;
   const f = Math.floor((b+8)/25), g = Math.floor((b-f+1)/3);
@@ -7365,9 +6964,6 @@ function getFestivitaNazionali(y) {
   ];
 }
 
-// ============================================================
-// CALENDARIO CHIUSURE AZIENDALI (Direttore — crea/modifica)
-// ============================================================
 function CalendarioChiusure({ settings, onSave }) {
   const now = new Date();
   const [anno, setAnno] = useState(now.getFullYear());
@@ -7461,7 +7057,7 @@ function CalendarioChiusure({ settings, onSave }) {
         </div>
       )}
 
-      {/* Festività patronali + legenda */}
+      {}
       <div className="mt-6 bg-amber-50 rounded-2xl border border-amber-100 p-4">
         <p className="text-xs font-bold text-amber-800 uppercase tracking-wide mb-1">Festività patronali</p>
         <p className="text-xs text-amber-700">Trento: San Vigilio (26 giugno) · Monza: San Giovanni Battista (24 giugno) · Udine: Santi Ermacora e Fortunato (12 luglio)</p>
@@ -7480,9 +7076,6 @@ function CalendarioChiusure({ settings, onSave }) {
   );
 }
 
-// ============================================================
-// CALENDARIO CHIUSURE — Vista dipendente (sola lettura)
-// ============================================================
 function ChiusureView({ settings }) {
   const now = new Date();
   const [anno, setAnno] = useState(now.getFullYear());
@@ -7505,7 +7098,7 @@ function ChiusureView({ settings }) {
 
   return (
     <div className="p-4 lg:p-8">
-      {/* Status banner */}
+      {}
       <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 mb-6 ${statusBanner.cls}`}>
         <Icon name={statusBanner.icon} size={18} />
         <p className="font-medium text-sm">{statusBanner.msg}</p>
@@ -7555,7 +7148,7 @@ function ChiusureView({ settings }) {
         })}
       </div>
 
-      {/* Festività patronali + legenda */}
+      {}
       <div className="mt-6 bg-amber-50 rounded-2xl border border-amber-100 p-4">
         <p className="text-xs font-bold text-amber-800 uppercase tracking-wide mb-1">Festività patronali</p>
         <p className="text-xs text-amber-700">Trento: San Vigilio (26 giugno) · Monza: San Giovanni Battista (24 giugno) · Udine: Santi Ermacora e Fortunato (12 luglio)</p>
@@ -7588,7 +7181,6 @@ const RILPRE_GIUST_DEFAULT = [
   { id: String(Date.now() + 11), codice: 'ST', descrizione: 'Straordinari',                   tipologia: 'straordinari' },
 ];
 
-// ── Genera file RILPRE ────────────────────────────────────────────────────────
 function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, malattie, settings) {
   const pad2      = n => String(n).padStart(2, '0');
   const padRight  = (s, n) => (s || '').substring(0, n).padEnd(n, ' ');
@@ -7609,8 +7201,6 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
   };
   const oreToHhcc = ore => minToHhcc(Math.round(ore * 60));
 
-  // TIP_MAP costruito dai codici configurati in manutenzione
-  // fallback su codice standard se la voce non ha tipologia
   const CODICE_FALLBACK = { FE:'ferie', ML:'malattia', RO:'rol', EO:'ex_festivita',
     PP:'permessi_personali', H7:'legge_104', DS:'donazione_sangue',
     PA:'congedo_parentale', CM:'congedo_parentale', AQ:'allattamento', ST:'straordinari' };
@@ -7619,7 +7209,6 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
     const tip = g.tipologia || CODICE_FALLBACK[g.codice];
     if (tip && g.codice) TIP_MAP[tip] = g.codice;
   });
-  // retrocompatibilità permessi_studio → stessa voce di permessi_personali
   if (!TIP_MAP['permessi_studio'] && TIP_MAP['permessi_personali'])
     TIP_MAP['permessi_studio'] = TIP_MAP['permessi_personali'];
   const COD_FERIE    = TIP_MAP['ferie']    || 'FE';
@@ -7630,7 +7219,6 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
   const dataFineStr    = `${pad2(lastDay)}${pad2(mese)}${String(anno).slice(-2)}`;
   const meseStr        = `${anno}-${pad2(mese)}`;
 
-  // Indici per lookup veloce
   const timbIdx = {};
   (timbrature || []).forEach(t => { if (t.data.startsWith(meseStr)) timbIdx[`${t.employeeId}_${t.data}`] = t; });
   const permIdx = {};
@@ -7702,13 +7290,10 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     rilpreCodiceFiliale:     settings.rilpreCodiceFiliale || '01',
     rilpreGiustificativi:    settings.rilpreGiustificativi || RILPRE_GIUST_DEFAULT,
   });
-  // ── Centri di costo state ──
   const [newCdc, setNewCdc] = useState({numero:'', testo:''});
   const [editCdcId, setEditCdcId] = useState(null);
-  // ── Auto state ──
   const [newAuto, setNewAuto] = useState({modello:'', targa:'', tipologia:'', provenienza:''});
   const [editAutoId, setEditAutoId] = useState(null);
-  // ── RILPRE state ──
   const [newGiust, setNewGiust] = useState({codice:'', descrizione:''});
   const oggi = new Date();
   const [rilpreAnno, setRilpreAnno] = useState(oggi.getMonth() === 0 ? oggi.getFullYear()-1 : oggi.getFullYear());
@@ -7742,18 +7327,15 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
   };
   const handleDeleteAuto = (id) => setForm(f => ({...f, autoList: f.autoList.filter(a => a.id !== id)}));
   const [saved,           setSaved]          = useState(false);
-  // pubblico
   const [testStatus,      setTestStatus]     = useState(null);
   const [testEvento,      setTestEvento]     = useState(null);
   const [copied,          setCopied]         = useState(false);
   const [showCode,        setShowCode]       = useState(false);
-  // privato
   const [privTestStatus,  setPrivTestStatus] = useState(null);
   const [privTestEvento,  setPrivTestEvento] = useState(null);
   const [privCopied,      setPrivCopied]     = useState(false);
   const [privShowCode,    setPrivShowCode]   = useState(false);
 
-  // Sincronizza centriDiCosto e autoList quando settings arriva da Supabase
   React.useEffect(() => {
     setForm(f => ({...f,
       centriDiCosto: settings.centriDiCosto || [{id:'1',numero:'100',testo:'Sanitario'}],
@@ -7772,13 +7354,11 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
   const handleResetDati = async () => {
     setResetLoading(true);
     try {
-      // 1 — Pulisce localStorage (tutte le chiavi)
       ['hr_employees','timbrature','malattie','notifiche','permessi','ferie',
        'reperibilita','gestioni_telefoniche','straordinari','hr_settings','hr_data_version',
        'note_spese','note_spese_voci','news']
         .forEach(k => localStorage.removeItem(k));
 
-      // 2 — Pulisce tutte le tabelle Supabase
       if (_supa) {
         await Promise.all([
           _supa.from('timbrature').delete().neq('id','__placeholder__'),
@@ -7794,11 +7374,9 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
           _supa.from('news').delete().neq('id','__placeholder__'),
         ]);
 
-        // 3 — Reinserisce i dipendenti demo (con straordinario:false)
         const demoEmps = INITIAL_EMPLOYEES.map(e => _E.to({...e, straordinario:false}));
         await _supa.from('employees').upsert(demoEmps, { onConflict:'id' });
 
-        // 4 — Ripristina settings di default
         const defaultSettings = {
           id: 1,
           webhook_url: null, calendar_id: null, calendar_embed_url: null, calendar_enabled: false,
@@ -7820,12 +7398,10 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     if (!form.webhookUrl) { setTestStatus('error'); return; }
     setTestStatus('testing');
     try {
-      // doGet del webhook — verifica che sia raggiungibile
       const res = await fetch(form.webhookUrl, { method: 'GET', mode: 'cors' });
       const json = await res.json().catch(() => ({}));
       setTestStatus(json.status === 'ok' ? 'ok' : 'error');
     } catch(e) {
-      // Se CORS blocca il GET ma l'URL esiste, proviamo no-cors come fallback
       try {
         await fetch(form.webhookUrl, { method: 'GET', mode: 'no-cors' });
         setTestStatus('ok'); // se non lancia errore, presumiamo ok
@@ -7840,7 +7416,6 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     if (navigator.clipboard) {
       navigator.clipboard.writeText(APPS_SCRIPT_CODE).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
     } else {
-      // fallback per mobile
       const ta = document.createElement('textarea');
       ta.value = APPS_SCRIPT_CODE;
       document.body.appendChild(ta);
@@ -7876,7 +7451,6 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     };
     script.onerror = () => {
       delete window[cbName]; script.remove();
-      // onerror = la risposta non era JS valido → quasi certamente pagina HTML di login Google
       setTestEvento('error_auth');
       setTimeout(() => setTestEvento(null), 15000);
     };
@@ -7891,13 +7465,11 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     }, 12000);
   };
 
-  // Apre l'URL del webhook direttamente nel browser per vedere la risposta grezza
   const handleDiagnosi = () => {
     const url = form.webhookUrl + (form.webhookUrl.includes('?') ? '&' : '?') + 'action=ping';
     window.open(url, '_blank');
   };
 
-  // ── PRIVATO: stessi handler, riferiti a privateWebhookUrl ──
   const handlePrivTest = async () => {
     if (!form.privateWebhookUrl) { setPrivTestStatus('error'); return; }
     setPrivTestStatus('testing');
@@ -7968,7 +7540,6 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
 
   const isValidEmbedUrl = u => u && (u.includes('calendar.google.com') || u.startsWith('https://'));
 
-  // Sezioni disponibili per questo ruolo
   const MAN_SECTIONS_DEF = [
     { id:'man-orario',    label:'Orario di lavoro',         icon:'clock',      show: isMaster || isAdmin },
     { id:'man-centri',    label:'Centri di costo',          icon:'tag',        show: isMaster || isAdmin },
@@ -7991,7 +7562,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
 
   return (
     <div className="p-4 lg:p-8 max-w-4xl">
-      {/* Header con breadcrumb */}
+      {}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>Manutenzione</h2>
         {activeSection && (
@@ -8001,7 +7572,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         )}
       </div>
 
-      {/* Nav sezioni — visibile su desktop se non abbiamo sidebar accordion */}
+      {}
       <div className="flex flex-wrap gap-2 mb-6">
         {MAN_SECTIONS_DEF.map(s => (
           <button key={s.id}
@@ -8017,7 +7588,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         ))}
       </div>
 
-      {/* ── SEZIONE ORARIO DI LAVORO — solo Amministratore/Master ── */}
+      {}
       {showSection('man-orario') && (isAdmin || isMaster) && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
@@ -8077,7 +7648,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       </div>
       )}
 
-      {/* ── SEZIONE CENTRI DI COSTO — solo Master ── */}
+      {}
       {showSection('man-centri') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
@@ -8114,7 +7685,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       </div>
       )}
 
-      {/* ── SEZIONE PARCO AUTO — solo Master ── */}
+      {}
       {showSection('man-auto') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
@@ -8166,7 +7737,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       </div>
       )}
 
-      {/* ── VALORI INIZIALI DIPENDENTI — solo master ── */}
+      {}
       {showSection('man-valori') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
@@ -8285,7 +7856,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       </div>
       )}
 
-      {/* ── SEZIONE RILPRE — solo Master ── */}
+      {}
       {showSection('man-rilpre') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
@@ -8296,7 +7867,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
           </div>
         </div>
         <div className="px-6 py-5 space-y-5">
-          {/* Codice Azienda e Filiale */}
+          {}
           <div className="flex gap-4 flex-wrap">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Codice Azienda (4 cifre)</label>
@@ -8314,7 +7885,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </div>
           </div>
 
-          {/* Tabella Giustificativi */}
+          {}
           {(() => {
             const RILPRE_TIP_LABEL = {
               ferie:'Ferie', malattia:'Malattia', rol:'ROL / Permessi orari',
@@ -8371,7 +7942,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                 </tbody>
               </table>
             </div>
-            {/* Aggiungi giustificativo */}
+            {}
             <div className="flex gap-2 mt-3 flex-wrap">
               <input type="text" maxLength={4} placeholder="Codice" value={newGiust.codice}
                 onChange={e => setNewGiust(n => ({...n, codice: e.target.value.toUpperCase().slice(0,4)}))}
@@ -8403,7 +7974,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       </div>
       )}
 
-      {/* ── SEZIONE GENERA RILPRE — solo Master ── */}
+      {}
       {showSection('man-rilpre') && isMaster && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
@@ -8436,7 +8007,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       </div>
       )}
 
-      {/* ── SEZIONE RESET DATI ── */}
+      {}
       {showSection('man-info') && <div className="bg-white rounded-2xl shadow-sm border border-red-100 mb-6 overflow-hidden">
         <div className="px-6 py-5 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
@@ -8464,9 +8035,9 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         </div>
       </div>}
 
-      {/* ── SEZIONE GOOGLE CALENDAR ── */}
+      {}
       {showSection('man-calendar') && <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
-        {/* Header sezione */}
+        {}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📅</span>
@@ -8475,7 +8046,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
               <p className="text-slate-600 text-xs mt-0.5">Via Apps Script — pubblica su un calendario accessibile pubblicamente</p>
             </div>
           </div>
-          {/* Toggle abilitazione */}
+          {}
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs text-slate-500 hidden sm:inline">{form.calendarEnabled ? 'Attivo' : 'Disattivo'}</span>
             <button onClick={() => setForm(f => ({...f, calendarEnabled: !f.calendarEnabled}))}
@@ -8486,7 +8057,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         </div>
 
         <div className="px-6 py-5 space-y-5">
-          {/* ── GUIDA STEP-BY-STEP ── */}
+          {}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <p className="font-semibold text-blue-800 text-sm mb-3">📋 Come configurare (una volta sola)</p>
             <ol className="space-y-2 text-xs text-blue-700 list-decimal list-inside">
@@ -8501,7 +8072,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </ol>
           </div>
 
-          {/* ── CODICE APPS SCRIPT ── */}
+          {}
           <div>
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-semibold text-slate-700">Codice Google Apps Script</p>
@@ -8523,7 +8094,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             )}
           </div>
 
-          {/* ── URL WEBHOOK ── */}
+          {}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
               URL Webhook (Apps Script Web App) <span className="text-red-400">*</span>
@@ -8552,7 +8123,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             {testStatus === 'ok' && (
               <p className="text-xs text-emerald-600 mt-1.5">Webhook raggiungibile!</p>
             )}
-            {/* Test invio evento reale */}
+            {}
             {form.webhookUrl && (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -8610,13 +8181,13 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             )}
           </div>
 
-          {/* ── AVVISO REDISTRIBUZIONE APPS SCRIPT ── */}
+          {}
           <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 text-xs text-sky-800">
             <p className="font-semibold mb-1">⚠️ Importante: redistribuire Apps Script</p>
             <p>Se hai già un webhook attivo con il codice precedente, devi <strong>aggiornarlo</strong>: su script.google.com copia il nuovo codice, poi <em>Distribuisci → Gestisci distribuzioni → Modifica → Nuova versione → Distribuisci</em>. Il vecchio URL rimane invariato.</p>
           </div>
 
-          {/* ── ID CALENDARIO ── */}
+          {}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
               ID Calendario Google <span className="text-slate-400 font-normal">(lascia vuoto per usare il calendario principale)</span>
@@ -8633,7 +8204,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </p>
           </div>
 
-          {/* ── URL EMBED CALENDARIO ── */}
+          {}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
               URL Embed Calendario <span className="text-slate-400 font-normal">(opzionale — per visualizzare il calendario nell'app)</span>
@@ -8647,7 +8218,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             />
           </div>
 
-          {/* ── ANTEPRIMA CALENDARIO ── */}
+          {}
           {isValidEmbedUrl(form.calendarEmbedUrl) && (
             <div>
               <p className="text-sm font-semibold text-slate-700 mb-2">👁 Anteprima calendario</p>
@@ -8661,7 +8232,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </div>
           )}
 
-          {/* ── RIEPILOGO STATO ── */}
+          {}
           <div className={`rounded-xl p-4 border text-sm ${form.calendarEnabled && form.webhookUrl ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
             {form.calendarEnabled && form.webhookUrl
               ? '✅ Integrazione attiva — timbrature e malattie verranno pubblicate automaticamente nel calendario.'
@@ -8671,7 +8242,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             }
           </div>
 
-          {/* ── SALVA ── */}
+          {}
           <div className="flex justify-end pt-2">
             <button onClick={handleSave}
               className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${saved ? 'bg-emerald-500 text-white' : 'bg-blue-900 hover:bg-blue-800 text-white'}`}>
@@ -8681,9 +8252,9 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         </div>
       </div>}
 
-      {/* ── SEZIONE GOOGLE CALENDAR PRIVATO ── */}
+      {}
       {showSection('man-cal-priv') && <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
-        {/* Header */}
+        {}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🔒</span>
@@ -8702,13 +8273,13 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         </div>
 
         <div className="px-6 py-5 space-y-5">
-          {/* Differenza con il pubblico */}
+          {}
           <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 text-xs text-violet-800">
             <p className="font-semibold mb-1">🔒 Differenza rispetto al calendario pubblico</p>
             <p>Il calendario privato è visibile solo agli utenti Google a cui hai condiviso l'accesso. La configurazione è identica (stesso codice Apps Script), ma il webhook punta a un progetto Apps Script separato che scrive su un calendario diverso, con permessi ristretti.</p>
           </div>
 
-          {/* Guida */}
+          {}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <p className="font-semibold text-blue-800 text-sm mb-3">📋 Come configurare (una volta sola)</p>
             <ol className="space-y-2 text-xs text-blue-700 list-decimal list-inside">
@@ -8722,7 +8293,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </ol>
           </div>
 
-          {/* Codice Apps Script (stesso del pubblico) */}
+          {}
           <div>
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-semibold text-slate-700">Codice Google Apps Script <span className="text-slate-400 font-normal text-xs">(identico al calendario pubblico)</span></p>
@@ -8740,7 +8311,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             )}
           </div>
 
-          {/* URL Webhook Privato */}
+          {}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
               URL Webhook Privato <span className="text-red-400">*</span>
@@ -8762,7 +8333,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                 {privTestStatus === 'testing' ? '⏳' : privTestStatus === 'ok' ? '✅ Raggiungibile' : privTestStatus === 'error' ? '❌ Errore' : '🔌 Testa URL'}
               </button>
             </div>
-            {/* Test evento privato */}
+            {}
             {form.privateWebhookUrl && (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -8815,7 +8386,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             )}
           </div>
 
-          {/* ID Calendario Privato */}
+          {}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
               ID Calendario Privato <span className="text-slate-400 font-normal">(lascia vuoto per il calendario principale)</span>
@@ -8831,7 +8402,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </p>
           </div>
 
-          {/* URL Embed Privato */}
+          {}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
               URL Embed Calendario Privato <span className="text-slate-400 font-normal">(opzionale — funziona solo se sei loggato con l'account Google autorizzato)</span>
@@ -8844,7 +8415,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             />
           </div>
 
-          {/* Anteprima embed privato */}
+          {}
           {isValidEmbedUrl(form.privateCalendarEmbedUrl) && (
             <div>
               <p className="text-sm font-semibold text-slate-700 mb-2">👁 Anteprima calendario privato</p>
@@ -8854,7 +8425,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             </div>
           )}
 
-          {/* Riepilogo stato privato */}
+          {}
           <div className={`rounded-xl p-4 border text-sm ${form.privateEnabled && form.privateWebhookUrl ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
             {form.privateEnabled && form.privateWebhookUrl
               ? '✅ Integrazione privata attiva — timbrature e malattie verranno pubblicate anche nel calendario privato.'
@@ -8864,7 +8435,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             }
           </div>
 
-          {/* Salva privato */}
+          {}
           <div className="flex justify-end pt-2">
             <button onClick={handleSave}
               className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${saved ? 'bg-emerald-500 text-white' : 'bg-violet-700 hover:bg-violet-600 text-white'}`}>
@@ -8874,7 +8445,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         </div>
       </div>}
 
-      {/* ── RESET PASSWORD ── */}
+      {}
       {showSection('man-reset-pwd') && <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100">
           <p className="font-bold text-slate-800">Reset password</p>
@@ -8925,7 +8496,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         )}
       </div>}
 
-      {/* ── OPERAZIONI CRITICHE ── */}
+      {}
       {showSection('man-ops') && <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100">
           <p className="font-bold text-slate-800">Operazioni critiche</p>
@@ -8962,7 +8533,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         )}
       </div>}
 
-      {/* ── INFORMAZIONI SISTEMA ── */}
+      {}
       {showSection('versione') && <VersioneView embedded />}
       {showSection('crediti-licenze') && <CreditiLicenzeView embedded />}
 
@@ -9000,9 +8571,6 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
   );
 }
 
-// ============================================================
-// ERROR BOUNDARY — cattura crash di render e li mostra invece di schermata bianca
-// ============================================================
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
   static getDerivedStateFromError(error) { return { error: String(error) }; }
@@ -9028,9 +8596,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// ============================================================
-// GESTIONI TELEFONICHE
-// ============================================================
 function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestioniTelefoniche, onNuovaGestione }) {
   const n = new Date();
   const [month, setMonth] = React.useState(n.getMonth()+1);
@@ -9043,7 +8608,6 @@ function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestio
   const today  = todayStr();
   const mStr   = `${year}-${String(month).padStart(2,'0')}`;
 
-  // Solo giorni con reperibilità pubblicata per questo dipendente
   const repDays = new Set(
     (reperibilita||[]).filter(r=>r.employeeId===user.id && r.pubblicata).map(r=>r.data)
   );
@@ -9057,7 +8621,6 @@ function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestio
     return { num:i+1, str, dow, isWeekend: dow===0||dow===6, isFuture: str>today };
   });
 
-  // Mappa gestioni: data → array
   const gestMap = {};
   (gestioniTelefoniche||[]).filter(g=>g.employeeId===user.id).forEach(g => {
     if (!gestMap[g.data]) gestMap[g.data] = [];
@@ -9086,7 +8649,7 @@ function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestio
 
   return (
     <div className="p-4 lg:p-8">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800" style={{fontFamily:'Syne,sans-serif'}}>📞 Gestioni telefoniche</h2>
@@ -9101,7 +8664,7 @@ function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestio
         </div>
       </div>
 
-      {/* Stat totale mese */}
+      {}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
           <p className="text-slate-400 text-xs font-medium mb-1">Gestioni {MONTHS[month-1]}</p>
@@ -9114,7 +8677,7 @@ function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestio
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Calendario giorni reperibilità */}
+        {}
         <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <p className="font-semibold text-slate-700 text-sm mb-4">Seleziona un giorno per registrare una gestione</p>
           <div className="grid grid-cols-7 gap-1 mb-2">
@@ -9156,10 +8719,10 @@ function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestio
           </div>
         </div>
 
-        {/* Pannello laterale: lista + form */}
+        {}
         {selectedDay ? (
           <div className="w-full lg:w-80 flex flex-col gap-4">
-            {/* Lista gestioni del giorno */}
+            {}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
               <p className="font-semibold text-slate-700 text-sm mb-3">📋 {fmtData(selectedDay)}</p>
               {selectedGest.length === 0 ? (
@@ -9179,7 +8742,7 @@ function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestio
                 </div>
               )}
             </div>
-            {/* Form nuova gestione */}
+            {}
             {!selectedDay || selectedDay <= today ? (
               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
                 <p className="font-semibold text-slate-700 text-sm mb-3">➕ Nuova gestione</p>
@@ -9223,10 +8786,6 @@ function GestioneTelefonica({ user, reperibilita, gestioniTelefoniche, setGestio
   );
 }
 
-
-// ============================================================
-// REPERIBILITÀ
-// ============================================================
 function Reperibilita({ user, employees, reperibilita, setReperibilita, malattie, ferie, gestioniTelefoniche, onPubblica, onNotificaModifica }) {
   const n = new Date();
   const [month, setMonth] = React.useState(n.getMonth()+1);
@@ -9269,7 +8828,6 @@ function Reperibilita({ user, employees, reperibilita, setReperibilita, malattie
     while (cur <= end) { malattiaMap[`${m.employeeId}_${localDateStr(cur)}`] = true; cur.setDate(cur.getDate()+1); }
   });
 
-  // Mappa gestioni: "empId_data" → array
   const gestMap = {};
   (gestioniTelefoniche||[]).forEach(g => {
     const k = `${g.employeeId}_${g.data}`;
@@ -9277,19 +8835,16 @@ function Reperibilita({ user, employees, reperibilita, setReperibilita, malattie
     gestMap[k].push(g);
   });
 
-  // Stato per pannello dettaglio gestioni
   const [gestPanel, setGestPanel] = React.useState(null); // {emp, day, lista:[]}
 
   const handleCella = (emp, day) => {
     const key = `${emp.id}_${day.str}`;
     const existing = repMap[key];
     if (existing) {
-      // Rimozione → chiedi conferma (potrebbe triggerare notifica)
       setConfirm({ empId: emp.id, empName:`${emp.nome} ${emp.cognome}`, data: day.str, action:'remove', wasPubblicata: existing.pubblicata });
     } else {
       if (ferieMap[key]) { alert(`⚠️ ${emp.nome} ${emp.cognome} è in ferie il ${fmtData(day.str)}. Non è possibile assegnare la reperibilità.`); return; }
       if (malattiaMap[key]) { alert(`⚠️ ${emp.nome} ${emp.cognome} è in malattia il ${fmtData(day.str)}. Non è possibile assegnare la reperibilità.`); return; }
-      // Aggiunta diretta senza conferma
       const nr = { id: String(Date.now())+Math.random(), employeeId: emp.id, data: day.str, responsabileId: user.id, pubblicata: false, timestamp: Date.now() };
       setReperibilita(prev => { const upd=[...prev,nr]; saveData('reperibilita',upd); return upd; });
     }
@@ -9467,7 +9022,7 @@ function Reperibilita({ user, employees, reperibilita, setReperibilita, malattie
         </div>
       )}
 
-      {/* Pannello dettaglio gestioni telefoniche */}
+      {}
       {gestPanel && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
@@ -9498,7 +9053,6 @@ function Reperibilita({ user, employees, reperibilita, setReperibilita, malattie
   );
 }
 
-
 function App() {
   const [employees, setEmployees]   = useState(() => loadEmployees());
   const [timbrature, setTimbrature] = useState(() => loadData('timbrature', []));
@@ -9528,15 +9082,12 @@ function App() {
     DB.loadAll()
       .then(d => {
         if (d.employees?.length) {
-          // Merge: aggiungi dipendenti presenti solo in localStorage (es. sync fallito)
           const localEmps = (() => { try { const s = localStorage.getItem('hr_employees'); return s ? JSON.parse(s) : []; } catch { return []; } })();
           const supaIds = new Set(d.employees.map(e => e.id));
           const localOnly = localEmps.filter(e => !supaIds.has(e.id));
           const merged = localOnly.length > 0 ? [...d.employees, ...localOnly] : d.employees;
           setEmployees(merged);
-          // Salva in localStorage così loadEmployees() ha sempre dati aggiornati
           try { localStorage.setItem('hr_employees', JSON.stringify(merged)); } catch {}
-          // Se ci sono dipendenti solo in locale, prova a re-sincronizzarli subito
           if (localOnly.length > 0) DB.sync('hr_employees', merged).catch(e => console.warn('[DB] re-sync locale:', e?.message));
         }
         if (d.timbrature?.length)           setTimbrature(d.timbrature);
@@ -9590,10 +9141,8 @@ function App() {
   const resetRequests = employees.filter(e=>e.richiestaReset).length;
   const masterIds     = employees.filter(e=>[RUOLI.MASTER, RUOLI.AMMINISTRATORE].includes(e.ruolo)).map(e=>e.id);
   const direttoreIds  = employees.filter(e=>e.ruolo === RUOLI.DIRETTORE).map(e=>e.id);
-  // Destinatari "supervisori": master + amministratori + direttori
   const supervisoriIds = [...new Set([...masterIds, ...direttoreIds])];
 
-  // Helper: crea notifica + browser notification
   const creaNotifica = React.useCallback((tipo, testo, destinatari, empId) => {
     const n = { id: String(Date.now())+Math.random(), tipo, testo, destinatari, empId: empId||null, timestamp: Date.now(), lette: [] };
     setNotifiche(prev => {
@@ -9609,13 +9158,9 @@ function App() {
           icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="%230f1f3d"/><text y="22" x="6" font-size="18">%F0%9F%91%94</text></svg>'
         });
       }
-    } catch(e) { /* notifiche non supportate su questo dispositivo */ }
+    } catch(e) {  }
   }, [userId]);
 
-  // ── Controllo sessione concorrente ─────────────────────────────────────────
-  // Previene due accessi simultanei con lo stesso login.
-  // BroadcastChannel: rilevamento istantaneo tra tab/finestre dello stesso browser.
-  // Polling Supabase ogni 30s: rilevamento cross-device (altro PC, smartphone, ecc.)
   React.useEffect(() => {
     if (!userId) return;
     const localSessionId = localStorage.getItem('hr_session_id');
@@ -9628,7 +9173,6 @@ function App() {
       setNeedsPassChange(false); setShowNotifiche(false);
     };
 
-    // BroadcastChannel — stesso browser, tab diverse
     let bc = null;
     try {
       bc = new BroadcastChannel('hr_manager_session');
@@ -9638,9 +9182,8 @@ function App() {
         }
       };
       bc.postMessage({ type: 'new_login', userId, sessionId: localSessionId });
-    } catch(e) { /* BroadcastChannel non disponibile */ }
+    } catch(e) {  }
 
-    // Polling Supabase — cross-device (altro PC, tablet, smartphone)
     const checkSession = async () => {
       if (!_supa) return;
       try {
@@ -9648,7 +9191,7 @@ function App() {
         if (data && data.session_id && data.session_id !== localSessionId) {
           forceLogout('La tua sessione è stata aperta su un altro dispositivo. Sei stato disconnesso per sicurezza.');
         }
-      } catch(e) { /* Supabase non raggiungibile — nessuna azione */ }
+      } catch(e) {  }
     };
     const interval = setInterval(checkSession, 30000);
 
@@ -9658,20 +9201,15 @@ function App() {
     };
   }, [userId]);
 
-  // Richiesta permesso notifiche — separata dal login, protetta da try/catch mobile-safe
   React.useEffect(() => {
     if (!userId) return;
     try {
       if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         Promise.resolve(Notification.requestPermission()).catch(() => {});
       }
-    } catch (e) { /* ignorato: file:// su Android non supporta notifiche browser */ }
+    } catch (e) {  }
   }, [userId]);
 
-  // Helper: pubblica evento su Google Calendar via Apps Script webhook
-  // Pubblica evento su Google Calendar via JSONP (script tag).
-  // fetch+no-cors da file:// non segue i redirect di Apps Script → eventi mai inviati.
-  // I tag <script> non hanno restrizioni CORS e seguono i redirect: unica tecnica affidabile da file://.
   const pubblicaCalendario = React.useCallback((tipo, titolo, descrizione, dataInizio, dataFine) => {
     const cfg = loadData('hr_settings', {});
 
@@ -9714,7 +9252,6 @@ function App() {
     }
   };
 
-  // Reminder mancata timbratura (ogni minuto, 10 min dopo l'inizio turno)
   React.useEffect(() => {
     if (!userId) return;
     const check = () => {
@@ -9752,23 +9289,16 @@ function App() {
 
   const handleLogin = id => {
     setForcedLogoutMsg(null);
-    // Genera session ID univoco e lo salva in localStorage + Supabase
     const sessionId = generateSessionId();
     localStorage.setItem('hr_session_id', sessionId);
     if (_supa) Promise.resolve(_supa.from('employees').update({ session_id: sessionId }).eq('id', id)).catch(() => {});
-    // Usa gli employees già in memoria (caricati da Supabase) — NON ricaricare da localStorage
-    // che potrebbe contenere solo INITIAL_EMPLOYEES se il browser è stato ripulito
     const emp = employees.find(e => e.id === id);
     setUserId(id);
     setNeedsPassChange(emp?.primoAccesso === true && emp?.richiedeNuovaPassword === true);
     setView('dashboard');
-    // NOTA: NON richiamare Notification.requestPermission() qui — su Android Chrome
-    // da file:// lancia TypeError sincrono che causa schermata bianca in React 18.
-    // La richiesta viene gestita separatamente con try/catch in un useEffect.
   };
 
   const handleLogout = () => {
-    // Rimuove session_id da Supabase e localStorage
     const sid = localStorage.getItem('hr_session_id');
     if (sid && userId && _supa) {
       Promise.resolve(_supa.from('employees').update({ session_id: null }).eq('id', userId)).catch(() => {});
@@ -9802,7 +9332,6 @@ function App() {
     if (!isEdit && data.password) {
       hashPassword(data.password).then(hash => doSave(hash));
     } else if (isEdit && data.password) {
-      // password changed during edit
       hashPassword(data.password).then(hash => doSave(hash));
     } else {
       doSave(data.password);
@@ -9861,7 +9390,6 @@ function App() {
   };
 
   const handleNuovaGestione = (gestione) => {
-    // Notifica responsabile del dipendente + master/admin
     const emp = employees.find(e => e.id === gestione.employeeId);
     const dest = [...supervisoriIds];
     if (emp?.responsabileId && !dest.includes(emp.responsabileId)) dest.push(emp.responsabileId);
@@ -9915,7 +9443,6 @@ function App() {
     });
   };
 
-  // Timbratura → notifica responsabile + direttori + master + dipendente
   const handleTimbratura = (emp, ora, gps) => {
     const dest = [...supervisoriIds];
     if (emp.responsabileId && !dest.includes(emp.responsabileId)) dest.push(emp.responsabileId);
@@ -9929,7 +9456,6 @@ function App() {
       testo += ` | GPS non disponibile`;
     }
     creaNotifica('timbratura', testo, dest, emp.id);
-    // Pubblica su Google Calendar — evento tutto il giorno, senza orario né GPS
     const oggi = todayStr();
     pubblicaCalendario('timbratura',
       `⏱️ Presenza – ${emp.nome} ${emp.cognome}`,
@@ -9939,8 +9465,6 @@ function App() {
     );
   };
 
-  // Malattia → notifica responsabile + direttori + master
-  // Straordinario → crea record + notifica responsabile step1
   const handleStraordinario = (emp, data, tipo, minuti, nota) => {
     const record = {
       id: String(Date.now()) + Math.random(),
@@ -9957,7 +9481,6 @@ function App() {
       DB.sync('straordinari', upd);
       return upd;
     });
-    // Notifica al responsabile del dipendente
     const dest = [];
     if (emp.responsabileId) dest.push(emp.responsabileId);
     const tipoLabel = tipo === 'mattina' ? '🌅 mattina' : '🌆 sera';
@@ -9968,7 +9491,6 @@ function App() {
     );
   };
 
-  // Approva straordinario step 1 (Responsabile) → passa a pending_dir
   const handleApprovaStrResp = (id) => {
     setStraordinari(prev => {
       const upd = prev.map(s => s.id===id
@@ -9976,7 +9498,6 @@ function App() {
         : s);
       saveData('straordinari', upd);
       DB.sync('straordinari', upd);
-      // Notifica al direttore per step 2
       const s = upd.find(x=>x.id===id);
       if (s) {
         const emp = employees.find(e=>e.id===s.employeeId);
@@ -9995,7 +9516,6 @@ function App() {
     });
   };
 
-  // Approva straordinario step 2 (Direttore/Master) → approvato definitivo
   const handleApprovaStrDir = (id) => {
     setStraordinari(prev => {
       const upd = prev.map(s => s.id===id
@@ -10003,7 +9523,6 @@ function App() {
         : s);
       saveData('straordinari', upd);
       DB.sync('straordinari', upd);
-      // Notifica al dipendente
       const s = upd.find(x=>x.id===id);
       if (s) {
         const emp = employees.find(e=>e.id===s.employeeId);
@@ -10018,8 +9537,6 @@ function App() {
     });
   };
 
-  // Rifiuta straordinario (Responsabile o Direttore)
-  // Restituisce la Promise di DB.sync così il chiamante può chiudere la UI solo dopo il sync
   const handleRifiutaStr = (id, nota) => {
     const aggiornati = straordinari.map(s => s.id===id
       ? {...s, status: SS.RIFIUTATO, rifiutatoDaId: user.id, noteRifiuto: nota}
@@ -10049,9 +9566,7 @@ function App() {
     }
     testo += ` | CF: ${emp.cf || '—'} | Cert. INPS: ${protocollo || '—'}`;
     creaNotifica('malattia', testo, dest, emp.id);
-    // Pubblica su Google Calendar (evento multi-giorno)
     const fine = dataFine || dataInizio;
-    // Google Calendar: per evento tutto il giorno la data fine deve essere il giorno successivo
     const fineGC = new Date(fine+'T00:00:00');
     fineGC.setDate(fineGC.getDate()+1);
     const fineStr = fineGC.toISOString().slice(0,10);
@@ -10063,13 +9578,10 @@ function App() {
     );
   };
 
-  // ── PERMESSI ORARI ──
   const handlePermessoRichiesta = (p) => {
     if (p.status === SP.APPROVATO) return; // admin/direttore: già approvato, nessuna notifica necessaria
     const emp = employees.find(e=>e.id===p.employeeId);
     if (!emp) return;
-    // Se il richiedente è un responsabile, la notifica va a direttori + master/amministratori
-    // altrimenti va al responsabile diretto + master/amministratori
     const dest = emp.ruolo === RUOLI.RESPONSABILE
       ? [...new Set([...direttoreIds, ...masterIds])].filter(id=>id!==p.employeeId)
       : [...new Set([
@@ -10086,19 +9598,16 @@ function App() {
   const handlePermessoApprova = (p) => {
     const emp = employees.find(e=>e.id===p.employeeId);
     if (!emp) return;
-    // Notifica al dipendente
     creaNotifica('permesso',
       `✅ Permesso approvato: ${fmtData(p.data)} ${p.oraInizio}–${p.oraFine} (${fmtDurata(p.orePermesso)})`,
       [p.employeeId], emp.id
     );
-    // Notifica all'admin (e direttore) — informativa sull'approvazione
     const adminIds = employees.filter(e=>e.ruolo===RUOLI.AMMINISTRATORE||e.ruolo===RUOLI.DIRETTORE).map(e=>e.id).filter(id=>id!==p.employeeId&&id!==user.id);
     if (adminIds.length > 0)
       creaNotifica('permesso',
         `🕐 Permesso di ${emp.nome} ${emp.cognome} approvato da ${user.nome} ${user.cognome}: ${fmtData(p.data)} ${p.oraInizio}–${p.oraFine} (${fmtDurata(p.orePermesso)})`,
         adminIds, emp.id
       );
-    // Pubblica su calendario
     pubblicaCalendario('permesso',
       `🕐 Permesso – ${emp.nome} ${emp.cognome} (${p.oraInizio}–${p.oraFine}, ${fmtDurata(p.orePermesso)})`,
       `Motivo: ${p.motivo}`,
@@ -10115,7 +9624,6 @@ function App() {
     );
   };
 
-  // ---- FERIE ----
   const handleFerieRichiesta = (f) => {
     const emp = employees.find(e=>e.id===f.employeeId);
     if (!emp) return;
@@ -10126,10 +9634,8 @@ function App() {
     const step2Dest = direttoriIds.length > 0 ? direttoriIds : adminFallbackIds;
     let dest;
     if (f.status === SF.PENDING_DIR) {
-      // Step 2: notifica al direttore (fallback admin se nessun direttore)
       dest = step2Dest.filter(id=>id!==f.employeeId);
     } else {
-      // pending_resp: notifica al responsabile diretto; fallback step2Dest se nessuno assegnato
       const hasResp = !!emp.responsabileId;
       dest = hasResp ? [emp.responsabileId] : step2Dest;
       dest = dest.filter(id=>id!==f.employeeId);
@@ -10141,9 +9647,7 @@ function App() {
     const emp = employees.find(e=>e.id===f.employeeId);
     if (!emp) return;
     const periodoStr = `${fmtData(f.dataInizio)} – ${fmtData(f.dataFine)} (${f.giorniLavorativi} gg)`;
-    // Notifica al dipendente: step 1 ok, attende approvazione direttore
     creaNotifica('ferie', `✅ Ferie: step 1 approvato. In attesa approvazione direttore — ${periodoStr}`, [f.employeeId], emp.id);
-    // Notifica al direttore per step 2 (fallback admin)
     const dir2Ids = employees.filter(e=>e.ruolo === RUOLI.DIRETTORE).map(e=>e.id);
     const adm2Ids = employees.filter(e=>e.ruolo === RUOLI.AMMINISTRATORE).map(e=>e.id);
     const step2Ids = (dir2Ids.length > 0 ? dir2Ids : adm2Ids).filter(id=>id!==f.employeeId);
@@ -10156,7 +9660,6 @@ function App() {
     if (!emp) return;
     const periodoStr = `${fmtData(f.dataInizio)} – ${fmtData(f.dataFine)} (${f.giorniLavorativi} gg)`;
     creaNotifica('ferie', `🎉 Ferie approvate: ${periodoStr}`, [f.employeeId], emp.id);
-    // Pubblica sul calendario (multi-day)
     pubblicaCalendario('ferie',
       `🏖️ Ferie – ${emp.nome} ${emp.cognome}`,
       `Ferie approvate: ${periodoStr}${f.motivo ? '\nMotivo: '+f.motivo : ''}`,
@@ -10169,7 +9672,6 @@ function App() {
     if (!emp) return;
     const periodoStr = `${fmtData(f.dataInizio)} – ${fmtData(f.dataFine)}`;
     if (f.status === SF.ANNULLATA) {
-      // Notifica al dipendente e al suo responsabile
       const dest = [f.employeeId];
       if (emp.responsabileId && emp.responsabileId !== userId) dest.push(emp.responsabileId);
       creaNotifica('ferie', `🗑️ Ferie annullate: ${periodoStr} — Motivazione: "${f.noteAnnullamento}"`, dest, emp.id);
@@ -10178,7 +9680,6 @@ function App() {
     }
   };
 
-  // Cancellazione permesso approvato da dipendente
   const handleCancellaPermesso = (p, nota) => {
     const emp = employees.find(e=>e.id===p.employeeId);
     if (!emp) return;
@@ -10229,7 +9730,6 @@ function App() {
     creaNotifica('nota-spese', `La tua nota spese di ${nomeMese} ${ns.anno} è stata sbloccata. Puoi modificarla e riconfermarla.`, [ns.employeeId], ns.employeeId);
   };
 
-  // Not logged in
   if (dbLoading) return (
     <div style={{minHeight:'100vh',background:'#0f1f3d',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16}}>
       <style>{`@keyframes _spin{to{transform:rotate(360deg)}}`}</style>
