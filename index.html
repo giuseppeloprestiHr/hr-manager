@@ -406,7 +406,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-23-023';
+const APP_VERSION = '2026-03-25-025';
 
 const CREDITS = [
   {
@@ -2042,9 +2042,9 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
             <div className="grid grid-cols-2 gap-3 mb-5">
               {navTilesDip.map(t => (
                 <button key={t.id} onClick={()=>{ setSelectedEmployee(null); setView(t.id); }}
-                  className={`${t.color} text-white rounded-2xl p-5 flex flex-col items-start gap-2 shadow-sm active:scale-95 transition-transform`}>
-                  <Icon name={t.icon} size={28} color="white" />
-                  <span className="font-semibold text-sm leading-tight">{t.label}</span>
+                  className="bg-white rounded-2xl p-5 flex flex-col items-start gap-2 shadow-sm border border-slate-200 active:scale-95 transition-transform text-left">
+                  <Icon name={t.icon} size={28} color="#1e3a6e" />
+                  <span className="font-semibold text-sm leading-tight text-slate-700">{t.label}</span>
                 </button>
               ))}
             </div>
@@ -2053,9 +2053,9 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
             <div className="grid grid-cols-2 gap-3">
               {areaTiles.map(t => (
                 <button key={t.id} onClick={()=>{ setSelectedEmployee(null); setView(t.id); }}
-                  className={`${t.color} text-white rounded-2xl p-5 flex flex-col items-start gap-2 shadow-sm active:scale-95 transition-transform`}>
-                  <Icon name={t.icon} size={28} color="white" />
-                  <span className="font-semibold text-sm leading-tight">{t.label}</span>
+                  className="bg-white rounded-2xl p-5 flex flex-col items-start gap-2 shadow-sm border border-slate-200 active:scale-95 transition-transform text-left">
+                  <Icon name={t.icon} size={28} color="#1e3a6e" />
+                  <span className="font-semibold text-sm leading-tight text-slate-700">{t.label}</span>
                 </button>
               ))}
             </div>
@@ -2066,9 +2066,9 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
             <div className="grid grid-cols-2 gap-3">
               {navTiles.map(t => (
                 <button key={t.id} onClick={()=>{ setSelectedEmployee(null); setView(t.id); }}
-                  className={`${t.color} text-white rounded-2xl p-5 flex flex-col items-start gap-2 shadow-sm active:scale-95 transition-transform`}>
-                  <Icon name={t.icon} size={28} color="white" />
-                  <span className="font-semibold text-sm leading-tight">{t.label}</span>
+                  className="bg-white rounded-2xl p-5 flex flex-col items-start gap-2 shadow-sm border border-slate-200 active:scale-95 transition-transform text-left">
+                  <Icon name={t.icon} size={28} color="#1e3a6e" />
+                  <span className="font-semibold text-sm leading-tight text-slate-700">{t.label}</span>
                 </button>
               ))}
             </div>
