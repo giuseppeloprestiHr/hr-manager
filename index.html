@@ -412,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-029';
+const APP_VERSION = '2026-03-27-030';
 
 const CREDITS = [
   {
@@ -616,6 +616,11 @@ const CHANGELOG = [
     version: '2026-03-27-029',
     data: '27/03/2026',
     descrizione: 'Sostituzione icone emoji con SVG: pagina "I miei straordinari" (titolo e stato vuoto) e pagina "Gestioni telefoniche" (titolo, legenda, stato vuoto, mini-icona calendario, modale reperibilità).'
+  },
+  {
+    version: '2026-03-27-030',
+    data: '27/03/2026',
+    descrizione: 'Manutenzione — sezione "Turni di lavoro": consente di creare turni aggiuntivi (nome, orari, tolleranza) da associare ai dipendenti. Il Turno Standard rimane configurabile in "Orario di lavoro". I turni sono salvati in settings.turni su Supabase. Richiede colonna turni JSONB in tabella settings.'
   },
 ];
 
@@ -1431,6 +1436,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
 
   const MAN_SECTIONS = [
     { id:'man-orario',     label:'Orario di lavoro',          show: isMaster || isAdmin },
+    { id:'man-turni',      label:'Turni di lavoro',           show: isMaster || isAdmin },
     { id:'man-centri',     label:'Centri di costo',           show: isMaster || isAdmin },
     { id:'man-auto',       label:'Parco auto',                show: isMaster || isAdmin },
     { id:'man-valori',     label:'Valori iniziali',           show: isMaster || isAdmin },
@@ -7343,7 +7349,18 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     rilpreCodiceAzienda:     settings.rilpreCodiceAzienda || '0113',
     rilpreCodiceFiliale:     settings.rilpreCodiceFiliale || '01',
     rilpreGiustificativi:    settings.rilpreGiustificativi || RILPRE_GIUST_DEFAULT,
+    turni:                   settings.turni || [{id:'default', nome:'Turno Standard'}],
   });
+  const [newTurno, setNewTurno] = useState({ nome:'', inizioTurno:'08:30', inizioPausa:'12:30', finePausa:'13:00', fineTurno:'17:00', tolleranzaMinuti:15 });
+  const handleAddTurno = () => {
+    if (!newTurno.nome.trim()) return;
+    const t = { ...newTurno, nome: newTurno.nome.trim(), id: String(Date.now()) };
+    setForm(f => ({ ...f, turni: [...f.turni, t] }));
+    setNewTurno({ nome:'', inizioTurno:'08:30', inizioPausa:'12:30', finePausa:'13:00', fineTurno:'17:00', tolleranzaMinuti:15 });
+  };
+  const handleDeleteTurno = id => {
+    setForm(f => ({ ...f, turni: f.turni.filter(t => t.id !== id) }));
+  };
   const [newCdc, setNewCdc] = useState({numero:'', testo:''});
   const [editCdcId, setEditCdcId] = useState(null);
   const [newAuto, setNewAuto] = useState({modello:'', targa:'', tipologia:'', provenienza:''});
@@ -7596,6 +7613,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
 
   const MAN_SECTIONS_DEF = [
     { id:'man-orario',    label:'Orario di lavoro',         icon:'clock',      show: isMaster || isAdmin },
+    { id:'man-turni',     label:'Turni di lavoro',          icon:'clock',      show: isMaster || isAdmin },
     { id:'man-centri',    label:'Centri di costo',          icon:'tag',        show: isMaster || isAdmin },
     { id:'man-auto',      label:'Parco auto',               icon:'car',        show: isMaster || isAdmin },
     { id:'man-valori',    label:'Valori iniziali',          icon:'bar-chart2', show: isMaster || isAdmin },
@@ -7697,6 +7715,83 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
               className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${saved ? 'bg-emerald-500 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}>
               {saved ? '✅ Salvato!' : '💾 Salva orario'}
             </button>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {}
+      {showSection('man-turni') && (isAdmin || isMaster) && (
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
+          <Icon name="clock" size={22} color="#1e3a6e" />
+          <div>
+            <p className="font-bold text-slate-800 text-base">Turni di lavoro</p>
+            <p className="text-slate-600 text-xs mt-0.5">Configura i turni da associare ai dipendenti. Il Turno Standard si configura in "Orario di lavoro".</p>
+          </div>
+        </div>
+        <div className="px-6 py-5 space-y-4">
+          {}
+          <div className="space-y-2">
+            {form.turni.map(t => (
+              <div key={t.id} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-800 text-sm">{t.nome}</p>
+                  {t.id === 'default'
+                    ? <p className="text-xs text-slate-400 mt-0.5">{form.inizioTurno} – {form.fineTurno} · Pausa {form.inizioPausa}–{form.finePausa} · Tolleranza {form.tolleranzaMinuti} min <span className="italic">(modifica in "Orario di lavoro")</span></p>
+                    : <p className="text-xs text-slate-400 mt-0.5">{t.inizioTurno} – {t.fineTurno} · Pausa {t.inizioPausa}–{t.finePausa} · Tolleranza {t.tolleranzaMinuti} min</p>
+                  }
+                </div>
+                {t.id !== 'default' && (
+                  <button onClick={() => handleDeleteTurno(t.id)} className="text-red-400 hover:text-red-600 text-xs px-2 py-1 rounded-lg hover:bg-red-50">✕</button>
+                )}
+              </div>
+            ))}
+          </div>
+          {}
+          <div className="border border-slate-200 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Aggiungi turno</p>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Nome turno *</label>
+              <input type="text" placeholder="es. Turno Pomeriggio" value={newTurno.nome}
+                onChange={e => setNewTurno({...newTurno, nome: e.target.value})}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inizio turno</label>
+                <input type="time" value={newTurno.inizioTurno} onChange={e => setNewTurno({...newTurno, inizioTurno: e.target.value})}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Inizio pausa</label>
+                <input type="time" value={newTurno.inizioPausa} onChange={e => setNewTurno({...newTurno, inizioPausa: e.target.value})}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Fine pausa</label>
+                <input type="time" value={newTurno.finePausa} onChange={e => setNewTurno({...newTurno, finePausa: e.target.value})}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Fine turno</label>
+                <input type="time" value={newTurno.fineTurno} onChange={e => setNewTurno({...newTurno, fineTurno: e.target.value})}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+              </div>
+            </div>
+            <div className="max-w-xs">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tolleranza (minuti)</label>
+              <input type="number" min="0" max="60" value={newTurno.tolleranzaMinuti}
+                onChange={e => setNewTurno({...newTurno, tolleranzaMinuti: parseInt(e.target.value)||0})}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+            </div>
+            <div className="flex justify-end pt-1">
+              <button onClick={() => { handleAddTurno(); handleSave(); }}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+                style={{background:'#1e3a6e'}}>
+                + Aggiungi turno
+              </button>
+            </div>
           </div>
         </div>
       </div>
