@@ -92,9 +92,11 @@ const _T = {
 };
 const _M = {
   from: r => r ? ({ id:r.id, employeeId:r.employee_id, dataInizio:r.data_inizio, dataFine:r.data_fine,
-    protocollo:r.protocollo, note:r.note, timestamp:r.timestamp, inseritoDa:r.inserito_da }) : null,
+    protocollo:r.protocollo, note:r.note, timestamp:r.timestamp, inseritoDa:r.inserito_da,
+    malattieFiglio:r.malattie_figlio||false, cfFiglio:r.cf_figlio||null }) : null,
   to: m => ({ id:m.id, employee_id:m.employeeId, data_inizio:m.dataInizio, data_fine:m.dataFine,
-    protocollo:m.protocollo||null, note:m.note||null, timestamp:m.timestamp||Date.now(), inserito_da:m.inseritoDa||null }),
+    protocollo:m.protocollo||null, note:m.note||null, timestamp:m.timestamp||Date.now(), inserito_da:m.inseritoDa||null,
+    malattie_figlio:m.malattieFiglio||false, cf_figlio:m.cfFiglio||null }),
 };
 const _P = {
   from: r => r ? ({ id:r.id, employeeId:r.employee_id, data:r.data, oraInizio:r.ora_inizio, oraFine:r.ora_fine,
@@ -410,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-026';
+const APP_VERSION = '2026-03-27-027';
 
 const CREDITS = [
   {
@@ -599,6 +601,11 @@ const CHANGELOG = [
     version: '2026-03-27-026',
     data: '27/03/2026',
     descrizione: 'Turni di lavoro: aggiunto campo "Turno" nell\'anagrafica dipendente. Ogni dipendente può essere associato a un turno configurabile. Mapper _E e _S aggiornati per persistere turnoId (employees) e turni (settings). Richiede colonna turno_id TEXT in tabella employees e colonna turni JSONB in tabella settings su Supabase.'
+  },
+  {
+    version: '2026-03-27-027',
+    data: '27/03/2026',
+    descrizione: 'Malattia figlio: aggiunto campo obbligatorio codice fiscale figlio/figlia quando si flagga "Malattia del figlio/figlia". Il CF viene salvato in maiuscolo. Corretto mapper _M: malattieFiglio e cfFiglio ora persistono su Supabase. Richiede colonne malattie_figlio BOOLEAN e cf_figlio TEXT nella tabella malattie.'
   },
 ];
 
@@ -3845,6 +3852,7 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
   const [protocollo,   setProtocollo]   = useState('');
   const [note,         setNote]         = useState('');
   const [malattieFiglio, setMalattieFiglio] = useState(false);
+  const [cfFiglio,     setCfFiglio]     = useState('');
   const [err,          setErr]          = useState('');
   const [ok,           setOk]           = useState(false);
 
@@ -3853,6 +3861,7 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
     if (!dataFine) { setErr('La data di fine malattia è obbligatoria.'); return; }
     if (dataFine < dataInizio) { setErr('La data fine non può essere precedente alla data inizio.'); return; }
     if (!malattieFiglio && !protocollo.trim()) { setErr('Il numero di certificato INPS è obbligatorio.'); return; }
+    if (malattieFiglio && !cfFiglio.trim()) { setErr('Il codice fiscale del figlio/figlia è obbligatorio.'); return; }
     if (dataInizio < todayStr()) {
       const conferma = window.confirm(`Attenzione: la data di inizio (${fmtData(dataInizio)}) è precedente a oggi. Vuoi procedere comunque?`);
       if (!conferma) return;
@@ -3865,6 +3874,7 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
       protocollo:      protocollo      || null,
       note:            note            || null,
       malattieFiglio:  malattieFiglio  || false,
+      cfFiglio:        malattieFiglio ? cfFiglio.trim().toUpperCase() : null,
       timestamp:       Date.now(),
       inseritoDa:      user.id,
     };
@@ -3875,7 +3885,7 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
       const emp = employees.find(e=>e.id===empId) || user;
       onMalattia(emp, dataInizio, dataFine||null, protocollo.trim(), malattieFiglio);
     }
-    setDataInizio(''); setDataFine(''); setProtocollo(''); setNote(''); setMalattieFiglio(false); setErr('');
+    setDataInizio(''); setDataFine(''); setProtocollo(''); setNote(''); setMalattieFiglio(false); setCfFiglio(''); setErr('');
     setOk(true); setTimeout(()=>setOk(false), 3000);
   };
 
@@ -3931,6 +3941,17 @@ function Malattia({ user, employees, malattie, setMalattie, onMalattia }) {
               <p className="text-xs text-amber-800 font-medium leading-relaxed">
                 Ricordarsi di consegnare all'Amministrazione il certificato medico del Pediatra.
               </p>
+            </div>
+          )}
+          {malattieFiglio && (
+            <div className="mt-2">
+              <label className="block text-xs font-medium text-slate-500 mb-1">
+                Codice fiscale figlio/figlia <span className="text-red-500">*</span>
+              </label>
+              <input type="text" placeholder="es. RSSMRA10A01H501Z" value={cfFiglio}
+                onChange={e=>{setCfFiglio(e.target.value.toUpperCase());setErr('');}}
+                maxLength={16}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 uppercase"/>
             </div>
           )}
         </div>
