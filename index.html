@@ -412,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-031';
+const APP_VERSION = '2026-03-27-032';
 
 const CREDITS = [
   {
@@ -626,6 +626,11 @@ const CHANGELOG = [
     version: '2026-03-27-031',
     data: '27/03/2026',
     descrizione: 'Fix turni: handleAddTurno e handleDeleteTurno ora salvano direttamente su Supabase senza dipendere dalla sequenza asincrona di setForm+handleSave. Il turno aggiunto/eliminato persiste correttamente anche dopo refresh.'
+  },
+  {
+    version: '2026-03-27-032',
+    data: '27/03/2026',
+    descrizione: 'Turni per-dipendente attivi: aggiunto helper getTurnoEmp(). Timbratura, calcolo straordinari e riquadro orari usano ora il turno del dipendente loggato. generaFileRilpre calcola ore nette con le pause del turno di ogni dipendente. Reminder mancata timbratura scatta 10 min dopo l\'inizio del turno del singolo dipendente.'
   },
 ];
 
@@ -2613,6 +2618,22 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
   );
 }
 
+function getTurnoEmp(emp, settings) {
+  const turni = settings?.turni || [];
+  const turnoId = emp?.turnoId || 'default';
+  if (turnoId !== 'default') {
+    const t = turni.find(t => t.id === turnoId);
+    if (t) return t;
+  }
+  return {
+    inizioTurno:      settings?.inizioTurno      || '08:30',
+    inizioPausa:      settings?.inizioPausa      || '12:30',
+    finePausa:        settings?.finePausa        || '13:00',
+    fineTurno:        settings?.fineTurno        || '17:00',
+    tolleranzaMinuti: settings?.tolleranzaMinuti ?? 15,
+  };
+}
+
 function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordinario, settings, straordinari }) {
   const [now, setNow]         = useState(new Date());
   const [gpsStatus, setGps]   = useState('idle');
@@ -2629,9 +2650,10 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
   const gpsRequired = !!user.gpsObbligatorio;
   const canStraord  = !!user.straordinario;
 
-  const inizioTurno = settings?.inizioTurno || '08:30';
-  const fineTurno   = settings?.fineTurno   || '17:00';
-  const tolleranza  = settings?.tolleranzaMinuti ?? 15;
+  const turnoUtente = getTurnoEmp(user, settings);
+  const inizioTurno = turnoUtente.inizioTurno;
+  const fineTurno   = turnoUtente.fineTurno;
+  const tolleranza  = turnoUtente.tolleranzaMinuti;
 
   const toMin = (hhmm) => {
     if (!hhmm) return 0;
@@ -7251,13 +7273,11 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
   const padRight  = (s, n) => (s || '').substring(0, n).padEnd(n, ' ');
   const codAzienda = (settings.rilpreCodiceAzienda || '').padStart(4, '0');
   const codFiliale = (settings.rilpreCodiceFiliale || '').padStart(2, '0');
-  const inizioPausa = settings.inizioPausa || '12:30';
-  const finePausa   = settings.finePausa   || '13:00';
-
   const toMin = hhmm => { const [h,m] = hhmm.split(':').map(Number); return h*60+m; };
-  const netMinutes = (ora, oraUscita) => {
+  const netMinutes = (ora, oraUscita, emp) => {
+    const turno = getTurnoEmp(emp, settings);
     const entry = toMin(ora), exit = toMin(oraUscita), gross = exit - entry;
-    const ps = toMin(inizioPausa), pe = toMin(finePausa);
+    const ps = toMin(turno.inizioPausa), pe = toMin(turno.finePausa);
     return gross - Math.max(0, Math.min(exit, pe) - Math.max(entry, ps));
   };
   const minToHhcc = totalMin => {
@@ -7314,7 +7334,7 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
       if (day <= lastDay) {
         const ds   = `${anno}-${pad2(mese)}-${pad2(day)}`;
         const timb = timbIdx[`${emp.id}_${ds}`];
-        if (timb && timb.oraUscita) oreOrd = minToHhcc(netMinutes(timb.ora, timb.oraUscita));
+        if (timb && timb.oraUscita) oreOrd = minToHhcc(netMinutes(timb.ora, timb.oraUscita, emp));
 
         if (inRange(ds, malByEmp[emp.id]   || [])) giust.push([COD_MALATTIA, '0800']);
         else if (inRange(ds, ferieByEmp[emp.id] || [])) giust.push([COD_FERIE, '0800']);
@@ -9414,10 +9434,7 @@ function App() {
     if (!userId) return;
     const check = () => {
       const now = new Date();
-      const [_hh, _mm] = (settings?.inizioTurno || '08:30').split(':').map(Number);
-      const sogliaMin = _hh * 60 + _mm + 10;
       const nowMin = now.getHours() * 60 + now.getMinutes();
-      if (nowMin < sogliaMin) return;
       const today = todayStr();
       const reminderKey = `reminder_sent_${today}`;
       const alreadySent = loadData(reminderKey, []);
@@ -9425,6 +9442,10 @@ function App() {
       employees.forEach(emp => {
         if (emp.accessoDisabilitato) return;
         if (alreadySent.includes(emp.id)) return;
+        const turnoEmp = getTurnoEmp(emp, settings);
+        const [_hh, _mm] = (turnoEmp.inizioTurno || '08:30').split(':').map(Number);
+        const sogliaMin = _hh * 60 + _mm + 10;
+        if (nowMin < sogliaMin) return;
         const haTimbrato = timbrature.some(t => t.employeeId === emp.id && t.data === today);
         if (haTimbrato) return;
         const inMalattia = malattie.some(m => {
