@@ -412,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-033';
+const APP_VERSION = '2026-03-27-034';
 
 const CREDITS = [
   {
@@ -636,6 +636,11 @@ const CHANGELOG = [
     version: '2026-03-27-033',
     data: '27/03/2026',
     descrizione: 'Fix chiusure aziendali: aggiunto chiusureAziendali e chiusureLastUpdate al form state di Manutenzione. Impedisce che il salvataggio turni sovrascriva le chiusure aziendali su Supabase/localStorage azzerandole.'
+  },
+  {
+    version: '2026-03-27-034',
+    data: '27/03/2026',
+    descrizione: 'Report presenze: aggiunta colonna "Turno" nel riepilogo mensile per dipendente e nome turno nella cella dipendente del calendario settimanale. Usa getTurnoEmp() per mostrare il turno assegnato (fallback: Turno Standard).'
   },
 ];
 
@@ -5216,7 +5221,8 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
           if (d.isWeekend) return `<td class="weekend">A</td>`;
           return `<td class="assente">A${pTag}</td>`;
         }).join('');
-        return `<tr><td class="nome">${emp.cognome} ${emp.nome}<br><small>${ROLE_LABELS[emp.ruolo]}</small></td>${celle}</tr>`;
+        const _t = getTurnoEmp(emp, settings); const _tNome = _t.nome || 'Turno Standard';
+        return `<tr><td class="nome">${emp.cognome} ${emp.nome}<br><small>${ROLE_LABELS[emp.ruolo]}</small><small style="color:#0369a1;font-size:6.5px;display:block">${_tNome}</small></td>${celle}</tr>`;
       }).join('');
 
       return `
@@ -5240,7 +5246,8 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       const gestC    = allGestioniTel.filter(g=>g.employeeId===emp.id&&g.data.startsWith(mStrPdf)).length;
       const straMin  = allStraordinariPdf.filter(s=>s.status===SS.APPROVATO&&s.employeeId===emp.id&&s.data.startsWith(mStrPdf)).reduce((a,s)=>a+s.minuti,0);
       const fmtStra  = m => m>=60?`${Math.floor(m/60)}h${m%60>0?` ${m%60}m`:''}`:m>0?`${m}m`:'—';
-      return `<tr><td class="nome">${emp.cognome} ${emp.nome}</td><td class="tot-num">${count}</td><td class="tot-num mal-num">${malCount||'—'}</td><td class="tot-num" style="background:#e0f2fe;color:#075985">${ferCount||'—'}</td><td class="tot-num">${assenze||'—'}</td><td class="tot-num" style="color:#7c3aed;font-weight:bold">${oreP > 0 ? fmtDurata(oreP) : '—'}</td><td class="tot-num" style="color:#7e22ce">${repC||'—'}</td><td class="tot-num" style="color:#4338ca">${gestC||'—'}</td><td class="tot-num" style="color:#c2410c">${fmtStra(straMin)}</td><td class="tot-num">${giorniLavorativi > 0 ? Math.round(count/giorniLavorativi*100) : 0}%</td></tr>`;
+      const _tEmp = getTurnoEmp(emp, settings); const _tEmpNome = _tEmp.nome || 'Turno Standard';
+      return `<tr><td class="nome">${emp.cognome} ${emp.nome}</td><td class="nome" style="font-size:7.5px;color:#0369a1;font-weight:normal;padding-left:5px">${_tEmpNome}</td><td class="tot-num">${count}</td><td class="tot-num mal-num">${malCount||'—'}</td><td class="tot-num" style="background:#e0f2fe;color:#075985">${ferCount||'—'}</td><td class="tot-num">${assenze||'—'}</td><td class="tot-num" style="color:#7c3aed;font-weight:bold">${oreP > 0 ? fmtDurata(oreP) : '—'}</td><td class="tot-num" style="color:#7e22ce">${repC||'—'}</td><td class="tot-num" style="color:#4338ca">${gestC||'—'}</td><td class="tot-num" style="color:#c2410c">${fmtStra(straMin)}</td><td class="tot-num">${giorniLavorativi > 0 ? Math.round(count/giorniLavorativi*100) : 0}%</td></tr>`;
     }).join('');
 
     const totPres  = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&freshMap[`${emp.id}_${d.str}`]).length,0);
@@ -5251,7 +5258,7 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     const totGest  = allGestioniTel.filter(g=>g.data.startsWith(mStrPdf)).length;
     const totStra  = allStraordinariPdf.filter(s=>s.status===SS.APPROVATO&&s.data.startsWith(mStrPdf)).reduce((a,s)=>a+s.minuti,0);
     const fmtStraT = m => m>=60?`${Math.floor(m/60)}h${m%60>0?` ${m%60}m`:''}`:m>0?`${m}m`:'—';
-    const riga_totali = `<tr style="background:#1e3a6e;color:#fff;font-weight:bold"><td class="nome" style="background:#1e3a6e;color:#fff">TOTALI</td><td class="tot-num" style="color:#fff">${totPres}</td><td class="tot-num" style="color:#fde047">${totMal||'—'}</td><td class="tot-num" style="color:#7dd3fc">${totFer||'—'}</td><td class="tot-num" style="color:#fca5a5">${totAss||'—'}</td><td class="tot-num" style="color:#c4b5fd">—</td><td class="tot-num" style="color:#d8b4fe">${totRep||'—'}</td><td class="tot-num" style="color:#a5b4fc">${totGest||'—'}</td><td class="tot-num" style="color:#fdba74">${fmtStraT(totStra)}</td><td class="tot-num" style="color:#fff">—</td></tr>`;
+    const riga_totali = `<tr style="background:#1e3a6e;color:#fff;font-weight:bold"><td class="nome" style="background:#1e3a6e;color:#fff">TOTALI</td><td class="tot-num" style="color:#fff">—</td><td class="tot-num" style="color:#fff">${totPres}</td><td class="tot-num" style="color:#fde047">${totMal||'—'}</td><td class="tot-num" style="color:#7dd3fc">${totFer||'—'}</td><td class="tot-num" style="color:#fca5a5">${totAss||'—'}</td><td class="tot-num" style="color:#c4b5fd">—</td><td class="tot-num" style="color:#d8b4fe">${totRep||'—'}</td><td class="tot-num" style="color:#a5b4fc">${totGest||'—'}</td><td class="tot-num" style="color:#fdba74">${fmtStraT(totStra)}</td><td class="tot-num" style="color:#fff">—</td></tr>`;
 
     const html = `<!DOCTYPE html>
 <html lang="it">
@@ -5319,7 +5326,7 @@ ${blocchi}
 
 <h2>Riepilogo mensile per dipendente</h2>
 <table class="tot-table" style="width:auto">
-  <thead><tr><th style="width:130px;text-align:left;padding-left:5px">Dipendente</th><th style="width:55px">Presenze</th><th style="width:55px">Malattia</th><th style="width:45px;color:#7dd3fc">Ferie</th><th style="width:45px">Assenze</th><th style="width:55px;color:#c4b5fd">Ore perm.</th><th style="width:40px;color:#d8b4fe">Rep.</th><th style="width:40px;color:#a5b4fc">Gest.</th><th style="width:55px;color:#fdba74">Straord.</th><th style="width:50px">% pres.</th></tr></thead>
+  <thead><tr><th style="width:130px;text-align:left;padding-left:5px">Dipendente</th><th style="width:80px;text-align:left;padding-left:5px">Turno</th><th style="width:55px">Presenze</th><th style="width:55px">Malattia</th><th style="width:45px;color:#7dd3fc">Ferie</th><th style="width:45px">Assenze</th><th style="width:55px;color:#c4b5fd">Ore perm.</th><th style="width:40px;color:#d8b4fe">Rep.</th><th style="width:40px;color:#a5b4fc">Gest.</th><th style="width:55px;color:#fdba74">Straord.</th><th style="width:50px">% pres.</th></tr></thead>
   <tbody>${righe_totali}</tbody>
   <tfoot>${riga_totali}</tfoot>
 </table>
