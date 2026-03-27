@@ -412,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-030';
+const APP_VERSION = '2026-03-27-031';
 
 const CREDITS = [
   {
@@ -621,6 +621,11 @@ const CHANGELOG = [
     version: '2026-03-27-030',
     data: '27/03/2026',
     descrizione: 'Manutenzione — sezione "Turni di lavoro": consente di creare turni aggiuntivi (nome, orari, tolleranza) da associare ai dipendenti. Il Turno Standard rimane configurabile in "Orario di lavoro". I turni sono salvati in settings.turni su Supabase. Richiede colonna turni JSONB in tabella settings.'
+  },
+  {
+    version: '2026-03-27-031',
+    data: '27/03/2026',
+    descrizione: 'Fix turni: handleAddTurno e handleDeleteTurno ora salvano direttamente su Supabase senza dipendere dalla sequenza asincrona di setForm+handleSave. Il turno aggiunto/eliminato persiste correttamente anche dopo refresh.'
   },
 ];
 
@@ -7355,11 +7360,15 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
   const handleAddTurno = () => {
     if (!newTurno.nome.trim()) return;
     const t = { ...newTurno, nome: newTurno.nome.trim(), id: String(Date.now()) };
-    setForm(f => ({ ...f, turni: [...f.turni, t] }));
+    const updTurni = [...form.turni, t];
+    setForm(f => ({ ...f, turni: updTurni }));
+    onSave({ ...form, turni: updTurni });
     setNewTurno({ nome:'', inizioTurno:'08:30', inizioPausa:'12:30', finePausa:'13:00', fineTurno:'17:00', tolleranzaMinuti:15 });
   };
   const handleDeleteTurno = id => {
-    setForm(f => ({ ...f, turni: f.turni.filter(t => t.id !== id) }));
+    const updTurni = form.turni.filter(t => t.id !== id);
+    setForm(f => ({ ...f, turni: updTurni }));
+    onSave({ ...form, turni: updTurni });
   };
   const [newCdc, setNewCdc] = useState({numero:'', testo:''});
   const [editCdcId, setEditCdcId] = useState(null);
@@ -7786,7 +7795,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                 className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
             </div>
             <div className="flex justify-end pt-1">
-              <button onClick={() => { handleAddTurno(); handleSave(); }}
+              <button onClick={handleAddTurno}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
                 style={{background:'#1e3a6e'}}>
                 + Aggiungi turno
