@@ -412,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-032';
+const APP_VERSION = '2026-03-27-033';
 
 const CREDITS = [
   {
@@ -631,6 +631,11 @@ const CHANGELOG = [
     version: '2026-03-27-032',
     data: '27/03/2026',
     descrizione: 'Turni per-dipendente attivi: aggiunto helper getTurnoEmp(). Timbratura, calcolo straordinari e riquadro orari usano ora il turno del dipendente loggato. generaFileRilpre calcola ore nette con le pause del turno di ogni dipendente. Reminder mancata timbratura scatta 10 min dopo l\'inizio del turno del singolo dipendente.'
+  },
+  {
+    version: '2026-03-27-033',
+    data: '27/03/2026',
+    descrizione: 'Fix chiusure aziendali: aggiunto chiusureAziendali e chiusureLastUpdate al form state di Manutenzione. Impedisce che il salvataggio turni sovrascriva le chiusure aziendali su Supabase/localStorage azzerandole.'
   },
 ];
 
@@ -7375,6 +7380,8 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     rilpreCodiceFiliale:     settings.rilpreCodiceFiliale || '01',
     rilpreGiustificativi:    settings.rilpreGiustificativi || RILPRE_GIUST_DEFAULT,
     turni:                   settings.turni || [{id:'default', nome:'Turno Standard'}],
+    chiusureAziendali:       settings.chiusureAziendali || [],
+    chiusureLastUpdate:      settings.chiusureLastUpdate || null,
   });
   const [newTurno, setNewTurno] = useState({ nome:'', inizioTurno:'08:30', inizioPausa:'12:30', finePausa:'13:00', fineTurno:'17:00', tolleranzaMinuti:15 });
   const handleAddTurno = () => {
