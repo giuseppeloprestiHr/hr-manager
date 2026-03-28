@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-035';
+const APP_VERSION = '2026-03-27-036';
 
 const CREDITS = [
   {
@@ -645,6 +645,11 @@ const CHANGELOG = [
     version: '2026-03-27-035',
     data: '27/03/2026',
     descrizione: 'Utenti demo aggiornati: sostituiti i placeholder con Giuseppe Lo Presti (master), Paola Gardumi (amministratore), Livio Sardo (direttore), Nicola Perini (responsabile), Elson Meta (dipendente). Gerarchia: Giuseppe → Paola/Livio → Nicola → Elson. Password demo invariata: Hr2024!'
+  },
+  {
+    version: '2026-03-27-036',
+    data: '27/03/2026',
+    descrizione: 'Fix reset dati demo: la funzione ora cancella prima TUTTI gli employees da Supabase e poi inserisce i nuovi da INITIAL_EMPLOYEES. Risolto il bug per cui vecchi e nuovi dipendenti si sommavano invece di essere sostituiti.'
   },
 ];
 
@@ -7492,8 +7497,9 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
           _supa.from('news').delete().neq('id','__placeholder__'),
         ]);
 
+        await _supa.from('employees').delete().neq('id','__placeholder__');
         const demoEmps = INITIAL_EMPLOYEES.map(e => _E.to({...e, straordinario:false}));
-        await _supa.from('employees').upsert(demoEmps, { onConflict:'id' });
+        await _supa.from('employees').insert(demoEmps);
 
         const defaultSettings = {
           id: 1,

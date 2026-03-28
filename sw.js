@@ -1,5 +1,5 @@
-// HR Manager — Service Worker v6
-const CACHE = 'hr-manager-v6';
+// HR Manager — Service Worker v7
+const CACHE = 'hr-manager-v7';
 
 // Risorse CDN pesanti — cachate al primo avvio
 const PRECACHE_CDN = [
