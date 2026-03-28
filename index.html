@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-040';
+const APP_VERSION = '2026-03-28-041';
 
 const CREDITS = [
   {
@@ -665,6 +665,11 @@ const CHANGELOG = [
     version: '2026-03-28-040',
     data: '28/03/2026',
     descrizione: 'Fix visualizzazione notifiche: aggiunto al TIPI map i sottotipi (ferie_richiesta, ferie_approvata, permesso_richiesta, permesso_approvato, straordinario_richiesta, straordinario_approvato, nota_spese) per evitare che venga mostrato il valore grezzo con underscore. Allargata colonna badge da w-28 a w-36 con truncate per prevenire sovrapposizione colonne.'
+  },
+  {
+    version: '2026-03-28-041',
+    data: '28/03/2026',
+    descrizione: 'Fix filtri notifiche: match per prefisso normalizzato (ferie cattura ferie_richiesta/ferie_approvata, nota-spese cattura nota_spese, ecc.). Aggiunte 15 notifiche timbratura demo (3 per dipendente) per popolare il filtro Timbratura.'
   },
   {
     version: '2026-03-27-036',
@@ -6089,7 +6094,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
   const tutti = [...notifiche]
     .filter(n => isMaster || n.destinatari.includes(userId))
     .sort((a,b)=>b.timestamp-a.timestamp);
-  const perTipo = filtro==='tutte' ? tutti : tutti.filter(n=>n.tipo===filtro);
+  const perTipo = filtro==='tutte' ? tutti : tutti.filter(n => { const t=(n.tipo||'').replace(/-/g,'_'); const f=filtro.replace(/-/g,'_'); return t===f||t.startsWith(f+'_'); });
   const visibili = perTipo.filter(n => {
     if (ricerca.trim() && !n.testo.toLowerCase().includes(ricerca.toLowerCase()) && !empName(n.empId).toLowerCase().includes(ricerca.toLowerCase())) return false;
     if (filtroDip && n.empId !== filtroDip) return false;
@@ -7641,6 +7646,18 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('n',nid+'req'), tipo:'straordinario_richiesta', testo:`Elson Meta ha registrato ${min} min di straordinario il ${date}`, destinatari:['4','3'], emp_id:eid, timestamp:ts('2026-02-06',18,35), lette:['4','3'] },
         { id:dId('n',nid+'app'), tipo:'straordinario_approvato', testo:`Il tuo straordinario del ${date} è stato approvato`, destinatari:[eid], emp_id:eid, timestamp:ts('2026-02-09',9,5), lette:[eid] }
       ));
+      [
+        { eid:'1', nome:'Giuseppe Lo Presti', resp:'2',  samples:[['2026-02-02','08:32',2,32],['2026-02-16','08:29',2,29],['2026-03-09','08:33',9,33]] },
+        { eid:'2', nome:'Paola Gardumi',      resp:null, samples:[['2026-02-02','08:30',2,30],['2026-02-16','08:28',2,28],['2026-03-09','08:31',9,31]] },
+        { eid:'3', nome:'Livio Sardo',        resp:'2',  samples:[['2026-02-02','08:35',2,35],['2026-02-16','08:37',2,37],['2026-03-09','08:34',9,34]] },
+        { eid:'4', nome:'Nicola Perini',      resp:'3',  samples:[['2026-02-02','08:27',2,27],['2026-02-16','08:33',2,33],['2026-03-09','08:29',9,29]] },
+        { eid:'5', nome:'Elson Meta',         resp:'4',  samples:[['2026-02-02','08:37',2,37],['2026-02-16','08:31',2,31],['2026-03-09','08:38',9,38]] },
+      ].forEach(({eid, nome, resp, samples}) => {
+        samples.forEach(([data, ora, day, min], i) => {
+          const dest = resp ? [eid, resp] : [eid];
+          notificheRec.push({ id:dId('n','timb'+eid+i), tipo:'timbratura', testo:`${nome} ha timbrato l'entrata alle ${ora} | GPS non disponibile`, destinatari:dest, emp_id:eid, timestamp:ts(data, 8, min), lette:dest });
+        });
+      });
       for (let i=0; i<timbratureRec.length; i+=50) await _supa.from('timbrature').insert(timbratureRec.slice(i,i+50));
       await _supa.from('malattie').insert(malattieRec);
       await _supa.from('ferie').insert(ferieRec);
