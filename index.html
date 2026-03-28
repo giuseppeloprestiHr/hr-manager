@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-041';
+const APP_VERSION = '2026-03-28-042';
 
 const CREDITS = [
   {
@@ -670,6 +670,11 @@ const CHANGELOG = [
     version: '2026-03-28-041',
     data: '28/03/2026',
     descrizione: 'Fix filtri notifiche: match per prefisso normalizzato (ferie cattura ferie_richiesta/ferie_approvata, nota-spese cattura nota_spese, ecc.). Aggiunte 15 notifiche timbratura demo (3 per dipendente) per popolare il filtro Timbratura.'
+  },
+  {
+    version: '2026-03-28-042',
+    data: '28/03/2026',
+    descrizione: 'Demo data estesa a gennaio 2026: 20 giorni lavorativi (esclusa Epifania 6/1), malattia Nicola 15-16/1, ferie Elson 26-28/1, permesso Livio 21/1, straordinari Nicola 22/1 ed Elson 9/1, reperibilità 5 weekend gennaio, 2 gestioni tel., note spese gennaio per Livio e Nicola con voci, 2 news gennaio, chiusura Epifania, 11 notifiche evento + sample timbrature da gennaio.'
   },
   {
     version: '2026-03-27-036',
@@ -7551,32 +7556,38 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     try {
       const dId = (...p) => 'DEMO_' + p.join('_');
       const ts  = (d, h=9, m=0) => new Date(`${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`).getTime();
+      const janDays = ['2026-01-02','2026-01-05','2026-01-07','2026-01-08','2026-01-09','2026-01-12','2026-01-13','2026-01-14','2026-01-15','2026-01-16','2026-01-19','2026-01-20','2026-01-21','2026-01-22','2026-01-23','2026-01-26','2026-01-27','2026-01-28','2026-01-29','2026-01-30'];
       const febDays = ['2026-02-02','2026-02-03','2026-02-04','2026-02-05','2026-02-06','2026-02-09','2026-02-10','2026-02-11','2026-02-12','2026-02-13','2026-02-16','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-23','2026-02-24','2026-02-25','2026-02-26','2026-02-27'];
       const marDays = ['2026-03-02','2026-03-03','2026-03-04','2026-03-05','2026-03-06','2026-03-09','2026-03-10','2026-03-11','2026-03-12','2026-03-13','2026-03-16','2026-03-17','2026-03-18','2026-03-19','2026-03-20','2026-03-23','2026-03-24','2026-03-25','2026-03-26','2026-03-27'];
-      const allDays = [...febDays, ...marDays];
+      const allDays = [...janDays, ...febDays, ...marDays];
       const inOff  = [-6,1,-3,5,-8,3,-4,7,-1,4,-7,2,-5,6,-2,1,-3,8,-6,3,-4,5,-1,-7,2,-6,3,-2,8,-5,4,-3,6,-1,7,-8,2,-4,1,-6];
       const outOff = [5,-2,8,-4,3,-6,1,-3,7,-1,4,-5,2,-7,6,-2,1,-4,9,-3,2,-8,5,-1,3,-6,7,-2,4,-5,1,-3,8,-6,2,-4,5,-1,3,-7];
       const getIn  = (ei,di) => { const m=8*60+30+inOff[(ei*13+di*7)%inOff.length]; return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; };
       const getOut = (ei,di) => { const m=17*60+outOff[(ei*11+di*9)%outOff.length]; return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; };
-      const skip = { '3':new Set(['2026-02-10','2026-02-17','2026-02-18']), '1':new Set(['2026-03-05','2026-03-10','2026-03-11','2026-03-12']), '4':new Set(['2026-03-04']), '5':new Set(['2026-02-23','2026-02-24','2026-02-25']) };
+      const skip = { '3':new Set(['2026-02-10','2026-02-17','2026-02-18']), '1':new Set(['2026-03-05','2026-03-10','2026-03-11','2026-03-12']), '4':new Set(['2026-03-04','2026-01-15','2026-01-16']), '5':new Set(['2026-02-23','2026-02-24','2026-02-25','2026-01-26','2026-01-27','2026-01-28']) };
       const timbratureRec = [];
       ['1','2','3','4','5'].forEach((eid,ei) => allDays.forEach((d,di) => {
         if (skip[eid]?.has(d)) return;
         timbratureRec.push({ id:dId('t',eid,d.replace(/-/g,'')), employee_id:eid, data:d, ora:getIn(ei,di), ora_uscita:getOut(ei,di), timestamp:ts(d,8,30), gps_lat:null, gps_lon:null, gps_accuracy:null, gps_address:null });
       }));
       const malattieRec = [
+        { id:dId('m','4','202601'), employee_id:'4', data_inizio:'2026-01-15', data_fine:'2026-01-16', protocollo:null, note:'', timestamp:ts('2026-01-15',8,0), inserito_da:'3', malattie_figlio:false, cf_figlio:null },
         { id:dId('m','3','202602'), employee_id:'3', data_inizio:'2026-02-17', data_fine:'2026-02-18', protocollo:null, note:'', timestamp:ts('2026-02-17',8,0), inserito_da:'1', malattie_figlio:false, cf_figlio:null },
         { id:dId('m','1','202603'), employee_id:'1', data_inizio:'2026-03-05', data_fine:'2026-03-05', protocollo:null, note:'', timestamp:ts('2026-03-05',8,0), inserito_da:'2', malattie_figlio:false, cf_figlio:null },
       ];
       const ferieRec = [
+        { id:dId('f','5','202601'), employee_id:'5', data_inizio:'2026-01-26', data_fine:'2026-01-28', giorni_lavorativi:3, motivo:'', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-01-20',10,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-01-20',11,0), rifiutato_da_id:null, note_rifiuto:null, note_annullamento:null, annullata_da_id:null, annullata_timestamp:null, timestamp:ts('2026-01-19',16,0) },
         { id:dId('f','1','202603'), employee_id:'1', data_inizio:'2026-03-10', data_fine:'2026-03-12', giorni_lavorativi:3, motivo:'', status:'approvato', approvato_resp_id:'2', approvato_resp_timestamp:ts('2026-03-04',10,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-04',11,0), rifiutato_da_id:null, note_rifiuto:null, note_annullamento:null, annullata_da_id:null, annullata_timestamp:null, timestamp:ts('2026-03-03',14,0) },
         { id:dId('f','5','202602'), employee_id:'5', data_inizio:'2026-02-23', data_fine:'2026-02-25', giorni_lavorativi:3, motivo:'', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-02-18',9,30), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-18',11,0), rifiutato_da_id:null, note_rifiuto:null, note_annullamento:null, annullata_da_id:null, annullata_timestamp:null, timestamp:ts('2026-02-17',16,0) },
       ];
       const permessiRec = [
+        { id:dId('p','3','20260121'), employee_id:'3', data:'2026-01-21', ora_inizio:'14:00', ora_fine:'16:00', ore_permesso:2, motivo:'Appuntamento medico', tipologia:'', status:'approvato', note_rifiuto:null, note_annullamento:null, annullato_da:null, annullato_timestamp:null, approvato_da:'2', approvato_timestamp:ts('2026-01-20',9,0), timestamp:ts('2026-01-19',17,0) },
         { id:dId('p','3','20260210'), employee_id:'3', data:'2026-02-10', ora_inizio:'14:00', ora_fine:'16:00', ore_permesso:2, motivo:'Visita medica', tipologia:'', status:'approvato', note_rifiuto:null, note_annullamento:null, annullato_da:null, annullato_timestamp:null, approvato_da:'2', approvato_timestamp:ts('2026-02-07',10,0), timestamp:ts('2026-02-06',17,0) },
         { id:dId('p','4','20260304'), employee_id:'4', data:'2026-03-04', ora_inizio:'09:00', ora_fine:'11:00', ore_permesso:2, motivo:'Commissioni personali', tipologia:'', status:'approvato', note_rifiuto:null, note_annullamento:null, annullato_da:null, annullato_timestamp:null, approvato_da:'3', approvato_timestamp:ts('2026-03-03',11,0), timestamp:ts('2026-03-02',18,0) },
       ];
       const straordinariRec = [
+        { id:dId('s','4','20260122'), employee_id:'4', data:'2026-01-22', tipo:'sera', minuti:60, nota:'Chiusura bilancio di dicembre', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-01-23',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-01-23',10,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-01-22',18,0) },
+        { id:dId('s','5','20260109'), employee_id:'5', data:'2026-01-09', tipo:'sera', minuti:90, nota:'Installazione impianti urgente', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-01-12',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-01-12',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-01-09',18,30) },
         { id:dId('s','4','20260205'), employee_id:'4', data:'2026-02-05', tipo:'sera', minuti:60, nota:'Chiusura progetto cliente', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-02-06',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-06',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-05',18,0) },
         { id:dId('s','4','20260219'), employee_id:'4', data:'2026-02-19', tipo:'sera', minuti:60, nota:'Riunione urgente', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-02-20',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-20',10,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-19',18,0) },
         { id:dId('s','4','20260311'), employee_id:'4', data:'2026-03-11', tipo:'sera', minuti:60, nota:'Supporto audit interno', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-03-12',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-12',10,30), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-11',18,0) },
@@ -7587,8 +7598,10 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('s','5','20260313'), employee_id:'5', data:'2026-03-13', tipo:'sera', minuti:60, nota:'Consegna materiali urgenti', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-03-16',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-16',10,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-13',18,0) },
         { id:dId('s','5','20260327'), employee_id:'5', data:'2026-03-27', tipo:'sera', minuti:60, nota:'Chiusura mensile', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-03-27',20,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-27',21,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-27',18,0) },
       ];
-      const reperiRec = ['2026-02-07','2026-02-08','2026-02-14','2026-02-15','2026-03-07','2026-03-08','2026-03-14','2026-03-15','2026-03-21','2026-03-22'].map(d => ({ id:dId('r','5',d.replace(/-/g,'')), employee_id:'5', data:d, responsabile_id:'4', pubblicata:true, timestamp:ts(d,8,0) }));
+      const reperiRec = ['2026-01-03','2026-01-04','2026-01-10','2026-01-11','2026-01-17','2026-01-18','2026-01-24','2026-01-25','2026-01-31','2026-02-07','2026-02-08','2026-02-14','2026-02-15','2026-03-07','2026-03-08','2026-03-14','2026-03-15','2026-03-21','2026-03-22'].map(d => ({ id:dId('r','5',d.replace(/-/g,'')), employee_id:'5', data:d, responsabile_id:'4', pubblicata:true, timestamp:ts(d,8,0) }));
       const gestRec = [
+        { data:'2026-01-08', ora:'10:30', cliente:'Cliente Alfa', note:'Primo contatto nuovo anno' },
+        { data:'2026-01-20', ora:'15:00', cliente:'Cliente Gamma', note:'Follow-up offerta' },
         { data:'2026-02-04', ora:'09:15', cliente:'Cliente Alfa', note:'Supporto post-vendita' },
         { data:'2026-02-12', ora:'14:30', cliente:'Cliente Beta', note:'Richiesta informazioni' },
         { data:'2026-02-19', ora:'10:00', cliente:'Cliente Gamma', note:'Gestione reclamo' },
@@ -7597,12 +7610,18 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { data:'2026-03-24', ora:'09:45', cliente:'Cliente Beta', note:'Verifica consegna' },
       ].map(g => ({ id:dId('g','5',g.data.replace(/-/g,'')), employee_id:'5', data:g.data, ora:g.ora, cliente:g.cliente, note:g.note, timestamp:ts(g.data,parseInt(g.ora),0) }));
       const noteSpeseRec = [
+        { id:dId('ns','3','202601'), employee_id:'3', anno:2026, mese:1, status:'chiusa', confirmed_at:'2026-02-02T09:00:00Z', timestamp:ts('2026-02-02',9,0) },
+        { id:dId('ns','4','202601'), employee_id:'4', anno:2026, mese:1, status:'chiusa', confirmed_at:'2026-02-02T10:00:00Z', timestamp:ts('2026-02-02',10,0) },
         { id:dId('ns','3','202602'), employee_id:'3', anno:2026, mese:2, status:'chiusa', confirmed_at:'2026-03-01T10:00:00Z', timestamp:ts('2026-03-01',10,0) },
         { id:dId('ns','4','202602'), employee_id:'4', anno:2026, mese:2, status:'chiusa', confirmed_at:'2026-03-01T11:00:00Z', timestamp:ts('2026-03-01',11,0) },
         { id:dId('ns','4','202603'), employee_id:'4', anno:2026, mese:3, status:'chiusa', confirmed_at:'2026-03-28T10:00:00Z', timestamp:ts('2026-03-28',10,0) },
         { id:dId('ns','5','202603'), employee_id:'5', anno:2026, mese:3, status:'chiusa', confirmed_at:'2026-03-28T11:00:00Z', timestamp:ts('2026-03-28',11,0) },
       ];
       const noteSpeseVociRec = [
+        { id:dId('nsv','3','j1'), nota_spese_id:dId('ns','3','202601'), employee_id:'3', data:'2026-01-14', luogo:'Torino', natura:'carburante', importo:48.00, note:'160 km a/r', timestamp:ts('2026-01-14',18,0) },
+        { id:dId('nsv','3','j2'), nota_spese_id:dId('ns','3','202601'), employee_id:'3', data:'2026-01-14', luogo:'Torino', natura:'vitto', importo:16.00, note:'Pranzo di lavoro', timestamp:ts('2026-01-14',18,1) },
+        { id:dId('nsv','4','j1'), nota_spese_id:dId('ns','4','202601'), employee_id:'4', data:'2026-01-22', luogo:'Padova', natura:'carburante', importo:60.00, note:'200 km a/r', timestamp:ts('2026-01-22',18,0) },
+        { id:dId('nsv','4','j2'), nota_spese_id:dId('ns','4','202601'), employee_id:'4', data:'2026-01-22', luogo:'Padova', natura:'pedaggio', importo:10.00, note:'A4 andata/ritorno', timestamp:ts('2026-01-22',18,1) },
         { id:dId('nsv','3','1'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano', natura:'carburante', importo:54.00, note:'180 km a/r', timestamp:ts('2026-02-13',18,0) },
         { id:dId('nsv','3','2'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano', natura:'vitto', importo:18.00, note:'Pranzo di lavoro', timestamp:ts('2026-02-13',18,1) },
         { id:dId('nsv','3','3'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano', natura:'pedaggio', importo:12.00, note:'A4 andata/ritorno', timestamp:ts('2026-02-13',18,2) },
@@ -7615,16 +7634,30 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('nsv','5','3'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-20', luogo:'Cremona', natura:'carburante', importo:18.00, note:'60 km a/r', timestamp:ts('2026-03-20',18,0) },
       ];
       const newsRec = [
+        { id:dId('nw','1','20260102'), titolo:'Buon 2026: obiettivi e novità del nuovo anno', testo:'Caro team, con l\'inizio del nuovo anno vogliamo condividere gli obiettivi aziendali 2026 e le principali novità organizzative. Il portale HR è ora il punto di riferimento per gestire presenze, ferie e comunicazioni interne. Buon lavoro a tutti!', author_id:'1', lette:[], timestamp:ts('2026-01-02',9,0) },
+        { id:dId('nw','1','20260115'), titolo:'Promemoria: chiusura note spese gennaio', testo:'Si ricorda a tutti che le note spese del mese di gennaio devono essere compilate e chiuse entro venerdì 30 gennaio per permettere la liquidazione nei tempi previsti. Per assistenza contattare l\'ufficio amministrativo.', author_id:'1', lette:[], timestamp:ts('2026-01-15',8,30) },
         { id:dId('nw','1','20260203'), titolo:'Benvenuto nel portale HR', testo:'Ciao a tutti! Il nuovo portale HR è ora operativo. Qui potrete gestire presenze, permessi, ferie e molto altro. Per qualsiasi necessità contattate l\'ufficio amministrativo.', author_id:'1', lette:[], timestamp:ts('2026-02-03',9,0) },
         { id:dId('nw','1','20260228'), titolo:'Promemoria: compilazione note spese', testo:'Si ricorda a tutti i dipendenti di compilare e chiudere le note spese del mese di febbraio entro oggi. Le note aperte non potranno essere elaborate nel prossimo ciclo di rimborsi.', author_id:'1', lette:[], timestamp:ts('2026-02-28',8,30) },
         { id:dId('nw','1','20260303'), titolo:'Aggiornamento policy ferie 2026', testo:'Si comunica che le richieste di ferie per il periodo estivo (luglio-agosto) devono essere presentate entro il 30 aprile. Si prega di coordinarsi con il proprio responsabile per garantire la copertura del servizio.', author_id:'1', lette:[], timestamp:ts('2026-03-03',9,0) },
       ];
       const chiusureDemo = [
+        { id:dId('ca','20260106'), data:'2026-01-06', descrizione:'Epifania (festività nazionale)' },
         { id:dId('ca','20260220'), data:'2026-02-20', descrizione:'Chiusura aziendale (ponte)' },
         { id:dId('ca','20260321'), data:'2026-03-21', descrizione:'Chiusura aziendale (evento interno)' },
       ];
       const notificheRec = [];
       notificheRec.push(
+        { id:dId('n','f5jan_req'), tipo:'ferie_richiesta',    testo:'Elson Meta ha richiesto ferie dal 26/01 al 28/01',              destinatari:['4','3'], emp_id:'5', timestamp:ts('2026-01-19',16,0), lette:['4','3'] },
+        { id:dId('n','f5jan_app'), tipo:'ferie_approvata',    testo:'Le tue ferie dal 26/01 al 28/01 sono state approvate',           destinatari:['5'],     emp_id:'5', timestamp:ts('2026-01-20',11,0), lette:['5'] },
+        { id:dId('n','p3jan_req'), tipo:'permesso_richiesta', testo:'Livio Sardo ha richiesto un permesso il 21/01 (14:00–16:00)',    destinatari:['2'],     emp_id:'3', timestamp:ts('2026-01-19',17,0), lette:['2'] },
+        { id:dId('n','p3jan_app'), tipo:'permesso_approvato', testo:'Il tuo permesso del 21/01 è stato approvato',                   destinatari:['3'],     emp_id:'3', timestamp:ts('2026-01-20',9,0),  lette:['3'] },
+        { id:dId('n','m4jan'),     tipo:'malattia',           testo:'Nicola Perini è assente per malattia dal 15/01 al 16/01',       destinatari:['3','2'], emp_id:'4', timestamp:ts('2026-01-15',8,5),  lette:['3','2'] },
+        { id:dId('n','s4jan_req'), tipo:'straordinario_richiesta', testo:'Nicola Perini ha registrato 60 min di straordinario il 22/01', destinatari:['3','2'], emp_id:'4', timestamp:ts('2026-01-22',18,5), lette:['3','2'] },
+        { id:dId('n','s4jan_app'), tipo:'straordinario_approvato', testo:'Il tuo straordinario del 22/01 è stato approvato',         destinatari:['4'],     emp_id:'4', timestamp:ts('2026-01-23',9,5),  lette:['4'] },
+        { id:dId('n','s5jan_req'), tipo:'straordinario_richiesta', testo:'Elson Meta ha registrato 90 min di straordinario il 09/01', destinatari:['4','3'], emp_id:'5', timestamp:ts('2026-01-09',18,35), lette:['4','3'] },
+        { id:dId('n','s5jan_app'), tipo:'straordinario_approvato', testo:'Il tuo straordinario del 09/01 è stato approvato',         destinatari:['5'],     emp_id:'5', timestamp:ts('2026-01-12',9,5),  lette:['5'] },
+        { id:dId('n','ns3jan'),    tipo:'nota_spese',         testo:'La nota spese di Livio Sardo (Gen 2026) è stata chiusa',        destinatari:['3','1'], emp_id:'3', timestamp:ts('2026-02-02',9,0),  lette:['3','1'] },
+        { id:dId('n','ns4jan'),    tipo:'nota_spese',         testo:'La nota spese di Nicola Perini (Gen 2026) è stata chiusa',      destinatari:['4','1'], emp_id:'4', timestamp:ts('2026-02-02',10,0), lette:['4','1'] },
         { id:dId('n','f1req'), tipo:'ferie_richiesta', testo:'Giuseppe Lo Presti ha richiesto ferie dal 10/03 al 12/03', destinatari:['2','3'], emp_id:'1', timestamp:ts('2026-03-03',14,0), lette:['2','3'] },
         { id:dId('n','f1app'), tipo:'ferie_approvata', testo:'Le tue ferie dal 10/03 al 12/03 sono state approvate', destinatari:['1'], emp_id:'1', timestamp:ts('2026-03-04',11,0), lette:['1'] },
         { id:dId('n','f5req'), tipo:'ferie_richiesta', testo:'Elson Meta ha richiesto ferie dal 23/02 al 25/02', destinatari:['4','3'], emp_id:'5', timestamp:ts('2026-02-17',16,0), lette:['4','3'] },
@@ -7647,13 +7680,13 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('n',nid+'app'), tipo:'straordinario_approvato', testo:`Il tuo straordinario del ${date} è stato approvato`, destinatari:[eid], emp_id:eid, timestamp:ts('2026-02-09',9,5), lette:[eid] }
       ));
       [
-        { eid:'1', nome:'Giuseppe Lo Presti', resp:'2',  samples:[['2026-02-02','08:32',2,32],['2026-02-16','08:29',2,29],['2026-03-09','08:33',9,33]] },
-        { eid:'2', nome:'Paola Gardumi',      resp:null, samples:[['2026-02-02','08:30',2,30],['2026-02-16','08:28',2,28],['2026-03-09','08:31',9,31]] },
-        { eid:'3', nome:'Livio Sardo',        resp:'2',  samples:[['2026-02-02','08:35',2,35],['2026-02-16','08:37',2,37],['2026-03-09','08:34',9,34]] },
-        { eid:'4', nome:'Nicola Perini',      resp:'3',  samples:[['2026-02-02','08:27',2,27],['2026-02-16','08:33',2,33],['2026-03-09','08:29',9,29]] },
-        { eid:'5', nome:'Elson Meta',         resp:'4',  samples:[['2026-02-02','08:37',2,37],['2026-02-16','08:31',2,31],['2026-03-09','08:38',9,38]] },
+        { eid:'1', nome:'Giuseppe Lo Presti', resp:'2',  samples:[['2026-01-02','08:32',32],['2026-02-02','08:29',29],['2026-03-09','08:33',33]] },
+        { eid:'2', nome:'Paola Gardumi',      resp:null, samples:[['2026-01-02','08:30',30],['2026-02-02','08:28',28],['2026-03-09','08:31',31]] },
+        { eid:'3', nome:'Livio Sardo',        resp:'2',  samples:[['2026-01-05','08:35',35],['2026-02-02','08:37',37],['2026-03-09','08:34',34]] },
+        { eid:'4', nome:'Nicola Perini',      resp:'3',  samples:[['2026-01-05','08:27',27],['2026-02-02','08:33',33],['2026-03-09','08:29',29]] },
+        { eid:'5', nome:'Elson Meta',         resp:'4',  samples:[['2026-01-05','08:37',37],['2026-02-02','08:31',31],['2026-03-09','08:38',38]] },
       ].forEach(({eid, nome, resp, samples}) => {
-        samples.forEach(([data, ora, day, min], i) => {
+        samples.forEach(([data, ora, min], i) => {
           const dest = resp ? [eid, resp] : [eid];
           notificheRec.push({ id:dId('n','timb'+eid+i), tipo:'timbratura', testo:`${nome} ha timbrato l'entrata alle ${ora} | GPS non disponibile`, destinatari:dest, emp_id:eid, timestamp:ts(data, 8, min), lette:dest });
         });
