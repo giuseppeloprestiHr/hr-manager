@@ -368,11 +368,11 @@ const permessoStepIniziale = (ruolo) => {
 };
 
 const INITIAL_EMPLOYEES = [
-  { id:'1', nome:'Giuseppe', cognome:'Lo Presti', registro:'EMP001', dataInizio:'2018-01-02', cf:'LPRGPP80A01L219Z', telefono:'348-1111222', email:'giuseppe.lopresti@azienda.it', responsabileId:'2',  ruolo:'master',         login:'giuseppe.lopresti', password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'2', nome:'Paola',    cognome:'Gardumi',   registro:'EMP002', dataInizio:'2019-03-04', cf:'GRDPLA82B41L219X', telefono:'347-2222333', email:'paola.gardumi@azienda.it',     responsabileId:null, ruolo:'amministratore', login:'paola.gardumi',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'3', nome:'Livio',    cognome:'Sardo',     registro:'EMP003', dataInizio:'2020-06-01', cf:'SRDLVI78C15L219Y', telefono:'346-3333444', email:'livio.sardo@azienda.it',       responsabileId:'2',  ruolo:'direttore',      login:'livio.sardo',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'4', nome:'Nicola',   cognome:'Perini',    registro:'EMP004', dataInizio:'2021-09-13', cf:'PRNNKL85D22L219W', telefono:'345-4444555', email:'nicola.perini@azienda.it',     responsabileId:'3',  ruolo:'responsabile',   login:'nicola.perini',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false, straordinario:true },
-  { id:'5', nome:'Elson',    cognome:'Meta',      registro:'EMP005', dataInizio:'2022-04-04', cf:'MTELSN96A10Z100X', telefono:'344-5555666', email:'elson.meta@azienda.it',        responsabileId:'4',  ruolo:'dipendente',     login:'elson.meta',        password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:true,  straordinario:true },
+  { id:'1', nome:'Giuseppe', cognome:'Lo Presti', registro:'EMP001', dataInizio:'2018-01-02', cf:'LPRGPP80A01L219Z', telefono:'348-1111222', email:'giuseppe.lopresti@azienda.it', responsabileId:'2',  ruolo:'master',         login:'giuseppe.lopresti', password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false, cittaDiLavoro:'Trento' },
+  { id:'2', nome:'Paola',    cognome:'Gardumi',   registro:'EMP002', dataInizio:'2019-03-04', cf:'GRDPLA82B41L219X', telefono:'347-2222333', email:'paola.gardumi@azienda.it',     responsabileId:null, ruolo:'amministratore', login:'paola.gardumi',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false, cittaDiLavoro:'Trento' },
+  { id:'3', nome:'Livio',    cognome:'Sardo',     registro:'EMP003', dataInizio:'2020-06-01', cf:'SRDLVI78C15L219Y', telefono:'346-3333444', email:'livio.sardo@azienda.it',       responsabileId:'2',  ruolo:'direttore',      login:'livio.sardo',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false, cittaDiLavoro:'Trento' },
+  { id:'4', nome:'Nicola',   cognome:'Perini',    registro:'EMP004', dataInizio:'2021-09-13', cf:'PRNNKL85D22L219W', telefono:'345-4444555', email:'nicola.perini@azienda.it',     responsabileId:'3',  ruolo:'responsabile',   login:'nicola.perini',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false, straordinario:true, cittaDiLavoro:'Trento' },
+  { id:'5', nome:'Elson',    cognome:'Meta',      registro:'EMP005', dataInizio:'2022-04-04', cf:'MTELSN96A10Z100X', telefono:'344-5555666', email:'elson.meta@azienda.it',        responsabileId:'4',  ruolo:'dipendente',     login:'elson.meta',        password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:true,  straordinario:true, cittaDiLavoro:'Trento' },
 ];
 
 const todayStr     = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-051';
+const APP_VERSION = '2026-03-28-052';
 
 const CREDITS = [
   {
@@ -685,6 +685,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-28-052',
+    data: '28/03/2026',
+    descrizione: 'Aggiunta città di lavoro "Trento" di default a tutti e 5 i dipendenti demo in INITIAL_EMPLOYEES (campo cittaDiLavoro). Applicata al prossimo caricamento dati demo.'
   },
   {
     version: '2026-03-28-051',
