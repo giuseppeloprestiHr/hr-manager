@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-050';
+const APP_VERSION = '2026-03-28-051';
 
 const CREDITS = [
   {
@@ -685,6 +685,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-28-051',
+    data: '28/03/2026',
+    descrizione: 'Fix chiusureDemo: rimosse le festività nazionali dall\'array chiusureDemo (erano già calcolate automaticamente da getFestivitaNazionali e mostrate in ambra, ma salvate in chiusureAziendali le sovrascrivevano in rosso). Ora chiusureDemo contiene solo le chiusure extra aziendali: ponte 20/2, evento 20/3, chiusura estiva 10-14/8, chiusura natalizia 24/12 e 31/12. Spostato l\'evento dal 21/3 (sabato) al 20/3 (venerdì).'
   },
   {
     version: '2026-03-28-050',
@@ -7692,19 +7697,15 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('nw','1','20260303'), titolo:'Aggiornamento policy ferie 2026', testo:'Si comunica che le richieste di ferie per il periodo estivo (luglio-agosto) devono essere presentate entro il 30 aprile. Si prega di coordinarsi con il proprio responsabile per garantire la copertura del servizio.', author_id:'1', lette:[], timestamp:ts('2026-03-03',9,0) },
       ];
       const chiusureDemo = [
-        { id:dId('ca','20260101'), data:'2026-01-01', descrizione:'Capodanno (festività nazionale)' },
-        { id:dId('ca','20260106'), data:'2026-01-06', descrizione:'Epifania (festività nazionale)' },
         { id:dId('ca','20260220'), data:'2026-02-20', descrizione:'Chiusura aziendale (ponte)' },
-        { id:dId('ca','20260321'), data:'2026-03-21', descrizione:'Chiusura aziendale (evento interno)' },
-        { id:dId('ca','20260406'), data:'2026-04-06', descrizione:'Lunedì dell\'Angelo / Pasquetta (festività nazionale)' },
-        { id:dId('ca','20260425'), data:'2026-04-25', descrizione:'Festa della Liberazione (festività nazionale)' },
-        { id:dId('ca','20260501'), data:'2026-05-01', descrizione:'Festa dei Lavoratori (festività nazionale)' },
-        { id:dId('ca','20260602'), data:'2026-06-02', descrizione:'Festa della Repubblica (festività nazionale)' },
-        { id:dId('ca','20260815'), data:'2026-08-15', descrizione:'Ferragosto (festività nazionale)' },
-        { id:dId('ca','20261101'), data:'2026-11-01', descrizione:'Ognissanti (festività nazionale)' },
-        { id:dId('ca','20261208'), data:'2026-12-08', descrizione:'Immacolata Concezione (festività nazionale)' },
-        { id:dId('ca','20261225'), data:'2026-12-25', descrizione:'Natale (festività nazionale)' },
-        { id:dId('ca','20261226'), data:'2026-12-26', descrizione:'Santo Stefano (festività nazionale)' },
+        { id:dId('ca','20260320'), data:'2026-03-20', descrizione:'Chiusura aziendale (evento interno)' },
+        { id:dId('ca','20260810'), data:'2026-08-10', descrizione:'Chiusura estiva' },
+        { id:dId('ca','20260811'), data:'2026-08-11', descrizione:'Chiusura estiva' },
+        { id:dId('ca','20260812'), data:'2026-08-12', descrizione:'Chiusura estiva' },
+        { id:dId('ca','20260813'), data:'2026-08-13', descrizione:'Chiusura estiva' },
+        { id:dId('ca','20260814'), data:'2026-08-14', descrizione:'Chiusura estiva' },
+        { id:dId('ca','20261224'), data:'2026-12-24', descrizione:'Chiusura natalizia' },
+        { id:dId('ca','20261231'), data:'2026-12-31', descrizione:'Chiusura natalizia' },
       ];
       const notificheRec = [];
       notificheRec.push(
