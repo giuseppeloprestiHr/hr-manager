@@ -370,9 +370,9 @@ const permessoStepIniziale = (ruolo) => {
 const INITIAL_EMPLOYEES = [
   { id:'1', nome:'Giuseppe', cognome:'Lo Presti', registro:'EMP001', dataInizio:'2018-01-02', cf:'LPRGPP80A01L219Z', telefono:'348-1111222', email:'giuseppe.lopresti@azienda.it', responsabileId:'2',  ruolo:'master',         login:'giuseppe.lopresti', password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
   { id:'2', nome:'Paola',    cognome:'Gardumi',   registro:'EMP002', dataInizio:'2019-03-04', cf:'GRDPLA82B41L219X', telefono:'347-2222333', email:'paola.gardumi@azienda.it',     responsabileId:null, ruolo:'amministratore', login:'paola.gardumi',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'3', nome:'Livio',    cognome:'Sardo',     registro:'EMP003', dataInizio:'2020-06-01', cf:'SRDLVI78C15L219Y', telefono:'346-3333444', email:'livio.sardo@azienda.it',       responsabileId:'2',  ruolo:'direttore',      login:'livio.sardo',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'4', nome:'Nicola',   cognome:'Perini',    registro:'EMP004', dataInizio:'2021-09-13', cf:'PRNNKL85D22L219W', telefono:'345-4444555', email:'nicola.perini@azienda.it',     responsabileId:'3',  ruolo:'responsabile',   login:'nicola.perini',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'5', nome:'Elson',    cognome:'Meta',      registro:'EMP005', dataInizio:'2022-04-04', cf:'MTELSN96A10Z100X', telefono:'344-5555666', email:'elson.meta@azienda.it',        responsabileId:'4',  ruolo:'dipendente',     login:'elson.meta',        password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'3', nome:'Livio',    cognome:'Sardo',     registro:'EMP003', dataInizio:'2020-06-01', cf:'SRDLVI78C15L219Y', telefono:'346-3333444', email:'livio.sardo@azienda.it',       responsabileId:'2',  ruolo:'direttore',      login:'livio.sardo',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'4', nome:'Nicola',   cognome:'Perini',    registro:'EMP004', dataInizio:'2021-09-13', cf:'PRNNKL85D22L219W', telefono:'345-4444555', email:'nicola.perini@azienda.it',     responsabileId:'3',  ruolo:'responsabile',   login:'nicola.perini',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'5', nome:'Elson',    cognome:'Meta',      registro:'EMP005', dataInizio:'2022-04-04', cf:'MTELSN96A10Z100X', telefono:'344-5555666', email:'elson.meta@azienda.it',        responsabileId:'4',  ruolo:'dipendente',     login:'elson.meta',        password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
 ];
 
 const todayStr     = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-045';
+const APP_VERSION = '2026-03-28-047';
 
 const CREDITS = [
   {
@@ -685,6 +685,16 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-28-047',
+    data: '28/03/2026',
+    descrizione: 'Fix badge "cambio pw" nella schermata di login demo: Livio Sardo, Nicola Perini ed Elson Meta avevano primoAccesso:true in INITIAL_EMPLOYEES, causando la comparsa del badge arancione. Impostato primoAccesso:false per tutti e 5 i dipendenti demo.'
+  },
+  {
+    version: '2026-03-28-046',
+    data: '28/03/2026',
+    descrizione: 'Fix notifiche timbratura demo: sostituite le 3 notifiche campione per dipendente con una notifica per ogni giorno lavorativo (gen–mar 2026), usando la stessa logica degli orari delle timbrature (getIn). Ora il filtro Timbratura nelle notifiche mostra la copertura completa dei tre mesi.'
   },
   {
     version: '2026-03-27-036',
@@ -7700,15 +7710,20 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('n',nid+'app'), tipo:'straordinario_approvato', testo:`Il tuo straordinario del ${date} è stato approvato`, destinatari:[eid], emp_id:eid, timestamp:ts('2026-02-09',9,5), lette:[eid] }
       ));
       [
-        { eid:'1', nome:'Giuseppe Lo Presti', resp:'2',  samples:[['2026-01-02','08:32',32],['2026-02-02','08:29',29],['2026-03-09','08:33',33]] },
-        { eid:'2', nome:'Paola Gardumi',      resp:null, samples:[['2026-01-02','08:30',30],['2026-02-02','08:28',28],['2026-03-09','08:31',31]] },
-        { eid:'3', nome:'Livio Sardo',        resp:'2',  samples:[['2026-01-05','08:35',35],['2026-02-02','08:37',37],['2026-03-09','08:34',34]] },
-        { eid:'4', nome:'Nicola Perini',      resp:'3',  samples:[['2026-01-05','08:27',27],['2026-02-02','08:33',33],['2026-03-09','08:29',29]] },
-        { eid:'5', nome:'Elson Meta',         resp:'4',  samples:[['2026-01-05','08:37',37],['2026-02-02','08:31',31],['2026-03-09','08:38',38]] },
-      ].forEach(({eid, nome, resp, samples}) => {
-        samples.forEach(([data, ora, min], i) => {
+        { eid:'1', nome:'Giuseppe Lo Presti', resp:'2' },
+        { eid:'2', nome:'Paola Gardumi',      resp:null },
+        { eid:'3', nome:'Livio Sardo',        resp:'2' },
+        { eid:'4', nome:'Nicola Perini',      resp:'3' },
+        { eid:'5', nome:'Elson Meta',         resp:'4' },
+      ].forEach(({eid, nome, resp}, ei) => {
+        allDays.forEach((d, di) => {
+          if (skip[eid]?.has(d)) return;
+          const mMin = 8*60+30+inOff[(ei*13+di*7)%inOff.length];
+          const hh = Math.floor(mMin/60);
+          const mm = mMin%60;
+          const ora = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
           const dest = resp ? [eid, resp] : [eid];
-          notificheRec.push({ id:dId('n','timb'+eid+i), tipo:'timbratura', testo:`${nome} ha timbrato l'entrata alle ${ora} | GPS non disponibile`, destinatari:dest, emp_id:eid, timestamp:ts(data, 8, min), lette:dest });
+          notificheRec.push({ id:dId('n','timb',eid,d.replace(/-/g,'')), tipo:'timbratura', testo:`${nome} ha timbrato l'entrata alle ${ora} | GPS non disponibile`, destinatari:dest, emp_id:eid, timestamp:ts(d,hh,mm), lette:dest });
         });
       });
       const _ups = async (table, rows) => { if(!rows?.length) return; const {error} = await _supa.from(table).upsert(rows,{onConflict:'id'}); if(error) throw new Error(`${table}: ${error.message}`); };
@@ -7722,7 +7737,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       await _ups('note_spese',           noteSpeseRec);
       await _ups('note_spese_voci',      noteSpeseVociRec);
       await _ups('news',                 newsRec);
-      await _ups('notifiche',            notificheRec);
+      for (let i=0; i<notificheRec.length; i+=50) await _ups('notifiche', notificheRec.slice(i,i+50));
       await _supa.from('settings').update({ chiusure_aziendali: JSON.stringify(chiusureDemo) }).eq('id',1);
       alert('✅ Dati demo gen–mar 2026 caricati con successo!');
       window.location.reload();
