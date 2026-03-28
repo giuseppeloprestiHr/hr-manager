@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-038';
+const APP_VERSION = '2026-03-28-039';
 
 const CREDITS = [
   {
@@ -655,6 +655,11 @@ const CHANGELOG = [
     version: '2026-03-28-038',
     data: '28/03/2026',
     descrizione: 'Correzione gerarchia dipendenti: Paola Gardumi senza responsabile (top), Giuseppe Lo Presti e Livio Sardo riportano a Paola. Allineati i dati demo: approvazioni permessi/ferie/straordinari corrette secondo la nuova gerarchia.'
+  },
+  {
+    version: '2026-03-28-039',
+    data: '28/03/2026',
+    descrizione: 'Fix stampa/PDF Report presenze: handleStampa leggeva da localStorage (sempre vuoto dopo il caricamento Supabase) invece dei prop React. Sostituiti con i prop timbrature, malattie, permessi, ferie, reperibilita, gestioniTelefoniche, straordinari. Aggiunto settings al prop del componente Report per il nome turno corretto.'
   },
   {
     version: '2026-03-27-036',
@@ -5000,7 +5005,7 @@ function ApprovaPermessi({ user, employees, permessi, setPermessi, onApprova, on
   );
 }
 
-function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita, gestioniTelefoniche, straordinari, userRole }) {
+function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita, gestioniTelefoniche, straordinari, userRole, settings }) {
   const n = new Date();
   const [month, setMonth] = useState(n.getMonth()+1);
   const [year,  setYear]  = useState(n.getFullYear());
@@ -5116,10 +5121,10 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
   };
 
   const handleStampa = () => {
-    const allTimbrature = (() => { try { const s = localStorage.getItem('timbrature'); return s ? JSON.parse(s) : []; } catch { return []; } })();
-    const allMalattie   = (() => { try { const s = localStorage.getItem('malattie');   return s ? JSON.parse(s) : []; } catch { return []; } })();
-    const allPermessi   = (() => { try { const s = localStorage.getItem('permessi');   return s ? JSON.parse(s) : []; } catch { return []; } })();
-    const allFerie      = (() => { try { const s = localStorage.getItem('ferie');      return s ? JSON.parse(s) : []; } catch { return []; } })();
+    const allTimbrature = timbrature || [];
+    const allMalattie   = malattie   || [];
+    const allPermessi   = permessi   || [];
+    const allFerie      = ferie      || [];
     const mStr0 = String(month).padStart(2,'0');
 
     const freshMap = {};
@@ -5164,9 +5169,9 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       orePermessiEmp[p.employeeId] = (orePermessiEmp[p.employeeId]||0)+p.orePermesso;
     });
 
-    const allReperibilita      = (() => { try { const s = localStorage.getItem('reperibilita');         return s ? JSON.parse(s) : []; } catch { return []; } })();
-    const allGestioniTel       = (() => { try { const s = localStorage.getItem('gestioni_telefoniche'); return s ? JSON.parse(s) : []; } catch { return []; } })();
-    const allStraordinariPdf   = (() => { try { const s = localStorage.getItem('straordinari');         return s ? JSON.parse(s) : []; } catch { return []; } })();
+    const allReperibilita      = reperibilita        || [];
+    const allGestioniTel       = gestioniTelefoniche || [];
+    const allStraordinariPdf   = straordinari        || [];
 
     const totalePresenze = Object.keys(freshMap).length;
     const printToday = todayStr();
@@ -10167,7 +10172,7 @@ function App() {
         return <MieiStraordinari user={user} straordinari={straordinari} />;
       case 'report':
         if (!canSeeReport(r)) return null;
-        return <Report employees={employees} timbrature={timbrature} malattie={malattie} permessi={permessi} ferie={ferie} reperibilita={reperibilita} gestioniTelefoniche={gestioniTelefoniche} straordinari={straordinari} userRole={r} />;
+        return <Report employees={employees} timbrature={timbrature} malattie={malattie} permessi={permessi} ferie={ferie} reperibilita={reperibilita} gestioniTelefoniche={gestioniTelefoniche} straordinari={straordinari} userRole={r} settings={settings} />;
       case 'calendario-team':
         if (!['direttore','responsabile'].includes(r)) { goTo('dashboard'); return null; }
         return <CalendarioTeam user={user} employees={employees} timbrature={timbrature} malattie={malattie} permessi={permessi} ferie={ferie} reperibilita={reperibilita} gestioniTelefoniche={gestioniTelefoniche} straordinari={straordinari} />;
