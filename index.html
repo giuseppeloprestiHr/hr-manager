@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-039';
+const APP_VERSION = '2026-03-28-040';
 
 const CREDITS = [
   {
@@ -660,6 +660,11 @@ const CHANGELOG = [
     version: '2026-03-28-039',
     data: '28/03/2026',
     descrizione: 'Fix stampa/PDF Report presenze: handleStampa leggeva da localStorage (sempre vuoto dopo il caricamento Supabase) invece dei prop React. Sostituiti con i prop timbrature, malattie, permessi, ferie, reperibilita, gestioniTelefoniche, straordinari. Aggiunto settings al prop del componente Report per il nome turno corretto.'
+  },
+  {
+    version: '2026-03-28-040',
+    data: '28/03/2026',
+    descrizione: 'Fix visualizzazione notifiche: aggiunto al TIPI map i sottotipi (ferie_richiesta, ferie_approvata, permesso_richiesta, permesso_approvato, straordinario_richiesta, straordinario_approvato, nota_spese) per evitare che venga mostrato il valore grezzo con underscore. Allargata colonna badge da w-28 a w-36 con truncate per prevenire sovrapposizione colonne.'
   },
   {
     version: '2026-03-27-036',
@@ -6069,8 +6074,8 @@ function NotifichePanel({ notifiche, userId, userRole, employees, onMarkRead, on
 }
 
 function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onMarkAllRead }) {
-  const ICONE = { timbratura:'clock', malattia:'send', reminder:'bell', reset:'lock', permesso:'clipboard', ferie:'plane', reperibilita:'user-check', gestione_tel:'phone', straordinario:'trending', 'nota-spese':'card', news:'newspaper' };
-  const TIPI  = { timbratura:'Timbratura', malattia:'Malattia', reminder:'Reminder', reset:'Reset password', permesso:'Permesso orario', ferie:'Ferie', reperibilita:'Reperibilità', gestione_tel:'Gestione telefonica', straordinario:'Straordinario', 'nota-spese':'Note Spese', news:'News' };
+  const ICONE = { timbratura:'clock', malattia:'send', reminder:'bell', reset:'lock', permesso:'clipboard', ferie:'plane', reperibilita:'user-check', gestione_tel:'phone', straordinario:'trending', 'nota-spese':'card', nota_spese:'card', news:'newspaper', ferie_richiesta:'plane', ferie_approvata:'plane', permesso_richiesta:'clipboard', permesso_approvato:'clipboard', straordinario_richiesta:'trending', straordinario_approvato:'trending' };
+  const TIPI  = { timbratura:'Timbratura', malattia:'Malattia', reminder:'Reminder', reset:'Reset password', permesso:'Permesso orario', ferie:'Ferie', reperibilita:'Reperibilità', gestione_tel:'Gest. telefonica', straordinario:'Straordinario', 'nota-spese':'Note Spese', nota_spese:'Note Spese', news:'News', ferie_richiesta:'Ferie richiesta', ferie_approvata:'Ferie approvata', permesso_richiesta:'Permesso req.', permesso_approvato:'Permesso appr.', straordinario_richiesta:'Straord. req.', straordinario_approvato:'Straord. appr.' };
   const [filtro, setFiltro] = useState('tutte');
   const [ricerca, setRicerca] = useState('');
   const [filtroDip, setFiltroDip] = useState('');
@@ -6219,7 +6224,7 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
                 {n.empId ? empName(n.empId) : '—'}
               </span>
               <span className="text-xs text-slate-400 w-32 shrink-0">{fmtTs(n.timestamp)}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 w-28 text-center capitalize ${TIPO_COLORS[n.tipo]||'bg-slate-100 text-slate-500'}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 w-36 text-center truncate ${TIPO_COLORS[n.tipo]||'bg-slate-100 text-slate-500'}`}>
                 {TIPI[n.tipo]||n.tipo}
               </span>
               <div className="flex-1 min-w-0">
