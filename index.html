@@ -412,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-058';
+const APP_VERSION = '2026-03-28-059';
 
 const CREDITS = [
   {
@@ -686,6 +686,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-28-059',
+    data: '28/03/2026',
+    descrizione: 'Fix colonna ???? nel RILPRE: rilpreGiustificativi è salvato come stringa JSON nelle impostazioni. generaFileRilpre ora la apre (JSON.parse) se necessario prima di costruire TIP_MAP, così i codici RO/EO/PP/H7/DS/PA vengono correttamente mappati invece di produrre ????.'
   },
   {
     version: '2026-03-28-058',
@@ -7422,7 +7427,8 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
     PP:'permessi_personali', H7:'legge_104', DS:'donazione_sangue',
     PA:'congedo_parentale', CM:'congedo_parentale', AQ:'allattamento', ST:'straordinari' };
   const TIP_MAP = {};
-  (settings.rilpreGiustificativi || []).forEach(g => {
+  const _giust = typeof settings.rilpreGiustificativi === 'string' ? JSON.parse(settings.rilpreGiustificativi) : (settings.rilpreGiustificativi || []);
+  _giust.forEach(g => {
     const tip = g.tipologia || CODICE_FALLBACK[g.codice];
     if (tip && g.codice) TIP_MAP[tip] = g.codice;
   });
