@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-036';
+const APP_VERSION = '2026-03-27-037';
 
 const CREDITS = [
   {
@@ -645,6 +645,11 @@ const CHANGELOG = [
     version: '2026-03-27-035',
     data: '27/03/2026',
     descrizione: 'Utenti demo aggiornati: sostituiti i placeholder con Giuseppe Lo Presti (master), Paola Gardumi (amministratore), Livio Sardo (direttore), Nicola Perini (responsabile), Elson Meta (dipendente). Gerarchia: Giuseppe → Paola/Livio → Nicola → Elson. Password demo invariata: Hr2024!'
+  },
+  {
+    version: '2026-03-27-037',
+    data: '27/03/2026',
+    descrizione: 'Carica/cancella dati demo feb–mar 2026: funzione handleCaricaDatiDemo genera ~190 timbrature, malattie, ferie, permessi, straordinari, reperibilità, gestioni tel., note spese e news con ID DEMO_*. handleCancellaDatiDemo rimuove chirurgicamente tutti i record DEMO_* e azzera chiusureAziendali. UI in Manutenzione → sezione Reimposta dati demo.'
   },
   {
     version: '2026-03-27-036',
@@ -7474,6 +7479,8 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
 
   const [resetConfirm, setResetConfirm] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [cancellaDemoLoading, setCancellaDemoLoading] = useState(false);
   const handleResetDati = async () => {
     setResetLoading(true);
     try {
@@ -7516,6 +7523,144 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       console.error('[Reset] Errore durante il reset:', e);
     }
     window.location.reload();
+  };
+
+  const handleCaricaDatiDemo = async () => {
+    if (!_supa) { alert('Supabase non disponibile'); return; }
+    setDemoLoading(true);
+    try {
+      const dId = (...p) => 'DEMO_' + p.join('_');
+      const ts  = (d, h=9, m=0) => new Date(`${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`).getTime();
+      const febDays = ['2026-02-02','2026-02-03','2026-02-04','2026-02-05','2026-02-06','2026-02-09','2026-02-10','2026-02-11','2026-02-12','2026-02-13','2026-02-16','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-23','2026-02-24','2026-02-25','2026-02-26','2026-02-27'];
+      const marDays = ['2026-03-02','2026-03-03','2026-03-04','2026-03-05','2026-03-06','2026-03-09','2026-03-10','2026-03-11','2026-03-12','2026-03-13','2026-03-16','2026-03-17','2026-03-18','2026-03-19','2026-03-20','2026-03-23','2026-03-24','2026-03-25','2026-03-26','2026-03-27'];
+      const allDays = [...febDays, ...marDays];
+      const inOff  = [-6,1,-3,5,-8,3,-4,7,-1,4,-7,2,-5,6,-2,1,-3,8,-6,3,-4,5,-1,-7,2,-6,3,-2,8,-5,4,-3,6,-1,7,-8,2,-4,1,-6];
+      const outOff = [5,-2,8,-4,3,-6,1,-3,7,-1,4,-5,2,-7,6,-2,1,-4,9,-3,2,-8,5,-1,3,-6,7,-2,4,-5,1,-3,8,-6,2,-4,5,-1,3,-7];
+      const getIn  = (ei,di) => { const m=8*60+30+inOff[(ei*13+di*7)%inOff.length]; return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; };
+      const getOut = (ei,di) => { const m=17*60+outOff[(ei*11+di*9)%outOff.length]; return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; };
+      const skip = { '3':new Set(['2026-02-10','2026-02-17','2026-02-18']), '1':new Set(['2026-03-05','2026-03-10','2026-03-11','2026-03-12']), '4':new Set(['2026-03-04']), '5':new Set(['2026-02-23','2026-02-24','2026-02-25']) };
+      const timbratureRec = [];
+      ['1','2','3','4','5'].forEach((eid,ei) => allDays.forEach((d,di) => {
+        if (skip[eid]?.has(d)) return;
+        timbratureRec.push({ id:dId('t',eid,d.replace(/-/g,'')), employee_id:eid, data:d, ora:getIn(ei,di), ora_uscita:getOut(ei,di), timestamp:ts(d,8,30), gps_lat:null, gps_lon:null, gps_accuracy:null, gps_address:null });
+      }));
+      const malattieRec = [
+        { id:dId('m','3','202602'), employee_id:'3', data_inizio:'2026-02-17', data_fine:'2026-02-18', protocollo:null, note:'', timestamp:ts('2026-02-17',8,0), inserito_da:'1', malattie_figlio:false, cf_figlio:null },
+        { id:dId('m','1','202603'), employee_id:'1', data_inizio:'2026-03-05', data_fine:'2026-03-05', protocollo:null, note:'', timestamp:ts('2026-03-05',8,0), inserito_da:'2', malattie_figlio:false, cf_figlio:null },
+      ];
+      const ferieRec = [
+        { id:dId('f','1','202603'), employee_id:'1', data_inizio:'2026-03-10', data_fine:'2026-03-12', giorni_lavorativi:3, motivo:'', status:'approvato', approvato_resp_id:'2', approvato_resp_timestamp:ts('2026-03-04',10,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-03-04',11,0), rifiutato_da_id:null, note_rifiuto:null, note_annullamento:null, annullata_da_id:null, annullata_timestamp:null, timestamp:ts('2026-03-03',14,0) },
+        { id:dId('f','5','202602'), employee_id:'5', data_inizio:'2026-02-23', data_fine:'2026-02-25', giorni_lavorativi:3, motivo:'', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-02-18',9,30), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-18',11,0), rifiutato_da_id:null, note_rifiuto:null, note_annullamento:null, annullata_da_id:null, annullata_timestamp:null, timestamp:ts('2026-02-17',16,0) },
+      ];
+      const permessiRec = [
+        { id:dId('p','3','20260210'), employee_id:'3', data:'2026-02-10', ora_inizio:'14:00', ora_fine:'16:00', ore_permesso:2, motivo:'Visita medica', tipologia:'', status:'approvato', note_rifiuto:null, note_annullamento:null, annullato_da:null, annullato_timestamp:null, approvato_da:'1', approvato_timestamp:ts('2026-02-07',10,0), timestamp:ts('2026-02-06',17,0) },
+        { id:dId('p','4','20260304'), employee_id:'4', data:'2026-03-04', ora_inizio:'09:00', ora_fine:'11:00', ore_permesso:2, motivo:'Commissioni personali', tipologia:'', status:'approvato', note_rifiuto:null, note_annullamento:null, annullato_da:null, annullato_timestamp:null, approvato_da:'3', approvato_timestamp:ts('2026-03-03',11,0), timestamp:ts('2026-03-02',18,0) },
+      ];
+      const straordinariRec = [
+        { id:dId('s','4','20260205'), employee_id:'4', data:'2026-02-05', tipo:'sera', minuti:60, nota:'Chiusura progetto cliente', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-02-06',9,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-02-06',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-05',18,0) },
+        { id:dId('s','4','20260219'), employee_id:'4', data:'2026-02-19', tipo:'sera', minuti:60, nota:'Riunione urgente', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-02-20',9,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-02-20',10,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-19',18,0) },
+        { id:dId('s','4','20260311'), employee_id:'4', data:'2026-03-11', tipo:'sera', minuti:60, nota:'Supporto audit interno', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-03-12',9,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-03-12',10,30), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-11',18,0) },
+        { id:dId('s','4','20260325'), employee_id:'4', data:'2026-03-25', tipo:'sera', minuti:60, nota:'Preparazione report mensile', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-03-26',9,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-03-26',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-25',18,0) },
+        { id:dId('s','5','20260206'), employee_id:'5', data:'2026-02-06', tipo:'sera', minuti:90, nota:'Gestione emergenza impianti', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-02-09',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-09',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-06',18,30) },
+        { id:dId('s','5','20260220'), employee_id:'5', data:'2026-02-20', tipo:'sera', minuti:60, nota:'Supporto tecnico urgente', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-02-23',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-23',10,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-20',18,0) },
+        { id:dId('s','5','20260306'), employee_id:'5', data:'2026-03-06', tipo:'sera', minuti:90, nota:'Manutenzione straordinaria', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-03-09',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-09',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-06',18,30) },
+        { id:dId('s','5','20260313'), employee_id:'5', data:'2026-03-13', tipo:'sera', minuti:60, nota:'Consegna materiali urgenti', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-03-16',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-16',10,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-13',18,0) },
+        { id:dId('s','5','20260327'), employee_id:'5', data:'2026-03-27', tipo:'sera', minuti:60, nota:'Chiusura mensile', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-03-27',20,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-27',21,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-27',18,0) },
+      ];
+      const reperiRec = ['2026-02-07','2026-02-08','2026-02-14','2026-02-15','2026-03-07','2026-03-08','2026-03-14','2026-03-15','2026-03-21','2026-03-22'].map(d => ({ id:dId('r','5',d.replace(/-/g,'')), employee_id:'5', data:d, responsabile_id:'4', pubblicata:true, timestamp:ts(d,8,0) }));
+      const gestRec = [
+        { data:'2026-02-04', ora:'09:15', cliente:'Cliente Alfa', note:'Supporto post-vendita' },
+        { data:'2026-02-12', ora:'14:30', cliente:'Cliente Beta', note:'Richiesta informazioni' },
+        { data:'2026-02-19', ora:'10:00', cliente:'Cliente Gamma', note:'Gestione reclamo' },
+        { data:'2026-03-03', ora:'11:20', cliente:'Cliente Alfa', note:'Aggiornamento contratto' },
+        { data:'2026-03-16', ora:'15:00', cliente:'Cliente Delta', note:'Sopralluogo tecnico telefonico' },
+        { data:'2026-03-24', ora:'09:45', cliente:'Cliente Beta', note:'Verifica consegna' },
+      ].map(g => ({ id:dId('g','5',g.data.replace(/-/g,'')), employee_id:'5', data:g.data, ora:g.ora, cliente:g.cliente, note:g.note, timestamp:ts(g.data,parseInt(g.ora),0) }));
+      const noteSpeseRec = [
+        { id:dId('ns','3','202602'), employee_id:'3', anno:2026, mese:2, status:'chiusa', confirmed_at:'2026-03-01T10:00:00Z', timestamp:ts('2026-03-01',10,0) },
+        { id:dId('ns','4','202602'), employee_id:'4', anno:2026, mese:2, status:'chiusa', confirmed_at:'2026-03-01T11:00:00Z', timestamp:ts('2026-03-01',11,0) },
+        { id:dId('ns','4','202603'), employee_id:'4', anno:2026, mese:3, status:'chiusa', confirmed_at:'2026-03-28T10:00:00Z', timestamp:ts('2026-03-28',10,0) },
+        { id:dId('ns','5','202603'), employee_id:'5', anno:2026, mese:3, status:'chiusa', confirmed_at:'2026-03-28T11:00:00Z', timestamp:ts('2026-03-28',11,0) },
+      ];
+      const noteSpeseVociRec = [
+        { id:dId('nsv','3','1'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano', natura:'carburante', importo:54.00, note:'180 km a/r', timestamp:ts('2026-02-13',18,0) },
+        { id:dId('nsv','3','2'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano', natura:'vitto', importo:18.00, note:'Pranzo di lavoro', timestamp:ts('2026-02-13',18,1) },
+        { id:dId('nsv','3','3'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano', natura:'pedaggio', importo:12.00, note:'A4 andata/ritorno', timestamp:ts('2026-02-13',18,2) },
+        { id:dId('nsv','4','1'), nota_spese_id:dId('ns','4','202602'), employee_id:'4', data:'2026-02-26', luogo:'Verona', natura:'carburante', importo:72.00, note:'240 km a/r', timestamp:ts('2026-02-26',18,0) },
+        { id:dId('nsv','4','2'), nota_spese_id:dId('ns','4','202602'), employee_id:'4', data:'2026-02-26', luogo:'Verona', natura:'vitto', importo:16.00, note:'Pranzo di lavoro', timestamp:ts('2026-02-26',18,1) },
+        { id:dId('nsv','4','3'), nota_spese_id:dId('ns','4','202603'), employee_id:'4', data:'2026-03-19', luogo:'Brescia', natura:'carburante', importo:36.00, note:'120 km a/r', timestamp:ts('2026-03-19',18,0) },
+        { id:dId('nsv','4','4'), nota_spese_id:dId('ns','4','202603'), employee_id:'4', data:'2026-03-19', luogo:'Brescia', natura:'vitto', importo:14.00, note:'Pranzo di lavoro', timestamp:ts('2026-03-19',18,1) },
+        { id:dId('nsv','5','1'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-06', luogo:'Mantova', natura:'carburante', importo:27.00, note:'90 km a/r', timestamp:ts('2026-03-06',18,0) },
+        { id:dId('nsv','5','2'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-06', luogo:'Mantova', natura:'vitto', importo:13.00, note:'Pranzo di lavoro', timestamp:ts('2026-03-06',18,1) },
+        { id:dId('nsv','5','3'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-20', luogo:'Cremona', natura:'carburante', importo:18.00, note:'60 km a/r', timestamp:ts('2026-03-20',18,0) },
+      ];
+      const newsRec = [
+        { id:dId('nw','1','20260203'), titolo:'Benvenuto nel portale HR', testo:'Ciao a tutti! Il nuovo portale HR è ora operativo. Qui potrete gestire presenze, permessi, ferie e molto altro. Per qualsiasi necessità contattate l\'ufficio amministrativo.', author_id:'1', lette:[], timestamp:ts('2026-02-03',9,0) },
+        { id:dId('nw','1','20260228'), titolo:'Promemoria: compilazione note spese', testo:'Si ricorda a tutti i dipendenti di compilare e chiudere le note spese del mese di febbraio entro oggi. Le note aperte non potranno essere elaborate nel prossimo ciclo di rimborsi.', author_id:'1', lette:[], timestamp:ts('2026-02-28',8,30) },
+        { id:dId('nw','1','20260303'), titolo:'Aggiornamento policy ferie 2026', testo:'Si comunica che le richieste di ferie per il periodo estivo (luglio-agosto) devono essere presentate entro il 30 aprile. Si prega di coordinarsi con il proprio responsabile per garantire la copertura del servizio.', author_id:'1', lette:[], timestamp:ts('2026-03-03',9,0) },
+      ];
+      const chiusureDemo = [
+        { id:dId('ca','20260220'), data:'2026-02-20', descrizione:'Chiusura aziendale (ponte)' },
+        { id:dId('ca','20260321'), data:'2026-03-21', descrizione:'Chiusura aziendale (evento interno)' },
+      ];
+      const notificheRec = [];
+      notificheRec.push(
+        { id:dId('n','f1req'), tipo:'ferie_richiesta', testo:'Giuseppe Lo Presti ha richiesto ferie dal 10/03 al 12/03', destinatari:['2','3'], emp_id:'1', timestamp:ts('2026-03-03',14,0), lette:['2','3'] },
+        { id:dId('n','f1app'), tipo:'ferie_approvata', testo:'Le tue ferie dal 10/03 al 12/03 sono state approvate', destinatari:['1'], emp_id:'1', timestamp:ts('2026-03-04',11,0), lette:['1'] },
+        { id:dId('n','f5req'), tipo:'ferie_richiesta', testo:'Elson Meta ha richiesto ferie dal 23/02 al 25/02', destinatari:['4','3'], emp_id:'5', timestamp:ts('2026-02-17',16,0), lette:['4','3'] },
+        { id:dId('n','f5app'), tipo:'ferie_approvata', testo:'Le tue ferie dal 23/02 al 25/02 sono state approvate', destinatari:['5'], emp_id:'5', timestamp:ts('2026-02-18',11,0), lette:['5'] },
+        { id:dId('n','p3req'), tipo:'permesso_richiesta', testo:'Livio Sardo ha richiesto un permesso il 10/02 (14:00–16:00)', destinatari:['1'], emp_id:'3', timestamp:ts('2026-02-06',17,0), lette:['1'] },
+        { id:dId('n','p3app'), tipo:'permesso_approvato', testo:'Il tuo permesso del 10/02 è stato approvato', destinatari:['3'], emp_id:'3', timestamp:ts('2026-02-07',10,0), lette:['3'] },
+        { id:dId('n','p4req'), tipo:'permesso_richiesta', testo:'Nicola Perini ha richiesto un permesso il 04/03 (09:00–11:00)', destinatari:['3'], emp_id:'4', timestamp:ts('2026-03-02',18,0), lette:['3'] },
+        { id:dId('n','p4app'), tipo:'permesso_approvato', testo:'Il tuo permesso del 04/03 è stato approvato', destinatari:['4'], emp_id:'4', timestamp:ts('2026-03-03',11,0), lette:['4'] },
+        { id:dId('n','ns3app'), tipo:'nota_spese', testo:'La nota spese di Livio Sardo (Feb 2026) è stata chiusa', destinatari:['3','1'], emp_id:'3', timestamp:ts('2026-03-01',10,0), lette:['3','1'] },
+        { id:dId('n','ns4fapp'), tipo:'nota_spese', testo:'La nota spese di Nicola Perini (Feb 2026) è stata chiusa', destinatari:['4','1'], emp_id:'4', timestamp:ts('2026-03-01',11,0), lette:['4','1'] },
+        { id:dId('n','ns4mapp'), tipo:'nota_spese', testo:'La nota spese di Nicola Perini (Mar 2026) è stata chiusa', destinatari:['4','1'], emp_id:'4', timestamp:ts('2026-03-28',10,0), lette:['4','1'] },
+        { id:dId('n','ns5app'), tipo:'nota_spese', testo:'La nota spese di Elson Meta (Mar 2026) è stata chiusa', destinatari:['5','1'], emp_id:'5', timestamp:ts('2026-03-28',11,0), lette:['5','1'] }
+      );
+      [['4','05/02','s41',60],['4','19/02','s42',60],['4','11/03','s43',60],['4','25/03','s44',60]].forEach(([eid,date,nid,min]) => notificheRec.push(
+        { id:dId('n',nid+'req'), tipo:'straordinario_richiesta', testo:`Nicola Perini ha registrato ${min} min di straordinario il ${date}`, destinatari:['3','1'], emp_id:eid, timestamp:ts('2026-02-05',18,5), lette:['3','1'] },
+        { id:dId('n',nid+'app'), tipo:'straordinario_approvato', testo:`Il tuo straordinario del ${date} è stato approvato`, destinatari:[eid], emp_id:eid, timestamp:ts('2026-02-06',9,5), lette:[eid] }
+      ));
+      [['5','06/02','s51',90],['5','20/02','s52',60],['5','06/03','s53',90],['5','13/03','s54',60],['5','27/03','s55',60]].forEach(([eid,date,nid,min]) => notificheRec.push(
+        { id:dId('n',nid+'req'), tipo:'straordinario_richiesta', testo:`Elson Meta ha registrato ${min} min di straordinario il ${date}`, destinatari:['4','3'], emp_id:eid, timestamp:ts('2026-02-06',18,35), lette:['4','3'] },
+        { id:dId('n',nid+'app'), tipo:'straordinario_approvato', testo:`Il tuo straordinario del ${date} è stato approvato`, destinatari:[eid], emp_id:eid, timestamp:ts('2026-02-09',9,5), lette:[eid] }
+      ));
+      for (let i=0; i<timbratureRec.length; i+=50) await _supa.from('timbrature').insert(timbratureRec.slice(i,i+50));
+      await _supa.from('malattie').insert(malattieRec);
+      await _supa.from('ferie').insert(ferieRec);
+      await _supa.from('permessi').insert(permessiRec);
+      await _supa.from('straordinari').insert(straordinariRec);
+      await _supa.from('reperibilita').insert(reperiRec);
+      await _supa.from('gestioni_telefoniche').insert(gestRec);
+      await _supa.from('note_spese').insert(noteSpeseRec);
+      await _supa.from('note_spese_voci').insert(noteSpeseVociRec);
+      await _supa.from('news').insert(newsRec);
+      await _supa.from('notifiche').insert(notificheRec);
+      await _supa.from('settings').update({ chiusure_aziendali: JSON.stringify(chiusureDemo) }).eq('id',1);
+      alert('✅ Dati demo feb–mar 2026 caricati con successo!');
+      window.location.reload();
+    } catch(e) {
+      console.error('[Demo] Errore caricamento:', e);
+      alert('❌ Errore: ' + e.message);
+    } finally { setDemoLoading(false); }
+  };
+
+  const handleCancellaDatiDemo = async () => {
+    if (!_supa) { alert('Supabase non disponibile'); return; }
+    setCancellaDemoLoading(true);
+    try {
+      const tables = ['timbrature','malattie','permessi','ferie','reperibilita','gestioni_telefoniche','straordinari','note_spese','note_spese_voci','news','notifiche'];
+      await Promise.all(tables.map(t => _supa.from(t).delete().like('id','DEMO_%')));
+      await _supa.from('settings').update({ chiusure_aziendali: '[]' }).eq('id',1);
+      tables.forEach(t => { try { const d=JSON.parse(localStorage.getItem(t)||'[]'); localStorage.setItem(t,JSON.stringify(d.filter(r=>!String(r.id).startsWith('DEMO_')))); } catch {} });
+      try { const s=JSON.parse(localStorage.getItem('hr_settings')||'{}'); if(s.chiusureAziendali) { s.chiusureAziendali=[]; localStorage.setItem('hr_settings',JSON.stringify(s)); } } catch {}
+      alert('✅ Dati demo rimossi con successo!');
+      window.location.reload();
+    } catch(e) {
+      console.error('[Demo] Errore cancellazione:', e);
+      alert('❌ Errore: ' + e.message);
+    } finally { setCancellaDemoLoading(false); }
   };
 
   const handleTest = async () => {
@@ -8234,6 +8379,29 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
               </button>
             </div>
           )}
+        </div>
+      </div>}
+
+      {}
+      {showSection('man-info') && <div className="bg-white rounded-2xl shadow-sm border border-blue-100 mb-6 overflow-hidden">
+        <div className="px-6 py-5 border-b border-blue-50">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🧪</span>
+            <div>
+              <p className="font-bold text-slate-800 text-base">Dati demo feb–mar 2026</p>
+              <p className="text-slate-500 text-xs mt-0.5">Carica presenze, permessi, ferie, malattie, straordinari, reperibilità, note spese e news per il periodo demo. I record sono marcati con prefisso DEMO_ e possono essere rimossi chirurgicamente.</p>
+            </div>
+          </div>
+        </div>
+        <div className="px-6 py-4 flex flex-wrap gap-3">
+          <button onClick={handleCaricaDatiDemo} disabled={demoLoading || cancellaDemoLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors disabled:bg-slate-300">
+            {demoLoading ? '⏳ Caricamento…' : '📥 Carica dati demo feb–mar 2026'}
+          </button>
+          <button onClick={handleCancellaDatiDemo} disabled={demoLoading || cancellaDemoLoading}
+            className="bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 px-5 py-2 rounded-xl text-sm font-semibold transition-colors disabled:bg-slate-300">
+            {cancellaDemoLoading ? '⏳ Rimozione…' : '🗑️ Cancella dati demo'}
+          </button>
         </div>
       </div>}
 
