@@ -368,12 +368,11 @@ const permessoStepIniziale = (ruolo) => {
 };
 
 const INITIAL_EMPLOYEES = [
-  { id:'1', nome:'Marco',   cognome:'Bianchi',  registro:'EMP001', dataInizio:'2020-01-15', cf:'BNCMRC80A01H501Z', telefono:'333-1234567', email:'marco.bianchi@azienda.it',   responsabileId:'3',  ruolo:'master',          login:'marco.bianchi',    password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5',  primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'6', nome:'Anna',    cognome:'Marino',   registro:'EMP006', dataInizio:'2018-05-01', cf:'MRNNNA75L41L219X', telefono:'339-9876543', email:'anna.marino@azienda.it',     responsabileId:null, ruolo:'amministratore',  login:'anna.marino',      password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5',   primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'2', nome:'Laura',   cognome:'Rossi',    registro:'EMP002', dataInizio:'2019-03-10', cf:'RSSLRA85M41F205X', telefono:'334-2345678', email:'laura.rossi@azienda.it',     responsabileId:'1',  ruolo:'direttore',       login:'laura.rossi',      password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5',   primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'3', nome:'Giovanni',cognome:'Ferrari',  registro:'EMP003', dataInizio:'2021-06-01', cf:'FRRGNN90B03D612Y', telefono:'335-3456789', email:'giovanni.ferrari@azienda.it',responsabileId:'2',  ruolo:'responsabile',    login:'giovanni.ferrari', password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5',   primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'4', nome:'Sofia',   cognome:'Esposito', registro:'EMP004', dataInizio:'2022-09-15', cf:'SPSSFO95D54F839W', telefono:'336-4567890', email:'sofia.esposito@azienda.it',  responsabileId:'3',  ruolo:'dipendente',      login:'sofia.esposito',   password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5',   primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'5', nome:'Luca',    cognome:'Conti',    registro:'EMP005', dataInizio:'2023-02-20', cf:'CNTLCU98H20H501V', telefono:'337-5678901', email:'luca.conti@azienda.it',      responsabileId:'3',  ruolo:'dipendente',      login:'luca.conti',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5',   primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'1', nome:'Giuseppe', cognome:'Lo Presti', registro:'EMP001', dataInizio:'2018-01-02', cf:'LPRGPP80A01L219Z', telefono:'348-1111222', email:'giuseppe.lopresti@azienda.it', responsabileId:null, ruolo:'master',         login:'giuseppe.lopresti', password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'2', nome:'Paola',    cognome:'Gardumi',   registro:'EMP002', dataInizio:'2019-03-04', cf:'GRDPLA82B41L219X', telefono:'347-2222333', email:'paola.gardumi@azienda.it',     responsabileId:'1',  ruolo:'amministratore', login:'paola.gardumi',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'3', nome:'Livio',    cognome:'Sardo',     registro:'EMP003', dataInizio:'2020-06-01', cf:'SRDLVI78C15L219Y', telefono:'346-3333444', email:'livio.sardo@azienda.it',       responsabileId:'1',  ruolo:'direttore',      login:'livio.sardo',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'4', nome:'Nicola',   cognome:'Perini',    registro:'EMP004', dataInizio:'2021-09-13', cf:'PRNNKL85D22L219W', telefono:'345-4444555', email:'nicola.perini@azienda.it',     responsabileId:'3',  ruolo:'responsabile',   login:'nicola.perini',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'5', nome:'Elson',    cognome:'Meta',      registro:'EMP005', dataInizio:'2022-04-04', cf:'MTELSN96A10Z100X', telefono:'344-5555666', email:'elson.meta@azienda.it',        responsabileId:'4',  ruolo:'dipendente',     login:'elson.meta',        password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
 ];
 
 const todayStr     = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -412,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-034';
+const APP_VERSION = '2026-03-27-035';
 
 const CREDITS = [
   {
@@ -641,6 +640,11 @@ const CHANGELOG = [
     version: '2026-03-27-034',
     data: '27/03/2026',
     descrizione: 'Report presenze: aggiunta colonna "Turno" nel riepilogo mensile per dipendente e nome turno nella cella dipendente del calendario settimanale. Usa getTurnoEmp() per mostrare il turno assegnato (fallback: Turno Standard).'
+  },
+  {
+    version: '2026-03-27-035',
+    data: '27/03/2026',
+    descrizione: 'Utenti demo aggiornati: sostituiti i placeholder con Giuseppe Lo Presti (master), Paola Gardumi (amministratore), Livio Sardo (direttore), Nicola Perini (responsabile), Elson Meta (dipendente). Gerarchia: Giuseppe → Paola/Livio → Nicola → Elson. Password demo invariata: Hr2024!'
   },
 ];
 
@@ -2628,7 +2632,6 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
   );
 }
 
-// Restituisce gli orari del turno assegnato al dipendente (fallback: Turno Standard)
 function getTurnoEmp(emp, settings) {
   const turni = settings?.turni || [];
   const turnoId = emp?.turnoId || 'default';
