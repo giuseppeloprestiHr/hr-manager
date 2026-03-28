@@ -412,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-055';
+const APP_VERSION = '2026-03-28-056';
 
 const CREDITS = [
   {
@@ -686,6 +686,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-28-056',
+    data: '28/03/2026',
+    descrizione: 'Aggiunto pannello "Verifica file RILPRE" nell\'area Esportazione RILPRE: upload di un file .txt, parsing del formato a larghezza fissa (1707 char/record), tabella riepilogo per dipendente (giorni presenti, ore ordinarie, giustificativi) e dettaglio giorno-per-giorno espandibile con evidenza weekend e giorni a zero ore.'
   },
   {
     version: '2026-03-28-055',
@@ -7464,6 +7469,47 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
   return out;
 }
 
+function parseFileRilpre(content) {
+  const HEADER = 95, DAY_LEN = 52, RECORD_LEN = HEADER + 31 * DAY_LEN;
+  const hhccToStr = v => {
+    if (!v) return null;
+    const h = Math.floor(v / 100), cc = v % 100;
+    const m = Math.round(cc * 60 / 100);
+    return m > 0 ? `${h}h${String(m).padStart(2,'0')}` : `${h}h`;
+  };
+  const raw = content.replace(/[\r\n]/g, '');
+  if (raw.length % RECORD_LEN !== 0) return { error: `Lunghezza file non multiplo di ${RECORD_LEN} (${raw.length} char, resto ${raw.length % RECORD_LEN})` };
+  const records = [];
+  for (let pos = 0; pos + RECORD_LEN <= raw.length; pos += RECORD_LEN) {
+    const rec = raw.substring(pos, pos + RECORD_LEN);
+    const codAzienda = rec.substring(0, 4).trim();
+    const codFiliale = rec.substring(4, 6).trim();
+    const codDip     = rec.substring(6, 15).trim();
+    const cognome    = rec.substring(15, 49).trim();
+    const nome       = rec.substring(49, 83).trim();
+    const diStr      = rec.substring(83, 89); // DDMMYY
+    const dfStr      = rec.substring(89, 95);
+    const mese       = parseInt(diStr.substring(2, 4));
+    const anno       = 2000 + parseInt(diStr.substring(4, 6));
+    const lastDay    = new Date(anno, mese, 0).getDate();
+    const days = [];
+    for (let d = 0; d < 31; d++) {
+      const base = HEADER + d * DAY_LEN;
+      const oreOrd = parseInt(rec.substring(base, base + 4)) || 0;
+      const giust = [];
+      for (let g = 0; g < 6; g++) {
+        const gBase = base + 4 + g * 8;
+        const codice = rec.substring(gBase, gBase + 4).trim();
+        const ore    = parseInt(rec.substring(gBase + 4, gBase + 8)) || 0;
+        if (codice && ore > 0) giust.push({ codice, ore });
+      }
+      days.push({ day: d + 1, inRange: d + 1 <= lastDay, oreOrd, giust });
+    }
+    records.push({ codAzienda, codFiliale, codDip, cognome, nome, mese, anno, lastDay, days });
+  }
+  return { records };
+}
+
 function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, setEmployees, saveData, timbrature, permessi, ferie, malattie, manSection, onSetManSection, setView, pendingOps, onApproveDeletion, onRejectDeletion }) {
   const isAdmin = currentUserRole === RUOLI.AMMINISTRATORE;
   const isMaster = currentUserRole === RUOLI.MASTER;
@@ -7512,6 +7558,8 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
   const oggi = new Date();
   const [rilpreAnno, setRilpreAnno] = useState(oggi.getMonth() === 0 ? oggi.getFullYear()-1 : oggi.getFullYear());
   const [rilpreMese, setRilpreMese] = useState(oggi.getMonth() === 0 ? 12 : oggi.getMonth());
+  const [rilpreLettura, setRilpreLettura] = useState(null); // { fileName, records } | { error }
+  const [rilpreEmpOpen, setRilpreEmpOpen] = useState(null); // codDip dipendente espanso
   const handleGeneraRilpre = () => {
     const content = generaFileRilpre(rilpreAnno, rilpreMese, employees, timbrature, permessi, ferie, malattie, settings);
     if (!content) { alert('Nessun dipendente attivo trovato.'); return; }
@@ -7524,6 +7572,19 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleLeggiRilpre = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const result = parseFileRilpre(ev.target.result);
+      setRilpreLettura({ fileName: file.name, ...result });
+      setRilpreEmpOpen(null);
+    };
+    reader.readAsText(file, 'utf-8');
+    e.target.value = '';
   };
 
   const handleAddCdc = () => {
@@ -8541,6 +8602,153 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors">
             Genera e scarica RILPRE
           </button>
+        </div>
+      </div>
+      )}
+
+      {showSection('man-rilpre') && isMaster && (
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
+          <span className="shrink-0"><Icon name="search" size={22} color="#1e3a6e"/></span>
+          <div>
+            <p className="font-bold text-slate-800 text-base">Verifica file RILPRE</p>
+            <p className="text-slate-600 text-xs mt-0.5">Carica un file RILPRE.txt per ricostruire e verificare i dati presenze dipendente per dipendente</p>
+          </div>
+        </div>
+        <div className="px-6 py-5">
+          <label className="inline-flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors">
+            <Icon name="clipboard" size={16} color="#1e3a6e"/>
+            Carica file RILPRE (.txt)
+            <input type="file" accept=".txt" onChange={handleLeggiRilpre} className="hidden"/>
+          </label>
+          {rilpreLettura && rilpreLettura.error && (
+            <div className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+              <Icon name="bell" size={15} color="#dc2626"/> {rilpreLettura.error}
+            </div>
+          )}
+          {rilpreLettura && rilpreLettura.records && ((() => {
+            const { fileName, records } = rilpreLettura;
+            const MESI = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+            const hhccToStr = v => { if(!v) return '—'; const h=Math.floor(v/100),cc=v%100,m=Math.round(cc*60/100); return m>0?`${h}h${String(m).padStart(2,'0')}`:`${h}h`; };
+            const mese = records[0]?.mese, anno = records[0]?.anno;
+            const totali = records.map(r => {
+              const giorniLav = r.days.filter(d => d.inRange && !([0,6].includes(new Date(r.anno, r.mese-1, d.day).getDay()))).length;
+              const giorniConOre = r.days.filter(d => d.inRange && d.oreOrd > 0).length;
+              const oreOrdTot = r.days.reduce((s,d) => s + d.oreOrd, 0);
+              const giust = {};
+              r.days.forEach(d => d.giust.forEach(g => { giust[g.codice] = (giust[g.codice]||0) + g.ore; }));
+              return { ...r, giorniLav, giorniConOre, oreOrdTot, giust };
+            });
+            const allGiust = [...new Set(records.flatMap(r => r.days.flatMap(d => d.giust.map(g => g.codice))))].sort();
+            return (
+              <div className="mt-5">
+                <div className="flex items-center gap-3 mb-4 flex-wrap">
+                  <span className="text-xs text-slate-500 font-mono bg-slate-100 px-2 py-1 rounded">{fileName}</span>
+                  <span className="text-xs font-semibold text-slate-600">{MESI[mese]} {anno}</span>
+                  <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-1 rounded-full">{records.length} dipendenti</span>
+                  <button onClick={()=>setRilpreLettura(null)} className="ml-auto text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1">
+                    <Icon name="trash" size={12} color="#94a3b8"/> Chiudi
+                  </button>
+                </div>
+                {}
+                <div className="overflow-x-auto rounded-xl border border-slate-200 mb-6">
+                  <table className="w-full text-xs border-collapse">
+                    <thead>
+                      <tr className="text-white" style={{background:'#1e3a6e'}}>
+                        <th className="px-3 py-2.5 text-left font-semibold">Dipendente</th>
+                        <th className="px-3 py-2.5 text-center font-semibold">Matricola</th>
+                        <th className="px-3 py-2.5 text-center font-semibold">Cod.Az./Fil.</th>
+                        <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="check" size={11} color="#6ee7b7"/> Gg pres.</span></th>
+                        <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="clock" size={11} color="#c4b5fd"/> Ore ord.</span></th>
+                        {allGiust.map(g => <th key={g} className="px-3 py-2.5 text-center font-semibold">{g}</th>)}
+                        <th className="px-3 py-2.5 text-center font-semibold">Dettaglio</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {totali.map((r, ri) => (
+                        <tr key={ri} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-3 py-2.5 font-semibold text-slate-800">{r.cognome} {r.nome}</td>
+                          <td className="px-3 py-2.5 text-center font-mono text-slate-500">{r.codDip}</td>
+                          <td className="px-3 py-2.5 text-center font-mono text-slate-500">{r.codAzienda}/{r.codFiliale}</td>
+                          <td className="px-3 py-2.5 text-center">
+                            <span className={`font-bold px-2 py-0.5 rounded-lg ${r.giorniConOre>0?'text-emerald-700 bg-emerald-50':'text-slate-400 bg-slate-50'}`}>{r.giorniConOre}<span className="text-slate-400 font-normal">/{r.giorniLav}</span></span>
+                          </td>
+                          <td className="px-3 py-2.5 text-center font-semibold text-slate-700">{hhccToStr(r.oreOrdTot)}</td>
+                          {allGiust.map(g => (
+                            <td key={g} className="px-3 py-2.5 text-center">
+                              {r.giust[g] ? <span className="font-semibold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-lg">{hhccToStr(r.giust[g])}</span> : <span className="text-slate-300">—</span>}
+                            </td>
+                          ))}
+                          <td className="px-3 py-2.5 text-center">
+                            <button onClick={()=>setRilpreEmpOpen(rilpreEmpOpen===r.codDip?null:r.codDip)}
+                              className="text-blue-600 hover:text-blue-800 text-xs font-semibold flex items-center gap-1 mx-auto">
+                              <Icon name={rilpreEmpOpen===r.codDip?'chevron-up':'chevron-dn'} size={12} color="#2563eb"/>
+                              {rilpreEmpOpen===r.codDip?'Chiudi':'Espandi'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {}
+                {rilpreEmpOpen && (()=>{
+                  const r = totali.find(x=>x.codDip===rilpreEmpOpen);
+                  if (!r) return null;
+                  const DAYS_ITA = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+                  const hhccToStr2 = v => { if(!v) return null; const h=Math.floor(v/100),cc=v%100,m=Math.round(cc*60/100); return m>0?`${h}h${String(m).padStart(2,'0')}`:`${h}h`; };
+                  return (
+                    <div className="border border-slate-200 rounded-xl overflow-hidden mb-4">
+                      <div className="px-4 py-3 flex items-center gap-3" style={{background:'#1e3a6e'}}>
+                        <div className="w-8 h-8 rounded-full bg-white/20 text-white font-bold text-xs flex items-center justify-center">{r.nome[0]}{r.cognome[0]}</div>
+                        <div>
+                          <p className="text-white font-bold text-sm">{r.cognome} {r.nome}</p>
+                          <p className="text-blue-200 text-xs">Matricola {r.codDip} · {MESI[r.mese]} {r.anno}</p>
+                        </div>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200">
+                              <th className="px-3 py-2 text-left text-slate-500 font-semibold">Giorno</th>
+                              <th className="px-3 py-2 text-center text-slate-500 font-semibold">Ore ord.</th>
+                              {allGiust.map(g=><th key={g} className="px-3 py-2 text-center text-slate-500 font-semibold">{g}</th>)}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {r.days.filter(d=>d.inRange).map(d=>{
+                              const dow = new Date(r.anno, r.mese-1, d.day).getDay();
+                              const isWeekend = dow===0||dow===6;
+                              const hasData = d.oreOrd>0||d.giust.length>0;
+                              const giustMap = {};
+                              d.giust.forEach(g=>giustMap[g.codice]=g.ore);
+                              return (
+                                <tr key={d.day} className={`${isWeekend?'bg-slate-100/60':hasData?'':'bg-red-50/30'} transition-colors`}>
+                                  <td className="px-3 py-1.5">
+                                    <span className={`font-semibold ${isWeekend?'text-slate-400':'text-slate-700'}`}>{String(d.day).padStart(2,'0')} {DAYS_ITA[dow]}</span>
+                                  </td>
+                                  <td className="px-3 py-1.5 text-center">
+                                    {isWeekend ? <span className="text-slate-300">—</span>
+                                      : d.oreOrd>0 ? <span className="font-bold text-emerald-700">{hhccToStr2(d.oreOrd)}</span>
+                                      : <span className="text-red-400 font-semibold">0h</span>}
+                                  </td>
+                                  {allGiust.map(g=>(
+                                    <td key={g} className="px-3 py-1.5 text-center">
+                                      {giustMap[g]?<span className="font-semibold text-violet-700">{hhccToStr2(giustMap[g])}</span>:<span className="text-slate-200">·</span>}
+                                    </td>
+                                  ))}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            );
+          })())}
         </div>
       </div>
       )}
