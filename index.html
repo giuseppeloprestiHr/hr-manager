@@ -412,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-059';
+const APP_VERSION = '2026-03-28-060';
 
 const CREDITS = [
   {
@@ -686,6 +686,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-28-060',
+    data: '28/03/2026',
+    descrizione: 'Fix definitivo colonna ???? RILPRE: generaFileRilpre ora riceve form invece di settings. Il form state ha già i fallback corretti (rilpreGiustificativi || RILPRE_GIUST_DEFAULT) mentre settings.rilpreGiustificativi era sempre undefined perché non mappato in _S.from.'
   },
   {
     version: '2026-03-28-059',
@@ -7581,7 +7586,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
   const [rilpreMese, setRilpreMese] = useState(oggi.getMonth() === 0 ? 12 : oggi.getMonth());
   const [rilpreLettura, setRilpreLettura] = useState(null); // { fileName, records } | { error }
   const handleGeneraRilpre = () => {
-    const content = generaFileRilpre(rilpreAnno, rilpreMese, employees, timbrature, permessi, ferie, malattie, settings);
+    const content = generaFileRilpre(rilpreAnno, rilpreMese, employees, timbrature, permessi, ferie, malattie, form);
     if (!content) { alert('Nessun dipendente attivo trovato.'); return; }
     const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
     const url  = URL.createObjectURL(blob);
