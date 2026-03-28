@@ -368,9 +368,9 @@ const permessoStepIniziale = (ruolo) => {
 };
 
 const INITIAL_EMPLOYEES = [
-  { id:'1', nome:'Giuseppe', cognome:'Lo Presti', registro:'EMP001', dataInizio:'2018-01-02', cf:'LPRGPP80A01L219Z', telefono:'348-1111222', email:'giuseppe.lopresti@azienda.it', responsabileId:null, ruolo:'master',         login:'giuseppe.lopresti', password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'2', nome:'Paola',    cognome:'Gardumi',   registro:'EMP002', dataInizio:'2019-03-04', cf:'GRDPLA82B41L219X', telefono:'347-2222333', email:'paola.gardumi@azienda.it',     responsabileId:'1',  ruolo:'amministratore', login:'paola.gardumi',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'3', nome:'Livio',    cognome:'Sardo',     registro:'EMP003', dataInizio:'2020-06-01', cf:'SRDLVI78C15L219Y', telefono:'346-3333444', email:'livio.sardo@azienda.it',       responsabileId:'1',  ruolo:'direttore',      login:'livio.sardo',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'1', nome:'Giuseppe', cognome:'Lo Presti', registro:'EMP001', dataInizio:'2018-01-02', cf:'LPRGPP80A01L219Z', telefono:'348-1111222', email:'giuseppe.lopresti@azienda.it', responsabileId:'2',  ruolo:'master',         login:'giuseppe.lopresti', password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'2', nome:'Paola',    cognome:'Gardumi',   registro:'EMP002', dataInizio:'2019-03-04', cf:'GRDPLA82B41L219X', telefono:'347-2222333', email:'paola.gardumi@azienda.it',     responsabileId:null, ruolo:'amministratore', login:'paola.gardumi',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'3', nome:'Livio',    cognome:'Sardo',     registro:'EMP003', dataInizio:'2020-06-01', cf:'SRDLVI78C15L219Y', telefono:'346-3333444', email:'livio.sardo@azienda.it',       responsabileId:'2',  ruolo:'direttore',      login:'livio.sardo',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
   { id:'4', nome:'Nicola',   cognome:'Perini',    registro:'EMP004', dataInizio:'2021-09-13', cf:'PRNNKL85D22L219W', telefono:'345-4444555', email:'nicola.perini@azienda.it',     responsabileId:'3',  ruolo:'responsabile',   login:'nicola.perini',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
   { id:'5', nome:'Elson',    cognome:'Meta',      registro:'EMP005', dataInizio:'2022-04-04', cf:'MTELSN96A10Z100X', telefono:'344-5555666', email:'elson.meta@azienda.it',        responsabileId:'4',  ruolo:'dipendente',     login:'elson.meta',        password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:true,  accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
 ];
@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-27-037';
+const APP_VERSION = '2026-03-28-038';
 
 const CREDITS = [
   {
@@ -650,6 +650,11 @@ const CHANGELOG = [
     version: '2026-03-27-037',
     data: '27/03/2026',
     descrizione: 'Carica/cancella dati demo feb–mar 2026: funzione handleCaricaDatiDemo genera ~190 timbrature, malattie, ferie, permessi, straordinari, reperibilità, gestioni tel., note spese e news con ID DEMO_*. handleCancellaDatiDemo rimuove chirurgicamente tutti i record DEMO_* e azzera chiusureAziendali. UI in Manutenzione → sezione Reimposta dati demo.'
+  },
+  {
+    version: '2026-03-28-038',
+    data: '28/03/2026',
+    descrizione: 'Correzione gerarchia dipendenti: Paola Gardumi senza responsabile (top), Giuseppe Lo Presti e Livio Sardo riportano a Paola. Allineati i dati demo: approvazioni permessi/ferie/straordinari corrette secondo la nuova gerarchia.'
   },
   {
     version: '2026-03-27-036',
@@ -7549,18 +7554,18 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('m','1','202603'), employee_id:'1', data_inizio:'2026-03-05', data_fine:'2026-03-05', protocollo:null, note:'', timestamp:ts('2026-03-05',8,0), inserito_da:'2', malattie_figlio:false, cf_figlio:null },
       ];
       const ferieRec = [
-        { id:dId('f','1','202603'), employee_id:'1', data_inizio:'2026-03-10', data_fine:'2026-03-12', giorni_lavorativi:3, motivo:'', status:'approvato', approvato_resp_id:'2', approvato_resp_timestamp:ts('2026-03-04',10,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-03-04',11,0), rifiutato_da_id:null, note_rifiuto:null, note_annullamento:null, annullata_da_id:null, annullata_timestamp:null, timestamp:ts('2026-03-03',14,0) },
+        { id:dId('f','1','202603'), employee_id:'1', data_inizio:'2026-03-10', data_fine:'2026-03-12', giorni_lavorativi:3, motivo:'', status:'approvato', approvato_resp_id:'2', approvato_resp_timestamp:ts('2026-03-04',10,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-04',11,0), rifiutato_da_id:null, note_rifiuto:null, note_annullamento:null, annullata_da_id:null, annullata_timestamp:null, timestamp:ts('2026-03-03',14,0) },
         { id:dId('f','5','202602'), employee_id:'5', data_inizio:'2026-02-23', data_fine:'2026-02-25', giorni_lavorativi:3, motivo:'', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-02-18',9,30), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-18',11,0), rifiutato_da_id:null, note_rifiuto:null, note_annullamento:null, annullata_da_id:null, annullata_timestamp:null, timestamp:ts('2026-02-17',16,0) },
       ];
       const permessiRec = [
-        { id:dId('p','3','20260210'), employee_id:'3', data:'2026-02-10', ora_inizio:'14:00', ora_fine:'16:00', ore_permesso:2, motivo:'Visita medica', tipologia:'', status:'approvato', note_rifiuto:null, note_annullamento:null, annullato_da:null, annullato_timestamp:null, approvato_da:'1', approvato_timestamp:ts('2026-02-07',10,0), timestamp:ts('2026-02-06',17,0) },
+        { id:dId('p','3','20260210'), employee_id:'3', data:'2026-02-10', ora_inizio:'14:00', ora_fine:'16:00', ore_permesso:2, motivo:'Visita medica', tipologia:'', status:'approvato', note_rifiuto:null, note_annullamento:null, annullato_da:null, annullato_timestamp:null, approvato_da:'2', approvato_timestamp:ts('2026-02-07',10,0), timestamp:ts('2026-02-06',17,0) },
         { id:dId('p','4','20260304'), employee_id:'4', data:'2026-03-04', ora_inizio:'09:00', ora_fine:'11:00', ore_permesso:2, motivo:'Commissioni personali', tipologia:'', status:'approvato', note_rifiuto:null, note_annullamento:null, annullato_da:null, annullato_timestamp:null, approvato_da:'3', approvato_timestamp:ts('2026-03-03',11,0), timestamp:ts('2026-03-02',18,0) },
       ];
       const straordinariRec = [
-        { id:dId('s','4','20260205'), employee_id:'4', data:'2026-02-05', tipo:'sera', minuti:60, nota:'Chiusura progetto cliente', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-02-06',9,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-02-06',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-05',18,0) },
-        { id:dId('s','4','20260219'), employee_id:'4', data:'2026-02-19', tipo:'sera', minuti:60, nota:'Riunione urgente', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-02-20',9,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-02-20',10,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-19',18,0) },
-        { id:dId('s','4','20260311'), employee_id:'4', data:'2026-03-11', tipo:'sera', minuti:60, nota:'Supporto audit interno', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-03-12',9,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-03-12',10,30), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-11',18,0) },
-        { id:dId('s','4','20260325'), employee_id:'4', data:'2026-03-25', tipo:'sera', minuti:60, nota:'Preparazione report mensile', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-03-26',9,0), approvato_dir_id:'1', approvato_dir_timestamp:ts('2026-03-26',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-25',18,0) },
+        { id:dId('s','4','20260205'), employee_id:'4', data:'2026-02-05', tipo:'sera', minuti:60, nota:'Chiusura progetto cliente', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-02-06',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-06',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-05',18,0) },
+        { id:dId('s','4','20260219'), employee_id:'4', data:'2026-02-19', tipo:'sera', minuti:60, nota:'Riunione urgente', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-02-20',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-20',10,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-19',18,0) },
+        { id:dId('s','4','20260311'), employee_id:'4', data:'2026-03-11', tipo:'sera', minuti:60, nota:'Supporto audit interno', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-03-12',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-12',10,30), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-11',18,0) },
+        { id:dId('s','4','20260325'), employee_id:'4', data:'2026-03-25', tipo:'sera', minuti:60, nota:'Preparazione report mensile', status:'approvato', approvato_resp_id:'3', approvato_resp_timestamp:ts('2026-03-26',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-26',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-25',18,0) },
         { id:dId('s','5','20260206'), employee_id:'5', data:'2026-02-06', tipo:'sera', minuti:90, nota:'Gestione emergenza impianti', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-02-09',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-09',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-06',18,30) },
         { id:dId('s','5','20260220'), employee_id:'5', data:'2026-02-20', tipo:'sera', minuti:60, nota:'Supporto tecnico urgente', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-02-23',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-02-23',10,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-02-20',18,0) },
         { id:dId('s','5','20260306'), employee_id:'5', data:'2026-03-06', tipo:'sera', minuti:90, nota:'Manutenzione straordinaria', status:'approvato', approvato_resp_id:'4', approvato_resp_timestamp:ts('2026-03-09',9,0), approvato_dir_id:'3', approvato_dir_timestamp:ts('2026-03-09',11,0), rifiutato_da_id:null, note_rifiuto:null, timestamp:ts('2026-03-06',18,30) },
@@ -7609,7 +7614,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('n','f1app'), tipo:'ferie_approvata', testo:'Le tue ferie dal 10/03 al 12/03 sono state approvate', destinatari:['1'], emp_id:'1', timestamp:ts('2026-03-04',11,0), lette:['1'] },
         { id:dId('n','f5req'), tipo:'ferie_richiesta', testo:'Elson Meta ha richiesto ferie dal 23/02 al 25/02', destinatari:['4','3'], emp_id:'5', timestamp:ts('2026-02-17',16,0), lette:['4','3'] },
         { id:dId('n','f5app'), tipo:'ferie_approvata', testo:'Le tue ferie dal 23/02 al 25/02 sono state approvate', destinatari:['5'], emp_id:'5', timestamp:ts('2026-02-18',11,0), lette:['5'] },
-        { id:dId('n','p3req'), tipo:'permesso_richiesta', testo:'Livio Sardo ha richiesto un permesso il 10/02 (14:00–16:00)', destinatari:['1'], emp_id:'3', timestamp:ts('2026-02-06',17,0), lette:['1'] },
+        { id:dId('n','p3req'), tipo:'permesso_richiesta', testo:'Livio Sardo ha richiesto un permesso il 10/02 (14:00–16:00)', destinatari:['2'], emp_id:'3', timestamp:ts('2026-02-06',17,0), lette:['2'] },
         { id:dId('n','p3app'), tipo:'permesso_approvato', testo:'Il tuo permesso del 10/02 è stato approvato', destinatari:['3'], emp_id:'3', timestamp:ts('2026-02-07',10,0), lette:['3'] },
         { id:dId('n','p4req'), tipo:'permesso_richiesta', testo:'Nicola Perini ha richiesto un permesso il 04/03 (09:00–11:00)', destinatari:['3'], emp_id:'4', timestamp:ts('2026-03-02',18,0), lette:['3'] },
         { id:dId('n','p4app'), tipo:'permesso_approvato', testo:'Il tuo permesso del 04/03 è stato approvato', destinatari:['4'], emp_id:'4', timestamp:ts('2026-03-03',11,0), lette:['4'] },
