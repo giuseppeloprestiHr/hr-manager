@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-044';
+const APP_VERSION = '2026-03-28-045';
 
 const CREDITS = [
   {
@@ -7620,12 +7620,12 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { data:'2026-03-24', ora:'09:45', cliente:'Cliente Beta', note:'Verifica consegna' },
       ].map(g => ({ id:dId('g','5',g.data.replace(/-/g,'')), employee_id:'5', data:g.data, ora:g.ora, cliente:g.cliente, note:g.note, timestamp:ts(g.data,parseInt(g.ora),0) }));
       const noteSpeseRec = [
-        { id:dId('ns','3','202601'), employee_id:'3', anno:2026, mese:1, status:'chiusa', confirmed_at:'2026-02-02T09:00:00Z', timestamp:ts('2026-02-02',9,0) },
-        { id:dId('ns','4','202601'), employee_id:'4', anno:2026, mese:1, status:'chiusa', confirmed_at:'2026-02-02T10:00:00Z', timestamp:ts('2026-02-02',10,0) },
-        { id:dId('ns','3','202602'), employee_id:'3', anno:2026, mese:2, status:'chiusa', confirmed_at:'2026-03-01T10:00:00Z', timestamp:ts('2026-03-01',10,0) },
-        { id:dId('ns','4','202602'), employee_id:'4', anno:2026, mese:2, status:'chiusa', confirmed_at:'2026-03-01T11:00:00Z', timestamp:ts('2026-03-01',11,0) },
-        { id:dId('ns','4','202603'), employee_id:'4', anno:2026, mese:3, status:'chiusa', confirmed_at:'2026-03-28T10:00:00Z', timestamp:ts('2026-03-28',10,0) },
-        { id:dId('ns','5','202603'), employee_id:'5', anno:2026, mese:3, status:'chiusa', confirmed_at:'2026-03-28T11:00:00Z', timestamp:ts('2026-03-28',11,0) },
+        { id:dId('ns','3','202601'), employee_id:'3', anno:2026, mese:1, status:'chiusa', confirmed_at:ts('2026-02-02',9,0),  timestamp:ts('2026-02-02',9,0) },
+        { id:dId('ns','4','202601'), employee_id:'4', anno:2026, mese:1, status:'chiusa', confirmed_at:ts('2026-02-02',10,0), timestamp:ts('2026-02-02',10,0) },
+        { id:dId('ns','3','202602'), employee_id:'3', anno:2026, mese:2, status:'chiusa', confirmed_at:ts('2026-03-01',10,0), timestamp:ts('2026-03-01',10,0) },
+        { id:dId('ns','4','202602'), employee_id:'4', anno:2026, mese:2, status:'chiusa', confirmed_at:ts('2026-03-01',11,0), timestamp:ts('2026-03-01',11,0) },
+        { id:dId('ns','4','202603'), employee_id:'4', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',10,0), timestamp:ts('2026-03-28',10,0) },
+        { id:dId('ns','5','202603'), employee_id:'5', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',11,0), timestamp:ts('2026-03-28',11,0) },
       ];
       const noteSpeseVociRec = [
         { id:dId('nsv','3','j1'), nota_spese_id:dId('ns','3','202601'), employee_id:'3', data:'2026-01-14', luogo:'Torino', natura:'carburante', importo:48.00, note:'160 km a/r', timestamp:ts('2026-01-14',18,0) },
