@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-047';
+const APP_VERSION = '2026-03-28-048';
 
 const CREDITS = [
   {
@@ -685,6 +685,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-28-048',
+    data: '28/03/2026',
+    descrizione: 'Fix definitivo badge "cambio pw": handleCaricaDatiDemo ora fa upsert degli employees da INITIAL_EMPLOYEES prima di caricare i dati demo, aggiornando primo_accesso e password in Supabase. In precedenza cancella+ricarica non toccava la tabella employees.'
   },
   {
     version: '2026-03-28-047',
@@ -7574,6 +7579,10 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     if (!_supa) { alert('Supabase non disponibile'); return; }
     setDemoLoading(true);
     try {
+      const demoEmpsUpd = INITIAL_EMPLOYEES.map(e => _E.to({...e, straordinario:false}));
+      const {error:empErr} = await _supa.from('employees').upsert(demoEmpsUpd, {onConflict:'id'});
+      if (empErr) throw new Error(`employees: ${empErr.message}`);
+
       const dId = (...p) => 'DEMO_' + p.join('_');
       const ts  = (d, h=9, m=0) => new Date(`${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`).getTime();
       const janDays = ['2026-01-02','2026-01-05','2026-01-07','2026-01-08','2026-01-09','2026-01-12','2026-01-13','2026-01-14','2026-01-15','2026-01-16','2026-01-19','2026-01-20','2026-01-21','2026-01-22','2026-01-23','2026-01-26','2026-01-27','2026-01-28','2026-01-29','2026-01-30'];
