@@ -371,8 +371,8 @@ const INITIAL_EMPLOYEES = [
   { id:'1', nome:'Giuseppe', cognome:'Lo Presti', registro:'EMP001', dataInizio:'2018-01-02', cf:'LPRGPP80A01L219Z', telefono:'348-1111222', email:'giuseppe.lopresti@azienda.it', responsabileId:'2',  ruolo:'master',         login:'giuseppe.lopresti', password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
   { id:'2', nome:'Paola',    cognome:'Gardumi',   registro:'EMP002', dataInizio:'2019-03-04', cf:'GRDPLA82B41L219X', telefono:'347-2222333', email:'paola.gardumi@azienda.it',     responsabileId:null, ruolo:'amministratore', login:'paola.gardumi',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
   { id:'3', nome:'Livio',    cognome:'Sardo',     registro:'EMP003', dataInizio:'2020-06-01', cf:'SRDLVI78C15L219Y', telefono:'346-3333444', email:'livio.sardo@azienda.it',       responsabileId:'2',  ruolo:'direttore',      login:'livio.sardo',       password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'4', nome:'Nicola',   cognome:'Perini',    registro:'EMP004', dataInizio:'2021-09-13', cf:'PRNNKL85D22L219W', telefono:'345-4444555', email:'nicola.perini@azienda.it',     responsabileId:'3',  ruolo:'responsabile',   login:'nicola.perini',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
-  { id:'5', nome:'Elson',    cognome:'Meta',      registro:'EMP005', dataInizio:'2022-04-04', cf:'MTELSN96A10Z100X', telefono:'344-5555666', email:'elson.meta@azienda.it',        responsabileId:'4',  ruolo:'dipendente',     login:'elson.meta',        password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false },
+  { id:'4', nome:'Nicola',   cognome:'Perini',    registro:'EMP004', dataInizio:'2021-09-13', cf:'PRNNKL85D22L219W', telefono:'345-4444555', email:'nicola.perini@azienda.it',     responsabileId:'3',  ruolo:'responsabile',   login:'nicola.perini',     password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:false, straordinario:true },
+  { id:'5', nome:'Elson',    cognome:'Meta',      registro:'EMP005', dataInizio:'2022-04-04', cf:'MTELSN96A10Z100X', telefono:'344-5555666', email:'elson.meta@azienda.it',        responsabileId:'4',  ruolo:'dipendente',     login:'elson.meta',        password:'e5308deaa9a25770c722f89bf085ea2fbc66261d7fc1b9554f442d5a4e091fc5', primoAccesso:false, accessoDisabilitato:false, richiestaReset:false, richiedeNuovaPassword:false, reperibile:true,  straordinario:true },
 ];
 
 const todayStr     = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-048';
+const APP_VERSION = '2026-03-28-049';
 
 const CREDITS = [
   {
@@ -685,6 +685,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-28-049',
+    data: '28/03/2026',
+    descrizione: 'Fix calendario chiusure demo: chiusureDemo ora salvata come array di sole date (non oggetti) compatibile con CalendarioChiusure. Fix employee flags: Perini straordinario:true, Meta reperibile:true+straordinario:true; upsert demo non forza più straordinario:false. Note spese complete gen-mar per Sardo, Perini e Meta (aggiunta Sardo Mar, Meta Gen+Feb con voci e notifiche).'
   },
   {
     version: '2026-03-28-048',
@@ -7579,7 +7584,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     if (!_supa) { alert('Supabase non disponibile'); return; }
     setDemoLoading(true);
     try {
-      const demoEmpsUpd = INITIAL_EMPLOYEES.map(e => _E.to({...e, straordinario:false}));
+      const demoEmpsUpd = INITIAL_EMPLOYEES.map(e => _E.to(e));
       const {error:empErr} = await _supa.from('employees').upsert(demoEmpsUpd, {onConflict:'id'});
       if (empErr) throw new Error(`employees: ${empErr.message}`);
 
@@ -7643,6 +7648,9 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('ns','4','202601'), employee_id:'4', anno:2026, mese:1, status:'chiusa', confirmed_at:ts('2026-02-02',10,0), timestamp:ts('2026-02-02',10,0) },
         { id:dId('ns','3','202602'), employee_id:'3', anno:2026, mese:2, status:'chiusa', confirmed_at:ts('2026-03-01',10,0), timestamp:ts('2026-03-01',10,0) },
         { id:dId('ns','4','202602'), employee_id:'4', anno:2026, mese:2, status:'chiusa', confirmed_at:ts('2026-03-01',11,0), timestamp:ts('2026-03-01',11,0) },
+        { id:dId('ns','3','202603'), employee_id:'3', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',9,0),  timestamp:ts('2026-03-28',9,0) },
+        { id:dId('ns','5','202601'), employee_id:'5', anno:2026, mese:1, status:'chiusa', confirmed_at:ts('2026-02-02',11,0), timestamp:ts('2026-02-02',11,0) },
+        { id:dId('ns','5','202602'), employee_id:'5', anno:2026, mese:2, status:'chiusa', confirmed_at:ts('2026-03-02',9,0),  timestamp:ts('2026-03-02',9,0) },
         { id:dId('ns','4','202603'), employee_id:'4', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',10,0), timestamp:ts('2026-03-28',10,0) },
         { id:dId('ns','5','202603'), employee_id:'5', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',11,0), timestamp:ts('2026-03-28',11,0) },
       ];
@@ -7656,8 +7664,17 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('nsv','3','3'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano', natura:'pedaggio', importo:12.00, note:'A4 andata/ritorno', timestamp:ts('2026-02-13',18,2) },
         { id:dId('nsv','4','1'), nota_spese_id:dId('ns','4','202602'), employee_id:'4', data:'2026-02-26', luogo:'Verona', natura:'carburante', importo:72.00, note:'240 km a/r', timestamp:ts('2026-02-26',18,0) },
         { id:dId('nsv','4','2'), nota_spese_id:dId('ns','4','202602'), employee_id:'4', data:'2026-02-26', luogo:'Verona', natura:'vitto', importo:16.00, note:'Pranzo di lavoro', timestamp:ts('2026-02-26',18,1) },
+        { id:dId('nsv','3','m1'), nota_spese_id:dId('ns','3','202603'), employee_id:'3', data:'2026-03-10', luogo:'Milano',  natura:'carburante', importo:60.00, note:'200 km a/r', timestamp:ts('2026-03-10',18,0) },
+        { id:dId('nsv','3','m2'), nota_spese_id:dId('ns','3','202603'), employee_id:'3', data:'2026-03-10', luogo:'Milano',  natura:'vitto',      importo:20.00, note:'Pranzo di lavoro', timestamp:ts('2026-03-10',18,1) },
+        { id:dId('nsv','3','m3'), nota_spese_id:dId('ns','3','202603'), employee_id:'3', data:'2026-03-10', luogo:'Milano',  natura:'pedaggio',   importo:14.00, note:'A4 andata/ritorno', timestamp:ts('2026-03-10',18,2) },
         { id:dId('nsv','4','3'), nota_spese_id:dId('ns','4','202603'), employee_id:'4', data:'2026-03-19', luogo:'Brescia', natura:'carburante', importo:36.00, note:'120 km a/r', timestamp:ts('2026-03-19',18,0) },
         { id:dId('nsv','4','4'), nota_spese_id:dId('ns','4','202603'), employee_id:'4', data:'2026-03-19', luogo:'Brescia', natura:'vitto', importo:14.00, note:'Pranzo di lavoro', timestamp:ts('2026-03-19',18,1) },
+        { id:dId('nsv','5','j1'), nota_spese_id:dId('ns','5','202601'), employee_id:'5', data:'2026-01-08', luogo:'Verona',  natura:'carburante', importo:33.00, note:'110 km a/r', timestamp:ts('2026-01-08',18,0) },
+        { id:dId('nsv','5','j2'), nota_spese_id:dId('ns','5','202601'), employee_id:'5', data:'2026-01-08', luogo:'Verona',  natura:'vitto',      importo:14.00, note:'Pranzo di lavoro', timestamp:ts('2026-01-08',18,1) },
+        { id:dId('nsv','5','j3'), nota_spese_id:dId('ns','5','202601'), employee_id:'5', data:'2026-01-20', luogo:'Vicenza', natura:'carburante', importo:21.00, note:'70 km a/r', timestamp:ts('2026-01-20',18,0) },
+        { id:dId('nsv','5','f1'), nota_spese_id:dId('ns','5','202602'), employee_id:'5', data:'2026-02-04', luogo:'Padova',  natura:'carburante', importo:42.00, note:'140 km a/r', timestamp:ts('2026-02-04',18,0) },
+        { id:dId('nsv','5','f2'), nota_spese_id:dId('ns','5','202602'), employee_id:'5', data:'2026-02-04', luogo:'Padova',  natura:'vitto',      importo:15.00, note:'Pranzo di lavoro', timestamp:ts('2026-02-04',18,1) },
+        { id:dId('nsv','5','f3'), nota_spese_id:dId('ns','5','202602'), employee_id:'5', data:'2026-02-12', luogo:'Treviso', natura:'pedaggio',   importo:8.00,  note:'A4 andata/ritorno', timestamp:ts('2026-02-12',18,0) },
         { id:dId('nsv','5','1'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-06', luogo:'Mantova', natura:'carburante', importo:27.00, note:'90 km a/r', timestamp:ts('2026-03-06',18,0) },
         { id:dId('nsv','5','2'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-06', luogo:'Mantova', natura:'vitto', importo:13.00, note:'Pranzo di lavoro', timestamp:ts('2026-03-06',18,1) },
         { id:dId('nsv','5','3'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-20', luogo:'Cremona', natura:'carburante', importo:18.00, note:'60 km a/r', timestamp:ts('2026-03-20',18,0) },
@@ -7708,7 +7725,10 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('n','ns3app'), tipo:'nota_spese', testo:'La nota spese di Livio Sardo (Feb 2026) è stata chiusa', destinatari:['3','1'], emp_id:'3', timestamp:ts('2026-03-01',10,0), lette:['3','1'] },
         { id:dId('n','ns4fapp'), tipo:'nota_spese', testo:'La nota spese di Nicola Perini (Feb 2026) è stata chiusa', destinatari:['4','1'], emp_id:'4', timestamp:ts('2026-03-01',11,0), lette:['4','1'] },
         { id:dId('n','ns4mapp'), tipo:'nota_spese', testo:'La nota spese di Nicola Perini (Mar 2026) è stata chiusa', destinatari:['4','1'], emp_id:'4', timestamp:ts('2026-03-28',10,0), lette:['4','1'] },
-        { id:dId('n','ns5app'), tipo:'nota_spese', testo:'La nota spese di Elson Meta (Mar 2026) è stata chiusa', destinatari:['5','1'], emp_id:'5', timestamp:ts('2026-03-28',11,0), lette:['5','1'] }
+        { id:dId('n','ns5app'), tipo:'nota_spese', testo:'La nota spese di Elson Meta (Mar 2026) è stata chiusa', destinatari:['5','1'], emp_id:'5', timestamp:ts('2026-03-28',11,0), lette:['5','1'] },
+        { id:dId('n','ns5jan'), tipo:'nota_spese', testo:'La nota spese di Elson Meta (Gen 2026) è stata chiusa',   destinatari:['5','1'], emp_id:'5', timestamp:ts('2026-02-02',11,0), lette:['5','1'] },
+        { id:dId('n','ns5feb'), tipo:'nota_spese', testo:'La nota spese di Elson Meta (Feb 2026) è stata chiusa',   destinatari:['5','1'], emp_id:'5', timestamp:ts('2026-03-02',9,0),  lette:['5','1'] },
+        { id:dId('n','ns3mar'), tipo:'nota_spese', testo:'La nota spese di Livio Sardo (Mar 2026) è stata chiusa',  destinatari:['3','1'], emp_id:'3', timestamp:ts('2026-03-28',9,0),  lette:['3','1'] }
       );
       [['4','05/02','s41',60],['4','19/02','s42',60],['4','11/03','s43',60],['4','25/03','s44',60]].forEach(([eid,date,nid,min]) => notificheRec.push(
         { id:dId('n',nid+'req'), tipo:'straordinario_richiesta', testo:`Nicola Perini ha registrato ${min} min di straordinario il ${date}`, destinatari:['3','1'], emp_id:eid, timestamp:ts('2026-02-05',18,5), lette:['3','1'] },
@@ -7747,7 +7767,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       await _ups('note_spese_voci',      noteSpeseVociRec);
       await _ups('news',                 newsRec);
       for (let i=0; i<notificheRec.length; i+=50) await _ups('notifiche', notificheRec.slice(i,i+50));
-      await _supa.from('settings').update({ chiusure_aziendali: JSON.stringify(chiusureDemo) }).eq('id',1);
+      await _supa.from('settings').update({ chiusure_aziendali: JSON.stringify(chiusureDemo.map(c=>c.data)) }).eq('id',1);
       alert('✅ Dati demo gen–mar 2026 caricati con successo!');
       window.location.reload();
     } catch(e) {
