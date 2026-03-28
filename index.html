@@ -2628,6 +2628,7 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
   );
 }
 
+// Restituisce gli orari del turno assegnato al dipendente (fallback: Turno Standard)
 function getTurnoEmp(emp, settings) {
   const turni = settings?.turni || [];
   const turnoId = emp?.turnoId || 'default';
