@@ -2777,6 +2777,7 @@ function EmployeeForm({ emp, employees, onSave, onBack, currentUserRole, setting
   );
 }
 
+// Restituisce gli orari del turno assegnato al dipendente (fallback: Turno Standard)
 function getTurnoEmp(emp, settings) {
   const turni = settings?.turni || [];
   const turnoId = emp?.turnoId || 'default';
@@ -4739,6 +4740,7 @@ function MieiStraordinari({ user, straordinari, employees, setStraordinari, onRi
   const [year,  setYear]  = useState(n.getFullYear());
   const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 
+  // form richiesta (solo per non-autorizzati)
   const [formData,   setFormData]   = useState('');
   const [formTipo,   setFormTipo]   = useState('sera');
   const [formMinuti, setFormMinuti] = useState('60');
@@ -4793,7 +4795,7 @@ function MieiStraordinari({ user, straordinari, employees, setStraordinari, onRi
         </div>
       </div>
 
-      {}
+      {/* Form richiesta straordinario — solo per dipendenti non autorizzati */}
       {!user.straordinario && (
         <div className="bg-white rounded-2xl border border-orange-100 shadow-sm p-5 mb-6 max-w-2xl">
           <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Icon name="trending" size={16} color="#f97316" /> Richiedi uno straordinario</h3>
@@ -7521,9 +7523,11 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
     let entryMin = toMin(ora);
     let exitMin  = toMin(oraUscita);
 
+    // Regola 1 (tutti): dentro la finestra di tolleranza → snap all'orario base
     if (Math.abs(entryMin - inizioM) <= tol) entryMin = inizioM;
     if (Math.abs(exitMin  - fineM)   <= tol) exitMin  = fineM;
 
+    // Regola 2 (non autorizzati): fuori tolleranza → clamp all'orario base
     if (!emp.straordinario) {
       if (entryMin < inizioM) entryMin = inizioM; // anticipo eccessivo → ignora
       if (exitMin  > fineM)   exitMin  = fineM;   // ritardo eccessivo → ignora
@@ -7607,6 +7611,9 @@ function generaFileRilpre(anno, mese, employees, timbrature, permessi, ferie, ma
 }
 
 function parseFileRilpre(content) {
+  // Formato: 95 char header + 31 giorni × 52 char = 1707 per record
+  // Header: codAzienda(4) codFiliale(2) codDip(9) cognome(34) nome(34) dataInizio(6) dataFine(6)
+  // Giorno: oreOrd(4) + 6×[codice(4)+ore(4)] = 52
   const HEADER = 95, DAY_LEN = 52, RECORD_LEN = HEADER + 31 * DAY_LEN;
   const hhccToStr = v => {
     if (!v) return null;
@@ -7614,6 +7621,7 @@ function parseFileRilpre(content) {
     const m = Math.round(cc * 60 / 100);
     return m > 0 ? `${h}h${String(m).padStart(2,'0')}` : `${h}h`;
   };
+  // Normalizza: rimuovi \r\n
   const raw = content.replace(/[\r\n]/g, '');
   if (raw.length % RECORD_LEN !== 0) return { error: `Lunghezza file non multiplo di ${RECORD_LEN} (${raw.length} char, resto ${raw.length % RECORD_LEN})` };
   const records = [];
@@ -7815,6 +7823,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
     if (!_supa) { alert('Supabase non disponibile'); return; }
     setDemoLoading(true);
     try {
+      // Aggiorna sempre i dipendenti (primoAccesso, password, reperibile, straordinario ecc.) da INITIAL_EMPLOYEES
       const demoEmpsUpd = INITIAL_EMPLOYEES.map(e => _E.to(e));
       const {error:empErr} = await _supa.from('employees').upsert(demoEmpsUpd, {onConflict:'id'});
       if (empErr) throw new Error(`employees: ${empErr.message}`);
@@ -7894,41 +7903,52 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('ns','5','202603'), employee_id:'5', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',11,0), timestamp:ts('2026-03-28',11,0) },
       ];
       const noteSpeseVociRec = [
+        // Sardo – Gennaio: Torino + Trento (riunione interna)
         { id:dId('nsv','3','j1'), nota_spese_id:dId('ns','3','202601'), employee_id:'3', data:'2026-01-14', luogo:'Torino',  natura:'carburante',   importo:48.00, note:'160 km a/r', timestamp:ts('2026-01-14',18,0) },
         { id:dId('nsv','3','j2'), nota_spese_id:dId('ns','3','202601'), employee_id:'3', data:'2026-01-14', luogo:'Torino',  natura:'vitto',        importo:16.00, note:'Pranzo di lavoro', timestamp:ts('2026-01-14',18,1) },
         { id:dId('nsv','3','j3'), nota_spese_id:dId('ns','3','202601'), employee_id:'3', data:'2026-01-28', luogo:'Trento',  natura:'parcheggio',   importo:6.00,  note:'Centro congressi', timestamp:ts('2026-01-28',18,0) },
         { id:dId('nsv','3','j4'), nota_spese_id:dId('ns','3','202601'), employee_id:'3', data:'2026-01-28', luogo:'Trento',  natura:'vitto',        importo:14.00, note:'Pranzo riunione direzionale', timestamp:ts('2026-01-28',18,1) },
+        // Perini – Gennaio: Padova + Trento
         { id:dId('nsv','4','j1'), nota_spese_id:dId('ns','4','202601'), employee_id:'4', data:'2026-01-22', luogo:'Padova',  natura:'carburante',   importo:60.00, note:'200 km a/r', timestamp:ts('2026-01-22',18,0) },
         { id:dId('nsv','4','j2'), nota_spese_id:dId('ns','4','202601'), employee_id:'4', data:'2026-01-22', luogo:'Padova',  natura:'pedaggio',     importo:10.00, note:'A4 andata/ritorno', timestamp:ts('2026-01-22',18,1) },
         { id:dId('nsv','4','j3'), nota_spese_id:dId('ns','4','202601'), employee_id:'4', data:'2026-01-29', luogo:'Trento',  natura:'rappresentanza',importo:38.00, note:'Cena con cliente', timestamp:ts('2026-01-29',21,0) },
+        // Sardo – Febbraio: Milano + Trento
         { id:dId('nsv','3','1'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano',  natura:'carburante',   importo:54.00, note:'180 km a/r', timestamp:ts('2026-02-13',18,0) },
         { id:dId('nsv','3','2'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano',  natura:'vitto',        importo:18.00, note:'Pranzo di lavoro', timestamp:ts('2026-02-13',18,1) },
         { id:dId('nsv','3','3'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-13', luogo:'Milano',  natura:'pedaggio',     importo:12.00, note:'A4 andata/ritorno', timestamp:ts('2026-02-13',18,2) },
         { id:dId('nsv','3','4'), nota_spese_id:dId('ns','3','202602'), employee_id:'3', data:'2026-02-25', luogo:'Trento',  natura:'parcheggio',   importo:4.00,  note:'Incontro istituzionale', timestamp:ts('2026-02-25',18,0) },
+        // Perini – Febbraio: Verona + Trento
         { id:dId('nsv','4','1'), nota_spese_id:dId('ns','4','202602'), employee_id:'4', data:'2026-02-26', luogo:'Verona',  natura:'carburante',   importo:72.00, note:'240 km a/r', timestamp:ts('2026-02-26',18,0) },
         { id:dId('nsv','4','2'), nota_spese_id:dId('ns','4','202602'), employee_id:'4', data:'2026-02-26', luogo:'Verona',  natura:'vitto',        importo:16.00, note:'Pranzo di lavoro', timestamp:ts('2026-02-26',18,1) },
         { id:dId('nsv','4','2b'),nota_spese_id:dId('ns','4','202602'), employee_id:'4', data:'2026-02-11', luogo:'Trento',  natura:'rappresentanza',importo:55.00, note:'Cena cliente Sigma', timestamp:ts('2026-02-11',21,0) },
+        // Atzeni – Febbraio: Rovereto + Trento
         { id:dId('nsv','6','f1'), nota_spese_id:dId('ns','6','202602'), employee_id:'6', data:'2026-02-05', luogo:'Rovereto',natura:'carburante',   importo:15.00, note:'50 km a/r', timestamp:ts('2026-02-05',18,0) },
         { id:dId('nsv','6','f2'), nota_spese_id:dId('ns','6','202602'), employee_id:'6', data:'2026-02-05', luogo:'Rovereto',natura:'vitto',        importo:12.00, note:'Pranzo di lavoro', timestamp:ts('2026-02-05',18,1) },
         { id:dId('nsv','6','f3'), nota_spese_id:dId('ns','6','202602'), employee_id:'6', data:'2026-02-26', luogo:'Trento',  natura:'parcheggio',   importo:3.50,  note:'Formazione interna', timestamp:ts('2026-02-26',18,0) },
+        // Atzeni – Marzo: Bolzano + Trento
         { id:dId('nsv','6','m1'), nota_spese_id:dId('ns','6','202603'), employee_id:'6', data:'2026-03-18', luogo:'Bolzano', natura:'carburante',   importo:45.00, note:'150 km a/r', timestamp:ts('2026-03-18',18,0) },
         { id:dId('nsv','6','m2'), nota_spese_id:dId('ns','6','202603'), employee_id:'6', data:'2026-03-18', luogo:'Bolzano', natura:'vitto',        importo:16.00, note:'Pranzo di lavoro', timestamp:ts('2026-03-18',18,1) },
         { id:dId('nsv','6','m3'), nota_spese_id:dId('ns','6','202603'), employee_id:'6', data:'2026-03-25', luogo:'Trento',  natura:'vitto',        importo:13.00, note:'Riunione di team', timestamp:ts('2026-03-25',18,0) },
+        // Sardo – Marzo: Milano + Trento
         { id:dId('nsv','3','m1'), nota_spese_id:dId('ns','3','202603'), employee_id:'3', data:'2026-03-10', luogo:'Milano',  natura:'carburante',   importo:60.00, note:'200 km a/r', timestamp:ts('2026-03-10',18,0) },
         { id:dId('nsv','3','m2'), nota_spese_id:dId('ns','3','202603'), employee_id:'3', data:'2026-03-10', luogo:'Milano',  natura:'vitto',        importo:20.00, note:'Pranzo di lavoro', timestamp:ts('2026-03-10',18,1) },
         { id:dId('nsv','3','m3'), nota_spese_id:dId('ns','3','202603'), employee_id:'3', data:'2026-03-10', luogo:'Milano',  natura:'pedaggio',     importo:14.00, note:'A4 andata/ritorno', timestamp:ts('2026-03-10',18,2) },
         { id:dId('nsv','3','m4'), nota_spese_id:dId('ns','3','202603'), employee_id:'3', data:'2026-03-24', luogo:'Trento',  natura:'rappresentanza',importo:42.00, note:'Colazione lavoro con partner', timestamp:ts('2026-03-24',9,30) },
+        // Perini – Marzo: Brescia + Trento
         { id:dId('nsv','4','3'), nota_spese_id:dId('ns','4','202603'), employee_id:'4', data:'2026-03-19', luogo:'Brescia', natura:'carburante',   importo:36.00, note:'120 km a/r', timestamp:ts('2026-03-19',18,0) },
         { id:dId('nsv','4','4'), nota_spese_id:dId('ns','4','202603'), employee_id:'4', data:'2026-03-19', luogo:'Brescia', natura:'vitto',        importo:14.00, note:'Pranzo di lavoro', timestamp:ts('2026-03-19',18,1) },
         { id:dId('nsv','4','5'), nota_spese_id:dId('ns','4','202603'), employee_id:'4', data:'2026-03-26', luogo:'Trento',  natura:'parcheggio',   importo:5.00,  note:'Visita cliente centro', timestamp:ts('2026-03-26',18,0) },
+        // Meta – Gennaio: Verona + Vicenza
         { id:dId('nsv','5','j1'), nota_spese_id:dId('ns','5','202601'), employee_id:'5', data:'2026-01-08', luogo:'Verona',  natura:'carburante',   importo:33.00, note:'110 km a/r', timestamp:ts('2026-01-08',18,0) },
         { id:dId('nsv','5','j2'), nota_spese_id:dId('ns','5','202601'), employee_id:'5', data:'2026-01-08', luogo:'Verona',  natura:'vitto',        importo:14.00, note:'Pranzo di lavoro', timestamp:ts('2026-01-08',18,1) },
         { id:dId('nsv','5','j3'), nota_spese_id:dId('ns','5','202601'), employee_id:'5', data:'2026-01-20', luogo:'Vicenza', natura:'carburante',   importo:21.00, note:'70 km a/r', timestamp:ts('2026-01-20',18,0) },
         { id:dId('nsv','5','j4'), nota_spese_id:dId('ns','5','202601'), employee_id:'5', data:'2026-01-20', luogo:'Trento',  natura:'parcheggio',   importo:4.00,  note:'Magazzino sede', timestamp:ts('2026-01-20',18,1) },
+        // Meta – Febbraio: Padova + Treviso + Trento
         { id:dId('nsv','5','f1'), nota_spese_id:dId('ns','5','202602'), employee_id:'5', data:'2026-02-04', luogo:'Padova',  natura:'carburante',   importo:42.00, note:'140 km a/r', timestamp:ts('2026-02-04',18,0) },
         { id:dId('nsv','5','f2'), nota_spese_id:dId('ns','5','202602'), employee_id:'5', data:'2026-02-04', luogo:'Padova',  natura:'vitto',        importo:15.00, note:'Pranzo di lavoro', timestamp:ts('2026-02-04',18,1) },
         { id:dId('nsv','5','f3'), nota_spese_id:dId('ns','5','202602'), employee_id:'5', data:'2026-02-12', luogo:'Treviso', natura:'pedaggio',     importo:8.00,  note:'A4 andata/ritorno', timestamp:ts('2026-02-12',18,0) },
         { id:dId('nsv','5','f4'), nota_spese_id:dId('ns','5','202602'), employee_id:'5', data:'2026-02-19', luogo:'Trento',  natura:'carburante',   importo:9.00,  note:'Consegna sede Trento', timestamp:ts('2026-02-19',18,0) },
+        // Meta – Marzo: Mantova + Cremona + Trento
         { id:dId('nsv','5','1'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-06', luogo:'Mantova', natura:'carburante',   importo:27.00, note:'90 km a/r', timestamp:ts('2026-03-06',18,0) },
         { id:dId('nsv','5','2'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-06', luogo:'Mantova', natura:'vitto',        importo:13.00, note:'Pranzo di lavoro', timestamp:ts('2026-03-06',18,1) },
         { id:dId('nsv','5','3'), nota_spese_id:dId('ns','5','202603'), employee_id:'5', data:'2026-03-20', luogo:'Cremona', natura:'carburante',   importo:18.00, note:'60 km a/r', timestamp:ts('2026-03-20',18,0) },
@@ -7941,6 +7961,8 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('nw','1','20260228'), titolo:'Promemoria: compilazione note spese', testo:'Si ricorda a tutti i dipendenti di compilare e chiudere le note spese del mese di febbraio entro oggi. Le note aperte non potranno essere elaborate nel prossimo ciclo di rimborsi.', author_id:'1', lette:[], timestamp:ts('2026-02-28',8,30) },
         { id:dId('nw','1','20260303'), titolo:'Aggiornamento policy ferie 2026', testo:'Si comunica che le richieste di ferie per il periodo estivo (luglio-agosto) devono essere presentate entro il 30 aprile. Si prega di coordinarsi con il proprio responsabile per garantire la copertura del servizio.', author_id:'1', lette:[], timestamp:ts('2026-03-03',9,0) },
       ];
+      // Le festività nazionali sono già calcolate automaticamente da getFestivitaNazionali (mostrate in ambra).
+      // Qui vanno SOLO le chiusure aziendali extra (non sovrapporsi alle festività).
       const chiusureDemo = [
         { id:dId('ca','20260220'), data:'2026-02-20', descrizione:'Chiusura aziendale (ponte)' },
         { id:dId('ca','20260320'), data:'2026-03-20', descrizione:'Chiusura aziendale (evento interno)' },
@@ -7954,6 +7976,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       ];
       const notificheRec = [];
       notificheRec.push(
+        // Gennaio
         { id:dId('n','f5jan_req'), tipo:'ferie_richiesta',    testo:'Elson Meta ha richiesto ferie dal 26/01 al 28/01',              destinatari:['4','3'], emp_id:'5', timestamp:ts('2026-01-19',16,0), lette:['4','3'] },
         { id:dId('n','f5jan_app'), tipo:'ferie_approvata',    testo:'Le tue ferie dal 26/01 al 28/01 sono state approvate',           destinatari:['5'],     emp_id:'5', timestamp:ts('2026-01-20',11,0), lette:['5'] },
         { id:dId('n','p5feb_req'), tipo:'permesso_richiesta', testo:'Elson Meta ha richiesto un permesso il 12/02 (09:00–11:00)', destinatari:['4'], emp_id:'5', timestamp:ts('2026-02-10',17,0), lette:['4'] },
@@ -7967,6 +7990,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('n','s5jan_app'), tipo:'straordinario_approvato', testo:'Il tuo straordinario del 09/01 è stato approvato',         destinatari:['5'],     emp_id:'5', timestamp:ts('2026-01-12',9,5),  lette:['5'] },
         { id:dId('n','ns3jan'),    tipo:'nota_spese',         testo:'La nota spese di Livio Sardo (Gen 2026) è stata chiusa',        destinatari:['3','1'], emp_id:'3', timestamp:ts('2026-02-02',9,0),  lette:['3','1'] },
         { id:dId('n','ns4jan'),    tipo:'nota_spese',         testo:'La nota spese di Nicola Perini (Gen 2026) è stata chiusa',      destinatari:['4','1'], emp_id:'4', timestamp:ts('2026-02-02',10,0), lette:['4','1'] },
+        // Febbraio–Marzo
         { id:dId('n','f1req'), tipo:'ferie_richiesta', testo:'Giuseppe Lo Presti ha richiesto ferie dal 10/03 al 12/03', destinatari:['2','3'], emp_id:'1', timestamp:ts('2026-03-03',14,0), lette:['2','3'] },
         { id:dId('n','f1app'), tipo:'ferie_approvata', testo:'Le tue ferie dal 10/03 al 12/03 sono state approvate', destinatari:['1'], emp_id:'1', timestamp:ts('2026-03-04',11,0), lette:['1'] },
         { id:dId('n','f5req'), tipo:'ferie_richiesta', testo:'Elson Meta ha richiesto ferie dal 23/02 al 25/02', destinatari:['4','3'], emp_id:'5', timestamp:ts('2026-02-17',16,0), lette:['4','3'] },
@@ -7998,6 +8022,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('n',nid+'req'), tipo:'straordinario_richiesta', testo:`Elson Meta ha registrato ${min} min di straordinario il ${date}`, destinatari:['4','3'], emp_id:eid, timestamp:ts('2026-02-06',18,35), lette:['4','3'] },
         { id:dId('n',nid+'app'), tipo:'straordinario_approvato', testo:`Il tuo straordinario del ${date} è stato approvato`, destinatari:[eid], emp_id:eid, timestamp:ts('2026-02-09',9,5), lette:[eid] }
       ));
+      // Notifiche timbratura — una per ogni giorno lavorativo (stessa logica delle timbrature)
       [
         { eid:'1', nome:'Giuseppe Lo Presti', resp:'2' },
         { eid:'2', nome:'Paola Gardumi',      resp:null },
@@ -8787,6 +8812,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
               const thLeftStyle = 'background:#1e3a6e;color:#fff;padding:6px 10px;font-size:11px;font-weight:700;text-align:left;border:1px solid #1e3a6e;';
               const tdStyle = 'padding:5px 10px;font-size:11px;text-align:center;border:1px solid #e2e8f0;';
               const tdLeftStyle = 'padding:5px 10px;font-size:11px;text-align:left;border:1px solid #e2e8f0;font-weight:600;';
+              // Riepilogo
               let summaryRows = totali.map(r => `<tr>
                 <td style="${tdLeftStyle}">${r.cognome} ${r.nome}</td>
                 <td style="${tdStyle}font-family:monospace">${r.codDip}</td>
@@ -8795,6 +8821,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                 <td style="${tdStyle}font-weight:600">${fmtHH(r.oreOrdTot)}</td>
                 ${allGiust.map(g => `<td style="${tdStyle}color:${r.giust[g]?'#6d28d9':'#cbd5e1'}">${r.giust[g]?fmtHH(r.giust[g]):'—'}</td>`).join('')}
               </tr>`).join('');
+              // Dettagli
               let detailBlocks = totali.map(r => {
                 const dayRows = r.days.filter(d=>d.inRange).map(d => {
                   const dow = new Date(r.anno, r.mese-1, d.day).getDay();
@@ -8855,7 +8882,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
 
             return (
               <div className="mt-5">
-                {}
+                {/* Barra intestazione */}
                 <div className="flex items-center gap-3 mb-5 flex-wrap">
                   <span className="text-xs text-slate-500 font-mono bg-slate-100 px-2 py-1 rounded">{fileName}</span>
                   <span className="text-xs font-semibold text-slate-600">{MESI[mese]} {anno}</span>
@@ -8869,7 +8896,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                   </button>
                 </div>
 
-                {}
+                {/* Tabella riepilogo */}
                 <p className="text-sm font-bold text-slate-700 mb-2">Riepilogo mensile</p>
                 <div className="overflow-x-auto rounded-xl border border-slate-200 mb-7">
                   <table className="w-full text-xs border-collapse">
@@ -8906,7 +8933,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
                   </table>
                 </div>
 
-                {}
+                {/* Dettaglio giornaliero — tutti i dipendenti, sempre visibili */}
                 <p className="text-sm font-bold text-slate-700 mb-3">Dettaglio giornaliero</p>
                 <div className="space-y-4">
                   {totali.map((r, ri) => (
