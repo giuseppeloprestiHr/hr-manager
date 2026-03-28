@@ -412,7 +412,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-054';
+const APP_VERSION = '2026-03-28-055';
 
 const CREDITS = [
   {
@@ -686,6 +686,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-28-055',
+    data: '28/03/2026',
+    descrizione: 'Report presenze master: intestazione tabella riepilogo con sfondo #1e3a6e (blu app) e icone SVG (Icon component) al posto degli emoji — check, shield, bell, plane, clipboard, clock, phone, megaphone, trending, chart.'
   },
   {
     version: '2026-03-28-054',
@@ -5601,18 +5606,18 @@ ${blocchi}
             <div className="overflow-x-auto rounded-xl border border-slate-200">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="bg-slate-800 text-white text-xs">
+                  <tr className="text-white text-xs" style={{background:'#1e3a6e'}}>
                     <th className="px-4 py-2.5 text-left font-semibold">Dipendente</th>
-                    <th className="px-3 py-2.5 text-center font-semibold">✅ Presenze</th>
-                    <th className="px-3 py-2.5 text-center font-semibold">🤒 Malattia</th>
-                    <th className="px-3 py-2.5 text-center font-semibold">❌ Assenze</th>
-                    <th className="px-3 py-2.5 text-center font-semibold">🏖️ Ferie</th>
-                    <th className="px-3 py-2.5 text-center font-semibold">🕐 Permessi</th>
-                    <th className="px-3 py-2.5 text-center font-semibold">Ore perm.</th>
-                    <th className="px-3 py-2.5 text-center font-semibold">🔴 Rep.</th>
-                    <th className="px-3 py-2.5 text-center font-semibold">📞 Gest.</th>
-                    {canSeeAll(userRole) && <th className="px-3 py-2.5 text-center font-semibold">⏰ Straord.</th>}
-                    <th className="px-3 py-2.5 text-center font-semibold">% Pres.</th>
+                    <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="check" size={12} color="#6ee7b7"/> Presenze</span></th>
+                    <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="shield" size={12} color="#fcd34d"/> Malattia</span></th>
+                    <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="bell" size={12} color="#fca5a5"/> Assenze</span></th>
+                    <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="plane" size={12} color="#7dd3fc"/> Ferie</span></th>
+                    <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="clipboard" size={12} color="#c4b5fd"/> Permessi</span></th>
+                    <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="clock" size={12} color="#c4b5fd"/> Ore perm.</span></th>
+                    <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="phone" size={12} color="#e879f9"/> Rep.</span></th>
+                    <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="megaphone" size={12} color="#a5b4fc"/> Gest.</span></th>
+                    {canSeeAll(userRole) && <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="trending" size={12} color="#fdba74"/> Straord.</span></th>}
+                    <th className="px-3 py-2.5 text-center font-semibold"><span className="flex items-center justify-center gap-1"><Icon name="chart" size={12} color="#93c5fd"/> % Pres.</span></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -5648,7 +5653,7 @@ ${blocchi}
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="bg-slate-800 text-white text-xs font-bold">
+                  <tr className="text-white text-xs font-bold" style={{background:'#1e3a6e'}}>
                     <td className="px-4 py-2.5 text-left">Totali</td>
                     <td className="px-3 py-2.5 text-center">{empTotals.reduce((a,e)=>a+e.count,0)}</td>
                     <td className="px-3 py-2.5 text-center">{empTotals.reduce((a,e)=>a+e.malattiaGiorni,0)||'—'}</td>
