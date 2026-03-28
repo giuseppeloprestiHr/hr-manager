@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-042';
+const APP_VERSION = '2026-03-28-043';
 
 const CREDITS = [
   {
@@ -675,6 +675,11 @@ const CHANGELOG = [
     version: '2026-03-28-042',
     data: '28/03/2026',
     descrizione: 'Demo data estesa a gennaio 2026: 20 giorni lavorativi (esclusa Epifania 6/1), malattia Nicola 15-16/1, ferie Elson 26-28/1, permesso Livio 21/1, straordinari Nicola 22/1 ed Elson 9/1, reperibilità 5 weekend gennaio, 2 gestioni tel., note spese gennaio per Livio e Nicola con voci, 2 news gennaio, chiusura Epifania, 11 notifiche evento + sample timbrature da gennaio.'
+  },
+  {
+    version: '2026-03-28-043',
+    data: '28/03/2026',
+    descrizione: 'Chiusure aziendali demo complete: aggiunte tutte le festività nazionali italiane 2026 (Capodanno, Epifania, Pasquetta, Liberazione, Festa Lavoratori, Repubblica, Ferragosto, Ognissanti, Immacolata, Natale, S.Stefano) più le chiusure aziendali (20/2 ponte, 21/3 evento). Testo UI aggiornato da "feb–mar" a "gen–mar".'
   },
   {
     version: '2026-03-27-036',
@@ -7641,9 +7646,19 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { id:dId('nw','1','20260303'), titolo:'Aggiornamento policy ferie 2026', testo:'Si comunica che le richieste di ferie per il periodo estivo (luglio-agosto) devono essere presentate entro il 30 aprile. Si prega di coordinarsi con il proprio responsabile per garantire la copertura del servizio.', author_id:'1', lette:[], timestamp:ts('2026-03-03',9,0) },
       ];
       const chiusureDemo = [
+        { id:dId('ca','20260101'), data:'2026-01-01', descrizione:'Capodanno (festività nazionale)' },
         { id:dId('ca','20260106'), data:'2026-01-06', descrizione:'Epifania (festività nazionale)' },
         { id:dId('ca','20260220'), data:'2026-02-20', descrizione:'Chiusura aziendale (ponte)' },
         { id:dId('ca','20260321'), data:'2026-03-21', descrizione:'Chiusura aziendale (evento interno)' },
+        { id:dId('ca','20260406'), data:'2026-04-06', descrizione:'Lunedì dell\'Angelo / Pasquetta (festività nazionale)' },
+        { id:dId('ca','20260425'), data:'2026-04-25', descrizione:'Festa della Liberazione (festività nazionale)' },
+        { id:dId('ca','20260501'), data:'2026-05-01', descrizione:'Festa dei Lavoratori (festività nazionale)' },
+        { id:dId('ca','20260602'), data:'2026-06-02', descrizione:'Festa della Repubblica (festività nazionale)' },
+        { id:dId('ca','20260815'), data:'2026-08-15', descrizione:'Ferragosto (festività nazionale)' },
+        { id:dId('ca','20261101'), data:'2026-11-01', descrizione:'Ognissanti (festività nazionale)' },
+        { id:dId('ca','20261208'), data:'2026-12-08', descrizione:'Immacolata Concezione (festività nazionale)' },
+        { id:dId('ca','20261225'), data:'2026-12-25', descrizione:'Natale (festività nazionale)' },
+        { id:dId('ca','20261226'), data:'2026-12-26', descrizione:'Santo Stefano (festività nazionale)' },
       ];
       const notificheRec = [];
       notificheRec.push(
@@ -7703,7 +7718,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
       await _supa.from('news').insert(newsRec);
       await _supa.from('notifiche').insert(notificheRec);
       await _supa.from('settings').update({ chiusure_aziendali: JSON.stringify(chiusureDemo) }).eq('id',1);
-      alert('✅ Dati demo feb–mar 2026 caricati con successo!');
+      alert('✅ Dati demo gen–mar 2026 caricati con successo!');
       window.location.reload();
     } catch(e) {
       console.error('[Demo] Errore caricamento:', e);
@@ -8453,7 +8468,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
           <div className="flex items-center gap-3">
             <span className="text-2xl">🧪</span>
             <div>
-              <p className="font-bold text-slate-800 text-base">Dati demo feb–mar 2026</p>
+              <p className="font-bold text-slate-800 text-base">Dati demo gen–mar 2026</p>
               <p className="text-slate-500 text-xs mt-0.5">Carica presenze, permessi, ferie, malattie, straordinari, reperibilità, note spese e news per il periodo demo. I record sono marcati con prefisso DEMO_ e possono essere rimossi chirurgicamente.</p>
             </div>
           </div>
@@ -8461,7 +8476,7 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         <div className="px-6 py-4 flex flex-wrap gap-3">
           <button onClick={handleCaricaDatiDemo} disabled={demoLoading || cancellaDemoLoading}
             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors disabled:bg-slate-300">
-            {demoLoading ? '⏳ Caricamento…' : '📥 Carica dati demo feb–mar 2026'}
+            {demoLoading ? '⏳ Caricamento…' : '📥 Carica dati demo gen–mar 2026'}
           </button>
           <button onClick={handleCancellaDatiDemo} disabled={demoLoading || cancellaDemoLoading}
             className="bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 px-5 py-2 rounded-xl text-sm font-semibold transition-colors disabled:bg-slate-300">
