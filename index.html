@@ -411,7 +411,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-043';
+const APP_VERSION = '2026-03-28-044';
 
 const CREDITS = [
   {
@@ -680,6 +680,11 @@ const CHANGELOG = [
     version: '2026-03-28-043',
     data: '28/03/2026',
     descrizione: 'Chiusure aziendali demo complete: aggiunte tutte le festività nazionali italiane 2026 (Capodanno, Epifania, Pasquetta, Liberazione, Festa Lavoratori, Repubblica, Ferragosto, Ognissanti, Immacolata, Natale, S.Stefano) più le chiusure aziendali (20/2 ponte, 21/3 evento). Testo UI aggiornato da "feb–mar" a "gen–mar".'
+  },
+  {
+    version: '2026-03-28-044',
+    data: '28/03/2026',
+    descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
   },
   {
     version: '2026-03-27-036',
@@ -7706,17 +7711,18 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
           notificheRec.push({ id:dId('n','timb'+eid+i), tipo:'timbratura', testo:`${nome} ha timbrato l'entrata alle ${ora} | GPS non disponibile`, destinatari:dest, emp_id:eid, timestamp:ts(data, 8, min), lette:dest });
         });
       });
-      for (let i=0; i<timbratureRec.length; i+=50) await _supa.from('timbrature').insert(timbratureRec.slice(i,i+50));
-      await _supa.from('malattie').insert(malattieRec);
-      await _supa.from('ferie').insert(ferieRec);
-      await _supa.from('permessi').insert(permessiRec);
-      await _supa.from('straordinari').insert(straordinariRec);
-      await _supa.from('reperibilita').insert(reperiRec);
-      await _supa.from('gestioni_telefoniche').insert(gestRec);
-      await _supa.from('note_spese').insert(noteSpeseRec);
-      await _supa.from('note_spese_voci').insert(noteSpeseVociRec);
-      await _supa.from('news').insert(newsRec);
-      await _supa.from('notifiche').insert(notificheRec);
+      const _ups = async (table, rows) => { if(!rows?.length) return; const {error} = await _supa.from(table).upsert(rows,{onConflict:'id'}); if(error) throw new Error(`${table}: ${error.message}`); };
+      for (let i=0; i<timbratureRec.length; i+=50) await _ups('timbrature', timbratureRec.slice(i,i+50));
+      await _ups('malattie',             malattieRec);
+      await _ups('ferie',                ferieRec);
+      await _ups('permessi',             permessiRec);
+      await _ups('straordinari',         straordinariRec);
+      await _ups('reperibilita',         reperiRec);
+      await _ups('gestioni_telefoniche', gestRec);
+      await _ups('note_spese',           noteSpeseRec);
+      await _ups('note_spese_voci',      noteSpeseVociRec);
+      await _ups('news',                 newsRec);
+      await _ups('notifiche',            notificheRec);
       await _supa.from('settings').update({ chiusure_aziendali: JSON.stringify(chiusureDemo) }).eq('id',1);
       alert('✅ Dati demo gen–mar 2026 caricati con successo!');
       window.location.reload();
