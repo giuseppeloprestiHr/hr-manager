@@ -416,7 +416,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-29-068';
+const APP_VERSION = '2026-03-29-069';
 
 const CREDITS = [
   {
@@ -690,6 +690,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-29-069',
+    data: '29/03/2026',
+    descrizione: 'Reminder mancata timbratura: il check viene ora saltato nei giorni non lavorativi — sabato, domenica, festività nazionali italiane e chiusure aziendali configurate.'
   },
   {
     version: '2026-03-29-068',
@@ -10545,8 +10550,14 @@ function App() {
     if (!userId) return;
     const check = () => {
       const now = new Date();
-      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const dow = now.getDay();
+      if (dow === 0 || dow === 6) return;
       const today = todayStr();
+      const festivitaNaz = getFestivitaNazionali(now.getFullYear());
+      if (festivitaNaz.some(f => f.data === today)) return;
+      const chiusureAz = settings?.chiusureAziendali || [];
+      if (chiusureAz.includes(today)) return;
+      const nowMin = now.getHours() * 60 + now.getMinutes();
       const reminderKey = `reminder_sent_${today}`;
       const alreadySent = loadData(reminderKey, []);
       const nuovi = [];
