@@ -41,7 +41,7 @@ const ROLE_COLORS = {
 
 const canManage       = r => [RUOLI.MASTER, RUOLI.AMMINISTRATORE].includes(r);
 const canSeeAll       = r => [RUOLI.MASTER, RUOLI.AMMINISTRATORE, RUOLI.DIRETTORE].includes(r);
-const canSeeReport    = r => [RUOLI.MASTER, RUOLI.AMMINISTRATORE, RUOLI.DIRETTORE].includes(r);
+const canSeeReport    = r => [RUOLI.MASTER, RUOLI.AMMINISTRATORE, RUOLI.DIRETTORE, RUOLI.RESPONSABILE].includes(r);
 const canSeeTeam      = r => r === RUOLI.RESPONSABILE;
 const canSeeNotifiche = r => [RUOLI.MASTER, RUOLI.AMMINISTRATORE, RUOLI.DIRETTORE, RUOLI.RESPONSABILE, RUOLI.DIPENDENTE].includes(r);
 const canDisableMaster = r => r === RUOLI.AMMINISTRATORE;
@@ -416,7 +416,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-28-067';
+const APP_VERSION = '2026-03-29-068';
 
 const CREDITS = [
   {
@@ -690,6 +690,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-29-068',
+    data: '29/03/2026',
+    descrizione: 'Batch modifiche: (1) Dashboard — card "La tua uscita oggi" + fix banner permessi pending per amministratore. (2) MiePresenze — griglia 5 colonne, etichette PERMESSI compatte. (3) Note Spese — * obbligatorio su città, validazione data vs mese, fix status demo. (4) Note Spese Master — pulsante PDF. (5) Permessi Orari — validazione turno, nota pausa pranzo, avviso documentazione L.104/congedo/donazione. (6) Notifiche — dipendente vede il proprio nome fisso. (7) Calendario/Report — oraUscita nelle celle. (8) Timbratura — alert e notifica supervisor per deficit ore. (9) Report Presenze — stati pending F?/F~/P?/S?, legenda aggiornata, responsabile vede solo il suo team.'
   },
   {
     version: '2026-03-28-067',
@@ -1675,6 +1680,7 @@ function Sidebar({ user, view, setView, setSelectedEmployee, onLogout, resetRequ
   ] : isResponsabile ? [
     { id:'dipendenti',           label:'Il mio team' },
     { id:'reperibilita',         label:'Reperibilità' },
+    { id:'report',               label:'Report presenze' },
     { id:'calendario-team',      label:'Calendario' },
     { id:'approva-permessi',     label:'Approva permessi' },
     { id:'approva-ferie',        label:'Approva ferie' },
@@ -1944,6 +1950,12 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
         p.employeeId !== user.id &&
         employees.find(e=>e.id===p.employeeId && e.ruolo===RUOLI.RESPONSABILE)
       )
+    : r === RUOLI.AMMINISTRATORE
+    ? (permessi||[]).filter(p =>
+        p.status === SP.PENDING &&
+        p.employeeId !== user.id &&
+        employees.find(e=>e.id===p.employeeId && ![RUOLI.MASTER, RUOLI.AMMINISTRATORE].includes(e.ruolo))
+      )
     : [];
 
   const feriePendingStep1 = r === RUOLI.RESPONSABILE
@@ -1973,6 +1985,7 @@ function Dashboard({ user, employees, timbrature, permessi, ferie, straordinari,
 
   const statCards = [
     { label:'La tua entrata oggi', value: myToday ? myToday.ora : '—', sub: myToday ? 'Registrata' : 'Non ancora timbrato', icon:'clock', accent: myToday?'text-emerald-600':'text-slate-400', link:'timbratura' },
+    { label:'La tua uscita oggi', value: myToday?.oraUscita ?? '—', sub: myToday?.oraUscita ? 'Registrata' : 'Non ancora timbrato', icon:'clock', accent: myToday?.oraUscita ? 'text-emerald-600' : 'text-slate-400', link:'timbratura' },
     ...(canSeeAll(r) ? [
       { label:'Dipendenti totali', value: employees.length, sub:'in azienda', icon:'users', accent:'text-blue-700', link:'dipendenti' },
       { label:'Presenze oggi',     value: todayAll.length,  sub:'timbrature', icon:'check', accent:'text-emerald-600', link:'report' },
@@ -2809,13 +2822,14 @@ function getTurnoEmp(emp, settings) {
   };
 }
 
-function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordinario, settings, straordinari }) {
+function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordinario, settings, straordinari, permessi, employees, creaNotifica, setView }) {
   const [now, setNow]         = useState(new Date());
   const [gpsStatus, setGps]   = useState('idle');
   const [gpsInfo, setGpsInfo] = useState(null);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [notaStr, setNotaStr] = useState({ mattina:'', sera:'' });
   const [pendingExit, setPendingExit] = useState(null); // {ora, gps, straMattinaMin, straSeraMin}
+  const [deficitAlert, setDeficitAlert] = useState(null);
 
   useEffect(() => { const t = setInterval(()=>setNow(new Date()), 1000); return ()=>clearInterval(t); }, []);
 
@@ -2842,6 +2856,47 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
   const getOraStr = () => {
     const t = new Date();
     return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+  };
+
+  const checkDeficit = (oraUscitaStr) => {
+    const today = myToday || timbrature.find(t => t.employeeId===user.id && t.data===td);
+    if (!today?.ora) return;
+    const turno    = getTurnoEmp(user, settings);
+    const tol      = turno.tolleranzaMinuti ?? 15;
+    const inizioM  = toMin(turno.inizioTurno);
+    const fineM    = toMin(turno.fineTurno);
+    const ps       = toMin(turno.inizioPausa);
+    const pe       = toMin(turno.finePausa);
+    let entryMin   = toMin(today.ora);
+    let exitMin    = toMin(oraUscitaStr);
+    if (Math.abs(entryMin - inizioM) <= tol) entryMin = inizioM;
+    if (Math.abs(exitMin  - fineM)   <= tol) exitMin  = fineM;
+    if (!user.straordinario) {
+      if (entryMin < inizioM) entryMin = inizioM;
+      if (exitMin  > fineM)   exitMin  = fineM;
+    }
+    const oreEffMin    = Math.max(0, (exitMin - entryMin) - Math.max(0, Math.min(exitMin, pe) - Math.max(entryMin, ps)));
+    const oreStdMin    = fineM - inizioM - Math.max(0, pe - ps);
+    const permGiorno   = (permessi||[])
+      .filter(p => p.employeeId===user.id && p.data===td && [SP.PENDING, SP.PENDING_DIR, SP.APPROVATO].includes(p.status))
+      .reduce((acc, p) => {
+        const [h1,m1] = (p.oraInizio||'00:00').split(':').map(Number);
+        const [h2,m2] = (p.oraFine||'00:00').split(':').map(Number);
+        return acc + (h2*60+m2) - (h1*60+m1);
+      }, 0);
+    const deficit = oreStdMin - oreEffMin - permGiorno;
+    if (deficit > tol) {
+      const defRound = arrotondaQuartOra(deficit);
+      const fmt = m => `${Math.floor(m/60)}h ${m%60>0?m%60+'min':''}`.trim();
+      setDeficitAlert({ oreEff: fmt(oreEffMin), oreStd: fmt(oreStdMin), defStr: fmt(defRound) });
+      if (creaNotifica && employees) {
+        const dest = [...new Set([
+          ...(employees||[]).filter(e=>[RUOLI.MASTER,RUOLI.AMMINISTRATORE,RUOLI.DIRETTORE].includes(e.ruolo)).map(e=>e.id),
+          ...(user.responsabileId ? [user.responsabileId] : [])
+        ])];
+        creaNotifica('timbratura', `⚠️ ${user.nome} ${user.cognome} ha timbrato ${fmt(oreEffMin)} il ${td} — deficit di ${fmt(defRound)}. Potrebbe essere necessario un permesso orario.`, dest, user.id);
+      }
+    }
   };
 
   const inizioMin = toMin(inizioTurno);
@@ -2893,6 +2948,7 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
     if (!canStraord) {
       const upd = timbrature.map(t => t.id===myToday.id ? {...t, oraUscita: oraStr} : t);
       setTimbrature(upd); saveData('timbrature', upd);
+      checkDeficit(oraStr);
       return;
     }
     const straMattinaGiaRegistrata = (straordinari||[]).some(s => s.employeeId===user.id && s.data===td && s.tipo==='mattina');
@@ -2918,6 +2974,7 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
     if (tipo !== 'mattina') {
       const upd = timbrature.map(t => t.id===myToday.id ? {...t, oraUscita: oraStr} : t);
       setTimbrature(upd); saveData('timbrature', upd);
+      checkDeficit(oraStr);
     }
 
     if (straMattinaMin > 0 && (tipo==='mattina' || tipo==='mattina_uscita' || tipo==='entrambi')) {
@@ -3064,9 +3121,23 @@ function Timbratura({ user, timbrature, setTimbrature, onTimbratura, onStraordin
                 <p className="text-slate-800 text-3xl font-bold mt-1" style={{fontFamily:'Syne,sans-serif'}}>{myToday.ora}</p>
               </div>
               {myToday.oraUscita ? (
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-                  <p className="text-slate-600 font-semibold text-sm">🏁 Uscita registrata: <span className="font-bold text-slate-800">{myToday.oraUscita}</span></p>
-                </div>
+                <>
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                    <p className="text-slate-600 font-semibold text-sm">🏁 Uscita registrata: <span className="font-bold text-slate-800">{myToday.oraUscita}</span></p>
+                  </div>
+                  {deficitAlert && (
+                    <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 space-y-2">
+                      <p className="text-amber-800 font-semibold text-sm">⚠️ Ore lavorate inferiori allo standard</p>
+                      <p className="text-amber-700 text-xs">Hai accumulato <strong>{deficitAlert.oreEff}</strong> su <strong>{deficitAlert.oreStd}</strong>. Mancano <strong>{deficitAlert.defStr}</strong> — ricorda di inviare una richiesta di permesso orario.</p>
+                      {setView && (
+                        <button onClick={() => setView('permessi')}
+                          className="mt-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors">
+                          Vai a Permessi orari →
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
               ) : (
                 <button onClick={handleTimbraUsc} disabled={gpsStatus==='loading'}
                   className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white text-base font-bold px-12 py-4 rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-lg">
@@ -3228,7 +3299,7 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
         const t = presenceMap[d.str];
         const isM = !t && malattiaMap[d.str];
         const isToday = d.str === today;
-        if (t)            return `<td class="presente${isToday?' oggi':''}">${d.num}<br><span class="ora">${t.ora}</span></td>`;
+        if (t)            return `<td class="presente${isToday?' oggi':''}">${d.num}<br><span class="ora">${t.ora}</span>${t.oraUscita ? `<br><span class="ora" style="font-size:8px;opacity:.8">${t.oraUscita}</span>` : ''}</td>`;
         if (isM)          return `<td class="malattia${isToday?' oggi':''}">${d.num}<br><span class="x">M</span></td>`;
         if (d.isFuture)   return `<td class="futuro">${d.num}</td>`;
         if (d.isWeekend)  return `<td class="weekend"><strong>${d.num}</strong></td>`;
@@ -3245,7 +3316,7 @@ function MiePresenze({ user, timbrature, malattie, permessi, ferie, reperibilita
         const gpsInfo = t.gps
           ? `${t.gps.address ? `<span class="addr">${t.gps.address}</span><br>` : ''}Lat ${t.gps.lat} · Lon ${t.gps.lon} · ±${t.gps.accuracy}m`
           : '—';
-        return `<tr><td>${gg}</td><td><strong>${t.ora}</strong></td><td class="gps-cell">${gpsInfo}</td></tr>`;
+        return `<tr><td>${gg}</td><td><strong>${t.ora}</strong>${t.oraUscita ? ` → <strong>${t.oraUscita}</strong>` : ''}</td><td class="gps-cell">${gpsInfo}</td></tr>`;
       }).join('');
 
     const html = `<!DOCTYPE html>
@@ -3412,7 +3483,7 @@ ${monthPresenze.length === 0
         );
 
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
 
             {}
             <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
@@ -3427,19 +3498,19 @@ ${monthPresenze.length === 0
             {(() => {
               const ini = user.valoriIniziali || {};
               const TIPS = [
-                { ids:['rol'],                                          label:'Permesso Orario - ROL',                keyIni:'permessiRolAnno' },
-                { ids:['ex_festivita'],                                 label:'Permesso Orario - Ex Festività',       keyIni:'permessiExFestivitaAnno' },
-                { ids:['permessi_personali','permessi_studio'],         label:'Permessi Personali / Permessi Studio', keyIni:'permessiPersonaliAnno' },
-                { ids:['legge_104'],                                    label:'Permesso Legge 104',                   keyIni:'permessiLegge104Anno' },
-                { ids:['donazione_sangue'],                             label:'Permesso per Donazione Sangue',        keyIni:'permessiDonazioneSangueAnno' },
-                { ids:['congedo_parentale'],                            label:'Permesso per Congedo Parentale',       keyIni:'permessiCongedoParentaleAnno' },
+                { ids:['rol'],                                          label:'ROL',                keyIni:'permessiRolAnno' },
+                { ids:['ex_festivita'],                                 label:'Ex Festività',       keyIni:'permessiExFestivitaAnno' },
+                { ids:['permessi_personali','permessi_studio'],         label:'Pers. / Studio',     keyIni:'permessiPersonaliAnno' },
+                { ids:['legge_104'],                                    label:'L. 104',             keyIni:'permessiLegge104Anno' },
+                { ids:['donazione_sangue'],                             label:'Don. Sangue',        keyIni:'permessiDonazioneSangueAnno' },
+                { ids:['congedo_parentale'],                            label:'Cong. Parentale',    keyIni:'permessiCongedoParentaleAnno' },
               ];
               const tipMese = t => t.ids.reduce((s,id)=>s+permTipMese(id),0);
               const tipAnno = t => t.ids.reduce((s,id)=>s+permTipAnno(id),0);
               const totMese = TIPS.reduce((s,t)=>s+tipMese(t),0);
               const totAnno = TIPS.reduce((s,t)=>s+tipAnno(t)+Number(ini[t.keyIni]||0)*60,0);
               return (
-                <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-sm sm:col-span-2 xl:col-span-2">
+                <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-sm">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="clipboard" size={13} color="#8b5cf6" /> Permessi</p>
                   <table className="w-full text-xs mb-3">
                     <thead>
@@ -3493,7 +3564,7 @@ ${monthPresenze.length === 0
             </div>
 
             {}
-            <div className={`rounded-2xl p-4 shadow-sm border sm:col-span-2 xl:col-span-4 ${user.reperibile ? 'bg-white border-purple-100' : 'bg-slate-100 border-slate-200'}`}>
+            <div className={`rounded-2xl p-4 shadow-sm border ${user.reperibile ? 'bg-white border-purple-100' : 'bg-slate-100 border-slate-200'}`}>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Icon name="phone" size={13} color="#a855f7" /> Reperibilità</p>
               {user.reperibile ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -3544,11 +3615,12 @@ ${monthPresenze.length === 0
                 const repBorder   = isRepOwn ? 'border-b-[6px] border-purple-500' : isRepOthers ? 'border-b-[6px] border-slate-400' : '';
                 const repTitle    = isRepOwn ? ' · 📡 Reperibilità tua' : isRepOthers ? ` · 📡 Reperibilità: ${(repOthersMap[d.str]||[]).map(e=>e.nome+' '+e.cognome[0]+'.').join(', ')}` : '';
                 return (
-                  <div key={di} title={(isF ? 'Ferie' : t ? `Entrata: ${t.ora}` : isM ? 'Malattia' : pArr ? `Permesso: ${pArr.map(p=>p.oraInizio+'-'+p.oraFine).join(', ')}` : d.isFuture ? '' : 'Assente')+repTitle+(gestMap[d.str]?` · 📞 ${gestMap[d.str].length} gest.: ${gestMap[d.str].map(g=>g.cliente).join(', ')}`:'' )+(hasStra?' · ⌚ Straordinario':'')}
+                  <div key={di} title={(isF ? 'Ferie' : t ? `Entrata: ${t.ora}${t.oraUscita ? ` · Uscita: ${t.oraUscita}` : ''}` : isM ? 'Malattia' : pArr ? `Permesso: ${pArr.map(p=>p.oraInizio+'-'+p.oraFine).join(', ')}` : d.isFuture ? '' : 'Assente')+repTitle+(gestMap[d.str]?` · 📞 ${gestMap[d.str].length} gest.: ${gestMap[d.str].map(g=>g.cliente).join(', ')}`:'' )+(hasStra?' · ⌚ Straordinario':'')}
                     className={`relative rounded-xl p-1 text-center transition-all ${bg} ${repBorder} ${isToday ? 'ring-2 ring-blue-500 ring-offset-1' : ''}`}>
                     <p className="text-xs font-bold">{d.num}</p>
                     {isF && <p style={{fontSize:10}} className="font-bold leading-tight">F</p>}
                     {!isF && t  && <p style={{fontSize:9}} className="font-semibold leading-tight">{t.ora}</p>}
+                    {!isF && t?.oraUscita && <p style={{fontSize:8}} className="font-semibold leading-tight opacity-80">{t.oraUscita}</p>}
                     {!isF && isM && <p style={{fontSize:9}} className="font-semibold leading-tight">M</p>}
                     {!isF && !t && !isM && !d.isFuture && <p style={{fontSize:9}} className="leading-tight opacity-60">{d.isWeekend ? '—' : '✗'}</p>}
                     {!isF && pArr && <p style={{fontSize:8}} className={`font-bold leading-tight ${t||isM?'text-violet-200':'text-violet-500'}`}>🕐</p>}
@@ -4435,7 +4507,7 @@ function generaDocumentoPermesso(p, emp, approvatoDaEmp) {
   return html;
 }
 
-function PermessiOrari({ user, employees, permessi, setPermessi, onRichiesta, onCancella }) {
+function PermessiOrari({ user, employees, permessi, setPermessi, onRichiesta, onCancella, settings }) {
   const [empId,      setEmpId]      = useState(user.id);
   const [data,       setData]       = useState('');
   const [oraInizio,  setOraInizio]  = useState('');
@@ -4465,6 +4537,9 @@ function PermessiOrari({ user, employees, permessi, setPermessi, onRichiesta, on
     if (!oraInizio)     { setErr("Inserisci l'ora di inizio."); return; }
     if (!oraFine)       { setErr("Inserisci l'ora di fine."); return; }
     if (oraFine <= oraInizio) { setErr("L'ora di fine deve essere successiva all'ora di inizio."); return; }
+    const turno = getTurnoEmp(employees.find(e=>e.id===empId)||user, settings);
+    if (oraInizio < turno.inizioTurno) { setErr(`L'orario di inizio non può essere prima delle ${turno.inizioTurno} (inizio turno).`); return; }
+    if (oraFine > turno.fineTurno)     { setErr(`L'orario di fine non può essere dopo le ${turno.fineTurno} (fine turno).`); return; }
     if (!motivo.trim()) { setErr('Inserisci il motivo del permesso.'); return; }
     if (!tipologia)     { setErr('Seleziona la tipologia di permesso.'); return; }
     if (data < todayStr()) {
@@ -4618,6 +4693,7 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
           {oraInizio && oraFine && orePreview > 0 && (
             <p className="text-xs text-violet-600 font-semibold">⏱️ Durata: {fmtDurata(orePreview)}</p>
           )}
+          <p className="text-xs text-slate-400 italic">Al tempo richiesto di permesso orario non va detratta la pausa pranzo, perché è conteggiata direttamente dal sistema.</p>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Motivo <span className="text-red-400">*</span></label>
             <textarea value={motivo} onChange={e=>{setMotivo(e.target.value);setErr('');}}
@@ -4640,6 +4716,12 @@ in data ${dataAutor}${oraAutor ? ' e ora '+oraAutor : ''}
                 </label>
               ))}
             </div>
+            {['legge_104','congedo_parentale','donazione_sangue'].includes(tipologia) && (
+              <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-2">
+                <span className="text-base leading-none mt-0.5">ℹ️</span>
+                <p className="text-xs text-amber-800 leading-relaxed">Verificare con l'Amministrazione la presenza della documentazione necessaria.</p>
+              </div>
+            )}
           </div>
           {err && <p className="text-xs text-red-500 font-medium">{err}</p>}
           {ok  && <p className="text-xs text-emerald-600 font-semibold">✅ Richiesta inviata! Il responsabile riceverà una notifica.</p>}
@@ -5224,7 +5306,7 @@ function ApprovaPermessi({ user, employees, permessi, setPermessi, onApprova, on
   );
 }
 
-function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita, gestioniTelefoniche, straordinari, userRole, settings }) {
+function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita, gestioniTelefoniche, straordinari, userRole, settings, user }) {
   const n = new Date();
   const [month, setMonth] = useState(n.getMonth()+1);
   const [year,  setYear]  = useState(n.getFullYear());
@@ -5232,6 +5314,9 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
   const MONTHS    = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
   const DAYS_SHORT = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
   const showGps   = canSeeAll(userRole);
+  const reportEmps = userRole === RUOLI.RESPONSABILE
+    ? [user, ...employees.filter(e => e.responsabileId === user?.id && e.id !== user?.id)]
+    : employees;
   const today     = todayStr();
   const mapsUrl   = gps => `https://www.google.com/maps?q=${gps.lat},${gps.lon}`;
 
@@ -5298,6 +5383,42 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     straMap[k].push(s);
   });
 
+  const feriePendingRespMap = {};
+  (ferie||[]).filter(f=>f.status===SF.PENDING_RESP).forEach(f => {
+    let cur = new Date(f.dataInizio+'T00:00:00');
+    const end = new Date(f.dataFine+'T00:00:00');
+    while (cur <= end) {
+      const str = localDateStr(cur);
+      feriePendingRespMap[`${f.employeeId}_${str}`] = f;
+      cur.setDate(cur.getDate()+1);
+    }
+  });
+
+  const feriePendingDirMap = {};
+  (ferie||[]).filter(f=>f.status===SF.PENDING_DIR).forEach(f => {
+    let cur = new Date(f.dataInizio+'T00:00:00');
+    const end = new Date(f.dataFine+'T00:00:00');
+    while (cur <= end) {
+      const str = localDateStr(cur);
+      feriePendingDirMap[`${f.employeeId}_${str}`] = f;
+      cur.setDate(cur.getDate()+1);
+    }
+  });
+
+  const permessiPendingMap = {};
+  (permessi||[]).filter(p=>[SP.PENDING, SP.PENDING_DIR].includes(p.status)).forEach(p => {
+    const k = `${p.employeeId}_${p.data}`;
+    if (!permessiPendingMap[k]) permessiPendingMap[k] = [];
+    permessiPendingMap[k].push(p);
+  });
+
+  const straordinariPendingMap = {};
+  (straordinari||[]).filter(s=>[SS.PENDING_RESP, SS.PENDING_DIR].includes(s.status)).forEach(s => {
+    const k = `${s.employeeId}_${s.data}`;
+    if (!straordinariPendingMap[k]) straordinariPendingMap[k] = [];
+    straordinariPendingMap[k].push(s);
+  });
+
   const orePermessiMese = {};
   (permessi||[]).filter(p=>p.status=== SF.APPROVATO&&p.data.startsWith(mStr)).forEach(p=>{
     orePermessiMese[p.employeeId] = (orePermessiMese[p.employeeId]||0) + p.orePermesso;
@@ -5319,7 +5440,7 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     });
   }
 
-  const empTotals = employees.map(emp => {
+  const empTotals = reportEmps.map(emp => {
     const presenze = days.filter(d => !d.isFuture && presenceMap[`${emp.id}_${d.str}`]).length;
     const malattiaGiorni = days.filter(d => !d.isFuture && !presenceMap[`${emp.id}_${d.str}`] && malattiaMap[`${emp.id}_${d.str}`]).length;
     const ferieDays = days.filter(d => ferieMap[`${emp.id}_${d.str}`]).length;
@@ -5392,7 +5513,7 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
     const allGestioniTel       = gestioniTelefoniche || [];
     const allStraordinariPdf   = straordinari        || [];
 
-    const totalePresenze = Object.keys(freshMap).length;
+    const totalePresenze = Object.keys(freshMap).filter(k => reportEmps.some(e => k.startsWith(`${e.id}_`))).length;
     const printToday = todayStr();
     const _n0 = new Date();
     const isCurrentMonthPrint = (year === _n0.getFullYear() && month === _n0.getMonth()+1);
@@ -5449,7 +5570,7 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
         return `<th class="${cls}" style="font-size:11px">${txt}</th>`;
       }).join('');
 
-      const righe = employees.map(emp => {
+      const righe = reportEmps.map(emp => {
         const celle = week.map(d => {
           if (!d.inMonth) return `<td class="fuori">&nbsp;</td>`;
           const t    = freshMap[`${String(emp.id)}_${d.str}`];
@@ -5479,7 +5600,7 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
 <div style="height:14px"></div>`;
     }).join('');
 
-    const righe_totali = employees.map(emp => {
+    const righe_totali = reportEmps.map(emp => {
       const count    = printDays.filter(d => !d.isFuture && freshMap[`${emp.id}_${d.str}`]).length;
       const malCount = printDays.filter(d => !d.isFuture && !freshMap[`${emp.id}_${d.str}`] && freshMalattiaMap[`${emp.id}_${d.str}`]).length;
       const ferCount = printDays.filter(d => !d.isFuture && !freshMap[`${emp.id}_${d.str}`] && freshFerieMap[`${emp.id}_${d.str}`]).length;
@@ -5493,10 +5614,10 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
       return `<tr><td class="nome">${emp.cognome} ${emp.nome}</td><td class="nome" style="font-size:7.5px;color:#0369a1;font-weight:normal;padding-left:5px">${_tEmpNome}</td><td class="tot-num">${count}</td><td class="tot-num mal-num">${malCount||'—'}</td><td class="tot-num" style="background:#e0f2fe;color:#075985">${ferCount||'—'}</td><td class="tot-num">${assenze||'—'}</td><td class="tot-num" style="color:#7c3aed;font-weight:bold">${oreP > 0 ? fmtDurata(oreP) : '—'}</td><td class="tot-num" style="color:#7e22ce">${repC||'—'}</td><td class="tot-num" style="color:#4338ca">${gestC||'—'}</td><td class="tot-num" style="color:#c2410c">${fmtStra(straMin)}</td><td class="tot-num">${giorniLavorativi > 0 ? Math.round(count/giorniLavorativi*100) : 0}%</td></tr>`;
     }).join('');
 
-    const totPres  = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&freshMap[`${emp.id}_${d.str}`]).length,0);
-    const totMal   = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&freshMalattiaMap[`${emp.id}_${d.str}`]).length,0);
-    const totFer   = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&freshFerieMap[`${emp.id}_${d.str}`]).length,0);
-    const totAss   = employees.reduce((a,emp)=>a+printDays.filter(d=>!d.isWeekend&&!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&!freshMalattiaMap[`${emp.id}_${d.str}`]&&!freshFerieMap[`${emp.id}_${d.str}`]).length,0);
+    const totPres  = reportEmps.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&freshMap[`${emp.id}_${d.str}`]).length,0);
+    const totMal   = reportEmps.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&freshMalattiaMap[`${emp.id}_${d.str}`]).length,0);
+    const totFer   = reportEmps.reduce((a,emp)=>a+printDays.filter(d=>!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&freshFerieMap[`${emp.id}_${d.str}`]).length,0);
+    const totAss   = reportEmps.reduce((a,emp)=>a+printDays.filter(d=>!d.isWeekend&&!d.isFuture&&!freshMap[`${emp.id}_${d.str}`]&&!freshMalattiaMap[`${emp.id}_${d.str}`]&&!freshFerieMap[`${emp.id}_${d.str}`]).length,0);
     const totRep   = allReperibilita.filter(r=>r.pubblicata&&r.data.startsWith(mStrPdf)).length;
     const totGest  = allGestioniTel.filter(g=>g.data.startsWith(mStrPdf)).length;
     const totStra  = allStraordinariPdf.filter(s=>s.status===SS.APPROVATO&&s.data.startsWith(mStrPdf)).reduce((a,s)=>a+s.minuti,0);
@@ -5550,10 +5671,10 @@ function Report({ employees, timbrature, malattie, permessi, ferie, reperibilita
 <p class="subtitle">Generato il ${new Date().toLocaleDateString('it-IT')} alle ${new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</p>
 
 <div class="riepilogo">
-  <div><div class="num">${employees.length}</div><div class="lbl">Dipendenti</div></div>
+  <div><div class="num">${reportEmps.length}</div><div class="lbl">Dipendenti</div></div>
   <div><div class="num">${giorniLavorativi}</div><div class="lbl">Giorni lavorativi</div></div>
   <div><div class="num">${totalePresenze}</div><div class="lbl">Presenze totali</div></div>
-  <div><div class="num">${Math.round(totalePresenze/Math.max(employees.length,1))}</div><div class="lbl">Media gg/dipendente</div></div>
+  <div><div class="num">${Math.round(totalePresenze/Math.max(reportEmps.length,1))}</div><div class="lbl">Media gg/dipendente</div></div>
 </div>
 
 <div class="legenda">
@@ -5632,13 +5753,15 @@ ${blocchi}
           </div>
           <div className="flex items-center gap-3 text-xs flex-wrap">
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>Presente</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-sky-500 inline-block"></span>Ferie (F)</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-sky-200 border border-dashed border-sky-400 inline-block animate-pulse"></span>Ferie in attesa</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-sky-500 inline-block"></span>F Ferie approvate</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-sky-100 border-2 border-dashed border-sky-400 inline-block animate-pulse"></span>F? Ferie in attesa resp.</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-sky-200 border border-sky-500 inline-block"></span>F~ Ferie in attesa admin</span>
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>Malattia</span>
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-400 inline-block"></span>Assente</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-slate-200 inline-block"></span>Futuro</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-violet-500 inline-block"></span>🕐 Permesso</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-orange-500 inline-block"></span>S Straordinario</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-violet-500 inline-block"></span>P Permesso approvato</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-violet-300 border border-dashed border-violet-500 inline-block"></span>P? Permesso in attesa</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-orange-500 inline-block"></span>S Straord. approvato</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-orange-200 border border-dashed border-orange-500 inline-block"></span>S? Straord. in attesa</span>
             <span className="flex items-center gap-1.5"><span className="inline-block w-5 h-3 rounded border-b-4 border-purple-500 bg-emerald-500"></span>📡 Reperibilità</span>
           </div>
         </div>
@@ -5669,7 +5792,7 @@ ${blocchi}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {employees.map(emp => {
+                {reportEmps.map(emp => {
                   const total = empTotals.find(e=>e.emp.id===emp.id)?.count || 0;
                   return (
                     <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
@@ -5687,37 +5810,53 @@ ${blocchi}
                       </td>
                       {}
                       {days.map(d => {
-                        const t    = presenceMap[`${emp.id}_${d.str}`];
-                        const isM  = !t && malattiaMap[`${emp.id}_${d.str}`];
-                        const isF  = !t && !isM && ferieMap[`${emp.id}_${d.str}`];
-                        const pArr = permessiMap[`${emp.id}_${d.str}`];
-                        const isRep = repMap[`${emp.id}_${d.str}`];
-                        const gestArr = gestMap[`${emp.id}_${d.str}`];
-                        const straArr = straMap[`${emp.id}_${d.str}`];
-                        const bg   = isF  ? 'bg-sky-500 hover:bg-sky-600'
-                                   : t    ? 'bg-emerald-500 hover:bg-emerald-600 cursor-pointer'
-                                   : isM  ? 'bg-amber-400 hover:bg-amber-500'
-                                   : d.isFuture ? 'bg-slate-100'
-                                   :        'bg-red-400 hover:bg-red-500';
+                        const t          = presenceMap[`${emp.id}_${d.str}`];
+                        const isM        = !t && malattiaMap[`${emp.id}_${d.str}`];
+                        const isF        = !t && !isM && ferieMap[`${emp.id}_${d.str}`];
+                        const isPendResp = !t && !isM && !isF && feriePendingRespMap[`${emp.id}_${d.str}`];
+                        const isPendDir  = !t && !isM && !isF && !isPendResp && feriePendingDirMap[`${emp.id}_${d.str}`];
+                        const pArr       = permessiMap[`${emp.id}_${d.str}`];
+                        const pArrPend   = !pArr && permessiPendingMap[`${emp.id}_${d.str}`];
+                        const isRep      = repMap[`${emp.id}_${d.str}`];
+                        const gestArr    = gestMap[`${emp.id}_${d.str}`];
+                        const straArr    = straMap[`${emp.id}_${d.str}`];
+                        const straArrPend = !straArr && straordinariPendingMap[`${emp.id}_${d.str}`];
+                        const bg   = isF        ? 'bg-sky-500 hover:bg-sky-600'
+                                   : isPendResp  ? 'bg-sky-100 border-2 border-sky-400 border-dashed'
+                                   : isPendDir   ? 'bg-sky-200 border border-sky-500'
+                                   : t           ? 'bg-emerald-500 hover:bg-emerald-600 cursor-pointer'
+                                   : isM         ? 'bg-amber-400 hover:bg-amber-500'
+                                   : d.isFuture  ? 'bg-slate-100'
+                                   :               'bg-red-400 hover:bg-red-500';
+                        const pulseClass = isPendResp ? 'animate-pulse' : '';
                         return (
                           <td key={d.str}
                             className={`px-0.5 py-1.5 text-center ${d.isWeekend?'bg-slate-200/70':''} ${d.str===today?'bg-blue-50/40':''}`}>
                             <div
-                              onClick={e => { e.stopPropagation(); if(!isF) handleCell(e, emp, d); }}
-                              title={(isF ? `${emp.nome}: ferie` : t ? `${emp.nome}: entrata ${t.ora}${pArr?' · permesso '+pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', '):''}` : isM ? `${emp.nome}: malattia` : pArr ? `${emp.nome}: permesso ${pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', ')}` : d.isFuture ? '' : `${emp.nome}: assente`)+(isRep?' · 🔴 Reperibilità':'')+(gestArr?` · 📞 ${gestArr.length} gest.: ${gestArr.map(g=>g.cliente).join(', ')}`:'')}
-                              className={`relative mx-auto rounded-md transition-colors ${bg} ${isRep?'border-b-[6px] border-purple-500':''} ${d.isFuture&&!isM&&!pArr&&!isF?'opacity-40':d.isFuture&&(pArr||isF)?'opacity-70':''}`}
-                              style={{width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center'}}>
-                              {isF && <span className="text-white font-bold leading-none" style={{fontSize:10}}>F</span>}
-                              {!isF && t  && <span className="text-white text-xs font-bold leading-none" style={{fontSize:9}}>{t.ora}</span>}
-                              {!isF && isM && <span className="text-white text-xs font-bold leading-none" style={{fontSize:10}}>M</span>}
-                              {!isF && !t && !isM && d.isFuture && null}
+                              onClick={e => { e.stopPropagation(); if(!isF && !isPendResp && !isPendDir) handleCell(e, emp, d); }}
+                              title={(isF ? `${emp.nome}: ferie` : isPendResp ? `${emp.nome}: ferie in attesa approv. responsabile` : isPendDir ? `${emp.nome}: ferie approvate responsabile, in attesa admin` : t ? `${emp.nome}: entrata ${t.ora}${t.oraUscita?` · uscita ${t.oraUscita}`:''}${pArr?' · permesso '+pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', '):''}` : isM ? `${emp.nome}: malattia` : pArr ? `${emp.nome}: permesso ${pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', ')}` : d.isFuture ? '' : `${emp.nome}: assente`)+(isRep?' · 🔴 Reperibilità':'')+(gestArr?` · 📞 ${gestArr.length} gest.: ${gestArr.map(g=>g.cliente).join(', ')}`:'')}
+                              className={`relative mx-auto rounded-md transition-colors ${bg} ${pulseClass} ${isRep?'border-b-[6px] border-purple-500':''} ${d.isFuture&&!isM&&!pArr&&!isF&&!isPendResp&&!isPendDir?'opacity-40':d.isFuture&&(pArr||isF)?'opacity-70':''}`}
+                              style={{width:28, height:28, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                              {isF       && <span className="text-white font-bold leading-none" style={{fontSize:10}}>F</span>}
+                              {isPendResp && <span className="text-sky-600 font-bold leading-none" style={{fontSize:9}}>F?</span>}
+                              {isPendDir  && <span className="text-sky-700 font-bold leading-none" style={{fontSize:9}}>F~</span>}
+                              {!isF && !isPendResp && !isPendDir && t  && <span className="text-white text-xs font-bold leading-none" style={{fontSize:9}}>{t.ora}</span>}
+                              {!isF && !isPendResp && !isPendDir && t?.oraUscita && <span className="text-white font-bold leading-none opacity-80" style={{fontSize:7}}>{t.oraUscita}</span>}
+                              {!isF && !isPendResp && !isPendDir && isM && <span className="text-white text-xs font-bold leading-none" style={{fontSize:10}}>M</span>}
+                              {!isF && !isPendResp && !isPendDir && !t && !isM && d.isFuture && null}
                               {}
-                              {!isF && pArr && (
+                              {pArr && (
                                 <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-violet-500 border-2 border-white flex items-center justify-center" style={{fontSize:7, color:'white', fontWeight:'bold'}}>P</span>
+                              )}
+                              {pArrPend && (
+                                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-violet-300 border-2 border-dashed border-violet-500 flex items-center justify-center" style={{fontSize:6, color:'#6d28d9', fontWeight:'bold'}}>P?</span>
                               )}
                               {}
                               {straArr && (
                                 <span className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-orange-500 border border-white flex items-center justify-center" style={{fontSize:6, color:'white', fontWeight:'bold'}}>S</span>
+                              )}
+                              {straArrPend && (
+                                <span className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-orange-200 border border-dashed border-orange-500 flex items-center justify-center" style={{fontSize:6, color:'#c2410c', fontWeight:'bold'}}>S?</span>
                               )}
                               {}
                               {gestArr && (
@@ -5819,10 +5958,10 @@ ${blocchi}
           {}
           <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center gap-6 text-xs text-slate-500 flex-wrap">
             <span>📅 {MONTHS[month-1]} {year} · {daysInMonth} giorni</span>
-            <span>👥 {employees.length} dipendenti</span>
+            <span>👥 {reportEmps.length} dipendenti</span>
             <span>✅ {Object.keys(presenceMap).length} timbrature totali nel mese</span>
-            <span className="text-sky-600 font-medium">🏖️ F = ferie approvate</span>
-            <span className="text-violet-600 font-medium">🕐 Pallino viola = permesso orario approvato nel giorno</span>
+            <span className="text-sky-600 font-medium">F/F?/F~ = ferie approvate/in attesa resp./in attesa admin</span>
+            <span className="text-violet-600 font-medium">P/P? = permesso approvato/in attesa · S/S? = straord. approvato/in attesa</span>
             {showGps && <span className="text-blue-600 font-medium">📍 Clicca su una cella verde per vedere i dettagli GPS</span>}
           </div>
         </div>
@@ -6050,17 +6189,18 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
                                 isF       ? `${emp.nome}: ferie approvate` :
                                 isPendResp? `${emp.nome}: ferie in attesa approv. responsabile (${fmtData(feriePendingRespMap[`${emp.id}_${d.str}`].dataInizio)}–${fmtData(feriePendingRespMap[`${emp.id}_${d.str}`].dataFine)})` :
                                 isPendDir ? `${emp.nome}: ferie approvate responsabile, in attesa admin` :
-                                t         ? `${emp.nome}: entrata ${t.ora}${pArr?' · Permesso '+pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', '):''}` :
+                                t         ? `${emp.nome}: entrata ${t.ora}${t.oraUscita?` · uscita ${t.oraUscita}`:''}${pArr?' · Permesso '+pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', '):''}` :
                                 isM       ? `${emp.nome}: malattia` :
                                 pArr      ? `${emp.nome}: permesso ${pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', ')}` :
                                 d.isFuture ? '' : d.isWeekend ? '' : `${emp.nome}: assente`
                               }
                               className={`relative mx-auto rounded-md transition-colors ${bg} ${pulseClass} ${d.isFuture&&!isM&&!pArr&&!isF&&!isPendResp&&!isPendDir?'opacity-40':''}`}
-                              style={{width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center'}}>
+                              style={{width:28, height:28, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
                               {isF       && <span className="text-white font-bold leading-none" style={{fontSize:10}}>F</span>}
                               {isPendResp && <span className="text-sky-600 font-bold leading-none" style={{fontSize:9}}>F?</span>}
                               {isPendDir  && <span className="text-sky-700 font-bold leading-none" style={{fontSize:9}}>F~</span>}
                               {!isF && !isPendResp && !isPendDir && t   && <span className="text-white text-xs font-bold leading-none" style={{fontSize:9}}>{t.ora}</span>}
+                              {!isF && !isPendResp && !isPendDir && t?.oraUscita && <span className="text-white font-bold leading-none opacity-80" style={{fontSize:7}}>{t.oraUscita}</span>}
                               {!isF && !isPendResp && !isPendDir && isM && <span className="text-white text-xs font-bold leading-none" style={{fontSize:10}}>M</span>}
                               {!isF && !isPendResp && !isPendDir && pArr && (
                                 <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-violet-500 border-2 border-white flex items-center justify-center" style={{fontSize:7, color:'white', fontWeight:'bold'}}>P</span>
@@ -6370,11 +6510,15 @@ function NotifichePage({ notifiche, employees, userId, userRole, onMarkRead, onM
         {}
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">👤 Dipendente</label>
-          <select value={filtroDip} onChange={e=>setFiltroDip(e.target.value)}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">— Tutti —</option>
-            {empInNotifiche.map(e=><option key={e.id} value={e.id}>{e.nome}</option>)}
-          </select>
+          {userRole === RUOLI.DIPENDENTE ? (
+            <p className="text-xs text-slate-700 font-semibold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">{empName(userId)}</p>
+          ) : (
+            <select value={filtroDip} onChange={e=>setFiltroDip(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">— Tutti —</option>
+              {empInNotifiche.map(e=><option key={e.id} value={e.id}>{e.nome}</option>)}
+            </select>
+          )}
         </div>
         {}
         <div>
@@ -6531,10 +6675,12 @@ function doPost(e) {
   }
 }`;
 
-function NotaSpeseForm({ onSave, onCancel }) {
+function NotaSpeseForm({ onSave, onCancel, anno, mese }) {
   const today = todayStr();
   const [form, setForm] = useState({ data: today, luogoTipo: 'sede', luogoTesto: '', natura: '', importo: '', note: '' });
   const [err, setErr] = useState({});
+  const mStr = anno && mese ? `${anno}-${String(mese).padStart(2,'0')}` : null;
+  const dataFuoriMese = mStr && form.data && !form.data.startsWith(mStr);
 
   const validate = () => {
     const e = {};
@@ -6569,8 +6715,9 @@ function NotaSpeseForm({ onSave, onCancel }) {
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Data spesa</label>
             <DateInput value={form.data} onChange={e => setForm(f => ({...f, data:e.target.value}))}
-              className={`w-full border rounded-xl px-4 py-3 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 ${err.data?'border-red-400':'border-slate-200'}`} />
+              className={`w-full border rounded-xl px-4 py-3 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 ${err.data?'border-red-400':dataFuoriMese?'border-amber-400':'border-slate-200'}`} />
             {err.data && <p className="text-red-400 text-xs mt-1">{err.data}</p>}
+            {dataFuoriMese && <p className="text-amber-600 text-xs mt-1">Non si possono inserire spese con la data selezionata e il mese visualizzato.</p>}
           </div>
           {}
           <div>
@@ -6588,9 +6735,12 @@ function NotaSpeseForm({ onSave, onCancel }) {
               </button>
             </div>
             {form.luogoTipo === 'altra' && (
-              <input type="text" placeholder="Es. Roma, Milano, Torino..." value={form.luogoTesto}
-                onChange={e => setForm(f => ({...f, luogoTesto:e.target.value}))}
-                className={`w-full border rounded-xl px-4 py-3 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 ${err.luogo?'border-red-400':'border-slate-200'}`} />
+              <>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Nome città <span className="text-red-500">*</span></label>
+                <input type="text" placeholder="Es. Roma, Milano, Torino..." value={form.luogoTesto}
+                  onChange={e => setForm(f => ({...f, luogoTesto:e.target.value}))}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 ${err.luogo?'border-red-400':'border-slate-200'}`} />
+              </>
             )}
             {err.luogo && <p className="text-red-400 text-xs mt-1">{err.luogo}</p>}
           </div>
@@ -6629,9 +6779,12 @@ function NotaSpeseForm({ onSave, onCancel }) {
               className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
           </div>
         </div>
+        <div className="px-4 pb-1">
+          {form.luogoTipo === 'altra' && <p className="text-xs text-red-400 mb-2"><span className="font-semibold">*</span> campo obbligatorio</p>}
+        </div>
         <div className="px-4 pb-5 flex gap-3">
           <button onClick={onCancel} className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 text-sm font-semibold">Annulla</button>
-          <button onClick={handleSave} className="flex-1 py-3 rounded-xl text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2" style={{background:'#1e3a6e'}}><Icon name="add" size={15} color="white"/> Aggiungi</button>
+          <button onClick={handleSave} disabled={!!dataFuoriMese} className="flex-1 py-3 rounded-xl text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed" style={{background:'#1e3a6e'}}><Icon name="add" size={15} color="white"/> Aggiungi</button>
         </div>
       </div>
     </div>
@@ -6927,7 +7080,7 @@ td.day{text-align:center;font-weight:bold;width:18px}td.num{text-align:right}td.
           </div>
         </div>
       )}
-      {showForm && <NotaSpeseForm onSave={handleAddVoce} onCancel={() => setShowForm(false)} />}
+      {showForm && <NotaSpeseForm onSave={handleAddVoce} onCancel={() => setShowForm(false)} anno={anno} mese={mese} />}
     </div>
   );
 }
@@ -7104,6 +7257,8 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
                   <div className="flex gap-2">
                     <button onClick={() => onSblocca(ns, emp)}
                       className="bg-amber-100 text-amber-700 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-200 transition-colors">🔓 Sblocca</button>
+                    <button onClick={() => handleStampaMaster(ns)}
+                      className="bg-blue-100 text-blue-700 border border-blue-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-200 transition-colors">🖨️ Stampa / Salva PDF</button>
                   </div>
                 </div>
 
@@ -7139,7 +7294,6 @@ td.day{text-align:center;font-weight:bold;width:16px}td.num{text-align:right}td.
                       <div className="flex justify-between py-1 border-b border-slate-600 md:col-start-2"><span className="text-slate-300">41425 — Acquisto materiali di consumo</span><span className="font-bold text-white">{fN(totCol('altri acquisti'))}</span></div>
                     </div>
                     <p className="text-slate-400 text-xs italic">F = FURGONI · D = DIPENDENTI · A = AMMINISTRATORI</p>
-                    <p className="text-slate-400 text-xs mt-2">💡 Stampa questa pagina dal browser per ottenere il report completo</p>
                   </div>
               </div>
             );
@@ -7914,17 +8068,17 @@ function Manutenzione({ settings, onSave, onBack, currentUserRole, employees, se
         { data:'2026-03-24', ora:'09:45', cliente:'Cliente Beta', note:'Verifica consegna' },
       ].map(g => ({ id:dId('g','5',g.data.replace(/-/g,'')), employee_id:'5', data:g.data, ora:g.ora, cliente:g.cliente, note:g.note, timestamp:ts(g.data,parseInt(g.ora),0) }));
       const noteSpeseRec = [
-        { id:dId('ns','3','202601'), employee_id:'3', anno:2026, mese:1, status:'chiusa', confirmed_at:ts('2026-02-02',9,0),  timestamp:ts('2026-02-02',9,0) },
-        { id:dId('ns','4','202601'), employee_id:'4', anno:2026, mese:1, status:'chiusa', confirmed_at:ts('2026-02-02',10,0), timestamp:ts('2026-02-02',10,0) },
-        { id:dId('ns','3','202602'), employee_id:'3', anno:2026, mese:2, status:'chiusa', confirmed_at:ts('2026-03-01',10,0), timestamp:ts('2026-03-01',10,0) },
-        { id:dId('ns','4','202602'), employee_id:'4', anno:2026, mese:2, status:'chiusa', confirmed_at:ts('2026-03-01',11,0), timestamp:ts('2026-03-01',11,0) },
-        { id:dId('ns','6','202602'), employee_id:'6', anno:2026, mese:2, status:'chiusa', confirmed_at:ts('2026-03-02',12,0), timestamp:ts('2026-03-02',12,0) },
-        { id:dId('ns','6','202603'), employee_id:'6', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',12,0), timestamp:ts('2026-03-28',12,0) },
-        { id:dId('ns','3','202603'), employee_id:'3', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',9,0),  timestamp:ts('2026-03-28',9,0) },
-        { id:dId('ns','5','202601'), employee_id:'5', anno:2026, mese:1, status:'chiusa', confirmed_at:ts('2026-02-02',11,0), timestamp:ts('2026-02-02',11,0) },
-        { id:dId('ns','5','202602'), employee_id:'5', anno:2026, mese:2, status:'chiusa', confirmed_at:ts('2026-03-02',9,0),  timestamp:ts('2026-03-02',9,0) },
-        { id:dId('ns','4','202603'), employee_id:'4', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',10,0), timestamp:ts('2026-03-28',10,0) },
-        { id:dId('ns','5','202603'), employee_id:'5', anno:2026, mese:3, status:'chiusa', confirmed_at:ts('2026-03-28',11,0), timestamp:ts('2026-03-28',11,0) },
+        { id:dId('ns','3','202601'), employee_id:'3', anno:2026, mese:1, status:'confermata', confirmed_at:ts('2026-02-02',9,0),  timestamp:ts('2026-02-02',9,0) },
+        { id:dId('ns','4','202601'), employee_id:'4', anno:2026, mese:1, status:'confermata', confirmed_at:ts('2026-02-02',10,0), timestamp:ts('2026-02-02',10,0) },
+        { id:dId('ns','3','202602'), employee_id:'3', anno:2026, mese:2, status:'confermata', confirmed_at:ts('2026-03-01',10,0), timestamp:ts('2026-03-01',10,0) },
+        { id:dId('ns','4','202602'), employee_id:'4', anno:2026, mese:2, status:'confermata', confirmed_at:ts('2026-03-01',11,0), timestamp:ts('2026-03-01',11,0) },
+        { id:dId('ns','6','202602'), employee_id:'6', anno:2026, mese:2, status:'confermata', confirmed_at:ts('2026-03-02',12,0), timestamp:ts('2026-03-02',12,0) },
+        { id:dId('ns','6','202603'), employee_id:'6', anno:2026, mese:3, status:'confermata', confirmed_at:ts('2026-03-28',12,0), timestamp:ts('2026-03-28',12,0) },
+        { id:dId('ns','3','202603'), employee_id:'3', anno:2026, mese:3, status:'confermata', confirmed_at:ts('2026-03-28',9,0),  timestamp:ts('2026-03-28',9,0) },
+        { id:dId('ns','5','202601'), employee_id:'5', anno:2026, mese:1, status:'confermata', confirmed_at:ts('2026-02-02',11,0), timestamp:ts('2026-02-02',11,0) },
+        { id:dId('ns','5','202602'), employee_id:'5', anno:2026, mese:2, status:'confermata', confirmed_at:ts('2026-03-02',9,0),  timestamp:ts('2026-03-02',9,0) },
+        { id:dId('ns','4','202603'), employee_id:'4', anno:2026, mese:3, status:'confermata', confirmed_at:ts('2026-03-28',10,0), timestamp:ts('2026-03-28',10,0) },
+        { id:dId('ns','5','202603'), employee_id:'5', anno:2026, mese:3, status:'confermata', confirmed_at:ts('2026-03-28',11,0), timestamp:ts('2026-03-28',11,0) },
       ];
       const noteSpeseVociRec = [
         // Sardo – Gennaio: Torino + Trento (riunione interna)
@@ -10946,7 +11100,7 @@ function App() {
           canEdit={false} currentUserRole={r} onEdit={()=>{}} onDelete={()=>{}} onToggleGps={()=>{}} onToggleAccesso={()=>{}} onToggleReperibile={()=>{}} onToggleNuovaPassword={()=>{}} onToggleStraordinario={()=>{}}
           onBack={()=>goTo('dashboard')} />;
       case 'timbratura':
-        return <Timbratura user={user} timbrature={timbrature} setTimbrature={setTimbrature} onTimbratura={handleTimbratura} onStraordinario={handleStraordinario} settings={settings} straordinari={straordinari} />;
+        return <Timbratura user={user} timbrature={timbrature} setTimbrature={setTimbrature} onTimbratura={handleTimbratura} onStraordinario={handleStraordinario} settings={settings} straordinari={straordinari} permessi={permessi} employees={employees} creaNotifica={creaNotifica} setView={setView} />;
       case 'malattia':
         return <Malattia user={user} employees={employees} malattie={malattie} setMalattie={setMalattie} onMalattia={handleMalattia} />;
       case 'mie-presenze':
@@ -10955,12 +11109,12 @@ function App() {
         return <MieiStraordinari user={user} straordinari={straordinari} employees={employees} setStraordinari={setStraordinari} onRichiesta={handleRichiestaStraordinario} />;
       case 'report':
         if (!canSeeReport(r)) return null;
-        return <Report employees={employees} timbrature={timbrature} malattie={malattie} permessi={permessi} ferie={ferie} reperibilita={reperibilita} gestioniTelefoniche={gestioniTelefoniche} straordinari={straordinari} userRole={r} settings={settings} />;
+        return <Report employees={employees} timbrature={timbrature} malattie={malattie} permessi={permessi} ferie={ferie} reperibilita={reperibilita} gestioniTelefoniche={gestioniTelefoniche} straordinari={straordinari} userRole={r} settings={settings} user={user} />;
       case 'calendario-team':
         if (!['direttore','responsabile'].includes(r)) { goTo('dashboard'); return null; }
         return <CalendarioTeam user={user} employees={employees} timbrature={timbrature} malattie={malattie} permessi={permessi} ferie={ferie} reperibilita={reperibilita} gestioniTelefoniche={gestioniTelefoniche} straordinari={straordinari} />;
       case 'permessi':
-        return <PermessiOrari user={user} employees={employees} permessi={permessi} setPermessi={setPermessi} onRichiesta={handlePermessoRichiesta} onCancella={handleCancellaPermesso} />;
+        return <PermessiOrari user={user} employees={employees} permessi={permessi} setPermessi={setPermessi} onRichiesta={handlePermessoRichiesta} onCancella={handleCancellaPermesso} settings={settings} />;
       case 'ferie':
         return <Ferie user={user} employees={employees} ferie={ferie} setFerie={setFerie} onRichiesta={handleFerieRichiesta} />;
       case 'gestioni-tel':
