@@ -416,7 +416,7 @@ const saveData  = (key, data)     => { try { localStorage.setItem(key, JSON.stri
 
 const DATA_VERSION = 6;
 
-const APP_VERSION = '2026-03-29-072';
+const APP_VERSION = '2026-03-29-073';
 
 const CREDITS = [
   {
@@ -690,6 +690,11 @@ const CHANGELOG = [
     version: '2026-03-28-044',
     data: '28/03/2026',
     descrizione: 'Fix caricamento dati demo: sostituiti tutti gli insert con upsert+onConflict:id e controllo errori esplicito. In precedenza Supabase JS v2 restituiva {data,error} senza lanciare eccezioni, quindi insert falliti (es. duplicate key su timbrature) venivano ignorati silenziosamente. Ora qualsiasi errore viene propagato e mostrato all\'utente.'
+  },
+  {
+    version: '2026-03-29-073',
+    data: '29/03/2026',
+    descrizione: 'Report Presenze (entrambe le griglie): celle calendario ingrandite da 28×28 a 36×36px, colonne da 36px a 44px, minWidth tabella aggiornato. Le etichette E/U con orari sono ora più leggibili.'
   },
   {
     version: '2026-03-29-072',
@@ -5791,7 +5796,7 @@ ${blocchi}
         {}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="border-collapse" style={{minWidth: `${Math.max(600, 160 + daysInMonth*38)}px`}}>
+            <table className="border-collapse" style={{minWidth: `${Math.max(700, 160 + daysInMonth*44)}px`}}>
               <thead>
                 {}
                 <tr className="bg-slate-50">
@@ -5800,7 +5805,7 @@ ${blocchi}
                   </th>
                   {days.map(d => (
                     <th key={d.str}
-                      className={`py-2 px-0 text-center border-b border-slate-100 min-w-[36px] w-[36px]
+                      className={`py-2 px-0 text-center border-b border-slate-100 min-w-[44px] w-[44px]
                         ${d.isWeekend ? 'bg-slate-200' : 'bg-slate-50'}
                         ${d.str===today ? 'bg-blue-50' : ''}`}>
                       <div className={`text-xs font-medium ${d.isWeekend?'text-slate-400':'text-slate-500'} ${d.str===today?'text-blue-600':''}`}>
@@ -5858,7 +5863,7 @@ ${blocchi}
                               onClick={e => { e.stopPropagation(); if(!isF && !isPendResp && !isPendDir) handleCell(e, emp, d); }}
                               title={(isF ? `${emp.nome}: ferie` : isPendResp ? `${emp.nome}: ferie in attesa approv. responsabile` : isPendDir ? `${emp.nome}: ferie approvate responsabile, in attesa admin` : t ? `${emp.nome}: entrata ${t.ora}${t.oraUscita?` · uscita ${t.oraUscita}`:''}${pArr?' · permesso '+pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', '):''}` : isM ? `${emp.nome}: malattia` : pArr ? `${emp.nome}: permesso ${pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', ')}` : d.isFuture ? '' : `${emp.nome}: assente`)+(isRep?' · 🔴 Reperibilità':'')+(gestArr?` · 📞 ${gestArr.length} gest.: ${gestArr.map(g=>g.cliente).join(', ')}`:'' )+(straArr?` · ⌚ Stra.: ${straArr.map(s=>s.tipo+' '+s.minuti+'min').join(', ')}`:(straArrPend?' · ⌚ Stra. (att.)':''))}
                               className={`relative mx-auto rounded-md transition-colors ${bg} ${pulseClass} ${isRep?'border-b-[6px] border-purple-500':''} ${d.isFuture&&!isM&&!pArr&&!isF&&!isPendResp&&!isPendDir?'opacity-40':d.isFuture&&(pArr||isF)?'opacity-70':''}`}
-                              style={{width:28, height:28, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                              style={{width:36, height:36, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
                               {isF       && <span className="text-white font-bold leading-none" style={{fontSize:10}}>F</span>}
                               {isPendResp && <span className="text-sky-600 font-bold leading-none" style={{fontSize:9}}>F?</span>}
                               {isPendDir  && <span className="text-sky-700 font-bold leading-none" style={{fontSize:9}}>F~</span>}
@@ -6164,7 +6169,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
                   </th>
                   {days.map(d => (
                     <th key={d.str}
-                      className={`py-2 px-0 text-center border-b border-slate-100 min-w-[36px] w-[36px]
+                      className={`py-2 px-0 text-center border-b border-slate-100 min-w-[44px] w-[44px]
                         ${d.isWeekend ? 'bg-slate-200' : 'bg-slate-50'}
                         ${d.str===today ? 'bg-blue-50' : ''}`}>
                       <div className={`text-xs font-medium ${d.isWeekend?'text-slate-400':'text-slate-500'} ${d.str===today?'text-blue-600':''}`}>
@@ -6227,7 +6232,7 @@ function CalendarioTeam({ user, employees, timbrature, malattie, permessi, ferie
                                 pArr      ? `${emp.nome}: permesso ${pArr.map(p=>p.oraInizio+'–'+p.oraFine).join(', ')}` :
                                 d.isFuture ? '' : d.isWeekend ? '' : `${emp.nome}: assente`)+(straArr?` · ⌚ Stra.: ${straArr.map(s=>s.tipo+' '+s.minuti+'min').join(', ')}`:'')}
                               className={`relative mx-auto rounded-md transition-colors ${bg} ${pulseClass} ${d.isFuture&&!isM&&!pArr&&!isF&&!isPendResp&&!isPendDir?'opacity-40':''}`}
-                              style={{width:28, height:28, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                              style={{width:36, height:36, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
                               {isF       && <span className="text-white font-bold leading-none" style={{fontSize:10}}>F</span>}
                               {isPendResp && <span className="text-sky-600 font-bold leading-none" style={{fontSize:9}}>F?</span>}
                               {isPendDir  && <span className="text-sky-700 font-bold leading-none" style={{fontSize:9}}>F~</span>}
