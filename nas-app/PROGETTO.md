@@ -2,7 +2,7 @@
 
 **Hardware:** QNAP TS-231P2 (processore ARM Cortex-A15, 1 GB RAM, 2 bay)  
 **Data:** 2026-05-01  
-**Versione documento:** 1.0
+**Versione documento:** 1.1
 
 ---
 
@@ -16,6 +16,8 @@ per la gestione del NAS, offrendo:
 - Accesso sicuro anche dall'esterno della rete di casa
 - Notifiche automatiche in caso di problemi ai dischi o allo storage
 - Gestione e riavvio automatico del software
+- Backup automatico delle foto dal telefono al NAS
+- Condivisione diretta di file dal telefono/PC al NAS tramite menu "Condividi"
 
 ---
 
@@ -161,7 +163,49 @@ Due canali paralleli per le notifiche:
 - Gestione link di condivisione attivi
 - Cambio password di accesso all'app
 
-### 5.6 Gestione riavvii
+### 5.6 Backup Foto dal Telefono
+
+La PWA offre due modalità di backup delle foto:
+
+**Manuale (tutti i dispositivi):**
+- Pulsante "Backup foto" nell'app
+- Selezione foto dalla galleria del telefono
+- Upload nella cartella di destinazione configurata (es. `/Foto/Backup iPhone`)
+- Indicatore di progresso per caricamenti multipli
+
+**Automatico in background (Android, Chrome):**
+- Usa la **Periodic Background Sync API** del browser
+- L'app controlla periodicamente la presenza di nuove foto (anche con app chiusa)
+- Le foto nuove vengono caricate automaticamente senza intervento dell'utente
+- Configurabile: frequenza di sync, cartella di destinazione, solo Wi-Fi o anche dati
+
+**Semi-automatico (iPhone, Safari):**
+- Safari non supporta il background sync completo
+- All'apertura dell'app viene mostrata la notifica: "X foto nuove trovate, vuoi caricarle?"
+- Un solo tap avvia il backup
+- Funziona con la PWA installata da Safari (iOS 16.4+)
+
+### 5.7 Condivisione Diretta al NAS (Share Sheet)
+
+La PWA è registrata come destinazione nel menu **"Condividi"** del sistema operativo,
+esattamente come Google Drive o WhatsApp.
+
+**Come funziona:**
+1. Su qualsiasi app (browser, email, lettore PDF, Foto, ecc.) toccare **"Condividi"**
+2. Scegliere **"NAS App"** dalla lista
+3. L'app si apre mostrando un selettore di cartella di destinazione
+4. Confermare → il file viene salvato direttamente sul NAS
+
+**Tipi di file supportati:** immagini, PDF, video, documenti, link, testo
+**Compatibilità:**
+- Android Chrome: funziona appena la PWA è installata
+- iPhone Safari: funziona con PWA installata (iOS 16.4+)
+- PC Windows (Chrome/Edge): supportato via Web Share Target API
+
+**Cartelle rapide:** possibilità di impostare fino a 3 cartelle preferite
+accessibili con un tap nel selettore di destinazione.
+
+### 5.8 Gestione riavvii
 - `restart: always` su tutti i container Docker: l'app riparte automaticamente
   dopo un crash o dopo un riavvio del NAS
 - Riavvio manuale disponibile dal pannello admin dell'interfaccia web
@@ -326,6 +370,8 @@ L'applicazione è una **PWA (Progressive Web App)**. Per usarla:
 | Upload file | Multer | — |
 | Email | Nodemailer | — |
 | Notifiche Push | web-push | — |
+| Backup foto | Periodic Background Sync API | — |
+| Share Sheet | Web Share Target API | — |
 | Container | Docker (ARM linux/arm/v7) | — |
 | Tunnel | cloudflared | latest |
 | Accesso remoto | Cloudflare Tunnel | Free plan |
@@ -384,6 +430,8 @@ nas-app/
             ├── UploadZone.jsx
             ├── MediaPlayer.jsx
             ├── ShareModal.jsx
+            ├── PhotoBackup.jsx
+            ├── ShareTarget.jsx
             ├── SystemDashboard.jsx
             └── AdminPanel.jsx
 ```
@@ -423,6 +471,10 @@ CLOUDFLARE_TOKEN=eyJhIjoiMT...
 ALERT_STORAGE_WARN=80            # % spazio → warning
 ALERT_STORAGE_CRIT=90            # % spazio → critical
 ALERT_TEMP_WARN=55               # °C temperatura disco → warning
+
+# Backup foto
+PHOTO_BACKUP_PATH=/Multimedia/Foto/Backup  # cartella di destinazione sul NAS
+PHOTO_BACKUP_WIFI_ONLY=true                # backup solo su Wi-Fi (true/false)
 ```
 
 ---
