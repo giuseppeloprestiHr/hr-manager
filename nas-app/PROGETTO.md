@@ -495,4 +495,16 @@ PHOTO_BACKUP_WIFI_ONLY=true                # backup solo su Wi-Fi (true/false)
 
 - **Backup configurazione:** il file `.env` e il database SQLite (`data/db.sqlite`)
   vanno inclusi nei backup del NAS. Senza `.env` non è possibile riaccedere all'app.
-```
+
+- **Portabilità e cambio NAS futuro:** l'app è progettata con uno strato di separazione
+  tra la logica applicativa e le API specifiche del NAS. Tutto ciò che riguarda la
+  comunicazione con il QNAP è isolato nel file `backend/lib/qnap.js`. Se in futuro
+  si cambia marca (es. Synology, Terramaster), sarà sufficiente creare un file
+  equivalente senza toccare il resto dell'app. L'obiettivo è rendere un eventuale
+  cambio marca un lavoro di poche ore, non un rifacimento completo.
+
+  | Scenario | Impatto sull'app |
+  |---|---|
+  | Disco più grande, stesso NAS | Nessuno |
+  | NAS nuovo, stesso brand QNAP | 10 minuti (copia 3 file, aggiorna IP) |
+  | NAS nuovo, marca diversa | Qualche ora (solo file `backend/lib/qnap.js`) |
